@@ -4,6 +4,8 @@ import { addRelativeTimeToVideos } from '../utils/dateUtils.js';
 
 const CACHE_DURATION = 12 * 60 * 1000;
 const VIDEO_LIMIT = 10;
+const MAX_CACHE_SIZE = 100;
+const FETCH_TIMEOUT = 10000;
 const cache = new Map<string, { data: ChannelFeedData; timestamp: number }>();
 const pendingRequests = new Map<string, Promise<ChannelFeedData>>();
 
@@ -44,6 +46,10 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
 
   try {
     const data = await promise;
+    if (cache.size >= MAX_CACHE_SIZE) {
+      const firstKey = cache.keys().next().value;
+      if (firstKey) cache.delete(firstKey);
+    }
     cache.set(channelId, {
       data: {
         channelName: data.channelName,

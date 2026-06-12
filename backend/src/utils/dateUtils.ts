@@ -1,3 +1,5 @@
+import { VideoData } from '../types/index.js';
+
 export function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
@@ -30,8 +32,6 @@ export function formatRelativeTime(dateString: string): string {
   }
   return diffYears === 1 ? 'a year ago' : `${diffYears} years ago`;
 }
-
-import { VideoData } from '../types/index.js';
 
 export function addRelativeTimeToVideos(videos: VideoData[]): VideoData[] {
   return videos.map(video => ({
