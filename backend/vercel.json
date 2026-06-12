@@ -3,12 +3,12 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "functions": {
-    "dist/utils/vercel.js": {
+    "dist/vercel.js": {
       "maxDuration": 30,
       "memory": 1024
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/dist/utils/vercel.js" }
+    { "source": "/(.*)", "destination": "/dist/vercel.js" }
   ]
 }

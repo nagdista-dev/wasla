@@ -4,10 +4,10 @@
   "description": "",
   
   
-  "scripts": {
+ "scripts": {
     "build": "tsc",
-    "start": "node dist/utils/vercel.js",
-    "dev": "tsx watch src/utils/vercel.ts"
+    "start": "node dist/vercel.js",
+    "dev": "tsx watch src/vercel.ts"
   }
 ,
   "keywords": [],
