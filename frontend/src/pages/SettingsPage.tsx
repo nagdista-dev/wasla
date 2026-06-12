@@ -1,17 +1,15 @@
 import React from 'react';
 import { Settings } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import type { Channel } from '../types';
 
-export default function SettingsPage() {
+interface SettingsPageProps {
+  channels: Channel[];
+  onUpdate: (channels: Channel[]) => void;
+}
+
+export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) {
   const { language, setLanguage, isRTL } = useLanguage();
-  const [channels, setChannels] = React.useState<any[]>(() => {
-    const stored = localStorage.getItem('wasla_channels');
-    return stored ? JSON.parse(stored) : [];
-  });
-
-  React.useEffect(() => {
-    localStorage.setItem('wasla_channels', JSON.stringify(channels));
-  }, [channels]);
 
   const exportChannels = () => {
     const dataStr = JSON.stringify(channels, null, 2);
@@ -35,11 +33,12 @@ export default function SettingsPage() {
         const usernames = JSON.parse(event.target?.result as string);
         if (Array.isArray(usernames)) {
           const newChannels = usernames.map((u) => ({
+            id: crypto.randomUUID(),
             name: u,
-            classification: 'unknown',
-            username: u,
+            handle: u,
+            categories: [],
           }));
-          setChannels((prev) => [...prev, ...newChannels]);
+          onUpdate([...channels, ...newChannels]);
         } else {
           console.error('Usernames JSON should be an array');
         }
@@ -57,7 +56,7 @@ export default function SettingsPage() {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
-        setChannels(json);
+        onUpdate(json);
       } catch (err) {
         console.error('Invalid JSON file');
       }
