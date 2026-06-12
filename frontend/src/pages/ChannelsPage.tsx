@@ -1,17 +1,34 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 import FloatingButton from '../components/FloatingButton';
 import AddChannelModal from '../components/AddChannelModal';
+import EditChannelModal from '../components/EditChannelModal';
 import type { Channel } from '../types';
 
 interface ChannelsPageProps {
   channels: Channel[];
   onAdd: (entry: Channel) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, name: string, categories: string[]) => void;
 }
 
-export default function ChannelsPage({ channels, onAdd, onDelete }: ChannelsPageProps) {
+export default function ChannelsPage({ channels, onAdd, onDelete, onUpdate }: ChannelsPageProps) {
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+
+  const handleEdit = (channel: Channel) => {
+    setEditingChannel(channel);
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = (name: string, categories: string[]) => {
+    if (editingChannel) {
+      onUpdate(editingChannel.id, name, categories);
+      setShowEditModal(false);
+      setEditingChannel(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -58,13 +75,23 @@ export default function ChannelsPage({ channels, onAdd, onDelete }: ChannelsPage
                     )}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onDelete(channel.id)}
-                  className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                >
-                  Delete
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleEdit(channel)}
+                    className="flex items-center gap-1 rounded-lg border border-blue-200 px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDelete(channel.id)}
+                    className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -72,6 +99,16 @@ export default function ChannelsPage({ channels, onAdd, onDelete }: ChannelsPage
       </div>
       <FloatingButton onClick={() => setShowModal(true)} />
       {showModal && <AddChannelModal onClose={() => setShowModal(false)} onAdd={onAdd} />}
+      {showEditModal && editingChannel && (
+        <EditChannelModal
+          channel={editingChannel}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingChannel(null);
+          }}
+          onUpdate={handleUpdate}
+        />
+      )}
     </div>
   );
 }

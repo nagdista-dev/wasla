@@ -22,8 +22,14 @@ export interface ChannelResponse {
 }
 
 export interface CacheEntry {
+  id: string;
   data: ChannelFeedData;
   timestamp: number;
+}
+
+export interface UpdateChannelRequest {
+  name: string;
+  categories?: string[];
 }
 
 // Force emission of JS file

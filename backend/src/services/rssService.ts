@@ -6,7 +6,7 @@ const CACHE_DURATION = 12 * 60 * 1000;
 const VIDEO_LIMIT = 10;
 const MAX_CACHE_SIZE = 100;
 const FETCH_TIMEOUT = 10000;
-const cache = new Map<string, { data: ChannelFeedData; timestamp: number }>();
+const cache = new Map<string, { id: string; data: ChannelFeedData; timestamp: number }>();
 const pendingRequests = new Map<string, Promise<ChannelFeedData>>();
 
 function getString(value: unknown): string | undefined {
@@ -53,6 +53,7 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
       if (firstKey) cache.delete(firstKey);
     }
     cache.set(channelId, {
+      id: channelId,
       data: {
         channelName: data.channelName,
         latestVideo: { ...data.latestVideo },
@@ -135,10 +136,10 @@ export function clearCache(): void {
   pendingRequests.clear();
 }
 
-export function getCacheStats(): { size: number; entries: string[] } {
+export function getCacheStats(): { size: number; entries: Array<{ id: string; data: ChannelFeedData }> } {
   return {
     size: cache.size,
-    entries: Array.from(cache.keys()),
+    entries: Array.from(cache.values()),
   };
 }
 

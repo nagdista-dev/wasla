@@ -12,7 +12,7 @@ import { loadChannels, saveChannels } from './storage';
 import { useLanguage } from './context/LanguageContext';
 
 function Navigation() {
-  const { language, setLanguage, isRTL: _isRTL } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/channels', label: 'Channels', icon: Users },
@@ -81,6 +81,13 @@ function App() {
     updateChannels(nextChannels);
   };
 
+  const handleUpdateChannel = (id: string, name: string, categories: string[]) => {
+    const nextChannels = channels.map((channel) =>
+      channel.id === id ? { ...channel, name, categories } : channel
+    );
+    updateChannels(nextChannels);
+  };
+
   return (
     <BrowserRouter>
       <div className="flex min-h-screen flex-col">
@@ -98,6 +105,7 @@ function App() {
                     setShowModal(false);
                   }}
                   onDelete={handleDeleteChannel}
+                  onUpdate={handleUpdateChannel}
                 />
               }
             />

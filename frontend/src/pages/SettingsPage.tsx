@@ -42,7 +42,7 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
         } else {
           console.error('Usernames JSON should be an array');
         }
-      } catch (err) {
+      } catch {
         console.error('Invalid JSON file');
       }
     };
@@ -57,7 +57,7 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
       try {
         const json = JSON.parse(event.target?.result as string);
         onUpdate(json);
-      } catch (err) {
+      } catch {
         console.error('Invalid JSON file');
       }
     };
