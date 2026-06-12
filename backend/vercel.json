@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "buildCommand": "cd backend && npm run build",
+  "installCommand": "cd backend && npm install",
   "functions": {
-    "dist/vercel.js": {
+    "backend/dist/vercel.js": {
       "maxDuration": 30,
       "memory": 1024
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/dist/vercel.js" }
+    { "source": "/(.*)", "destination": "/backend/dist/vercel.js" }
   ]
 }

@@ -43,7 +43,7 @@ const extractHandle = (value: string): string | null => {
 };
 
 export default function AddChannelModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ch: ChannelEntry) => void }) {
-  const { showToast } = useToast();
+  useToast();
   const [input, setInput] = useState('');
   const [customName, setCustomName] = useState('');
   const [categoryInput, setCategoryInput] = useState('');
