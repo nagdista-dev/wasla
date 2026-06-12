@@ -1,7 +1,6 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "main": "dist/index.js",
   "framework": "node",
   "functions": {
     "dist/index.js": {
