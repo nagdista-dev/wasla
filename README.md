@@ -95,6 +95,7 @@ npm run start
 | GET | `/api/health` | Backend status |
 | GET | `/api/channel/:identifier` | Fetch channel data (ID, @handle, or URL) |
 | GET | `/api/resolve/:identifier` | Resolve channel identifier to UC ID |
+| PATCH | `/api/channel/:id` | Update channel name and categories |
 | DELETE | `/api/cache` | Clear server cache |
 | GET | `/api/cache/stats` | View cache statistics |
 
