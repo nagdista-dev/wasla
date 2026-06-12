@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { X, RefreshCcw, Loader2 } from 'lucide-react';
+import { useToast } from './Toast';
 
 interface ChannelEntry {
   id: string;
@@ -42,6 +43,7 @@ const extractHandle = (value: string): string | null => {
 };
 
 export default function AddChannelModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ch: ChannelEntry) => void }) {
+  const { showToast } = useToast();
   const [input, setInput] = useState('');
   const [customName, setCustomName] = useState('');
   const [categoryInput, setCategoryInput] = useState('');
