@@ -5,7 +5,7 @@
   
   
  "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "start": "node dist/vercel.js",
     "dev": "tsx watch src/vercel.ts"
   }
