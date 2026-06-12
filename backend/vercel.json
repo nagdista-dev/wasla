@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "framework": "node",
   "functions": {
-    "dist/index.js": {
+    "vercel.js": {
       "maxDuration": 30
     }
   }
