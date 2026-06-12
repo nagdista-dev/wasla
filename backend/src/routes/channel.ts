@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/channel/:identifier', async (req: Request, res: Response) => {
   try {
-    const identifier = req.params.identifier as string;
+    const identifier = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
 
     if (!identifier) {
       const response: ChannelResponse = {
@@ -17,7 +17,7 @@ router.get('/channel/:identifier', async (req: Request, res: Response) => {
     }
 
     let channelId = identifier;
-    if (!identifier.startsWith('UC')) {
+    if (!identifier.startsWith('UC') || identifier.length !== 24) {
       const resolved = await resolveChannelId(identifier);
       if (!resolved) {
         const response: ChannelResponse = {
@@ -37,7 +37,8 @@ router.get('/channel/:identifier', async (req: Request, res: Response) => {
     };
     res.json(response);
   } catch (error) {
-    console.error(`Error fetching channel ${req.params.identifier}:`, error);
+    const id = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
+    console.error(`Error fetching channel ${id}:`, error);
     const response: ChannelResponse = {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch channel data',
@@ -48,7 +49,7 @@ router.get('/channel/:identifier', async (req: Request, res: Response) => {
 
 router.get('/resolve/:identifier', async (req: Request, res: Response) => {
   try {
-    const identifier = req.params.identifier as string;
+    const identifier = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
     const channelId = await resolveChannelId(identifier);
     
     if (!channelId) {

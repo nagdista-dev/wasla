@@ -10,7 +10,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://wasla-alpha.vercel.app",
-  /https:\/\/wasla-.*\.vercel\.app$/,
+  /^https:\/\/wasla-[a-z0-9-]+\.vercel\.app$/,
 ];
 
 const corsOptions = {
