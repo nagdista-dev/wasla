@@ -7,7 +7,15 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://wasla-alpha.vercel.app',
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get('/api/hello', (req, res) => {
