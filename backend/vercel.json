@@ -1,10 +1,14 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "node",
+  "installCommand": "npm install",
   "functions": {
-    "vercel.js": {
-      "maxDuration": 30
+    "dist/utils/vercel.js": {
+      "maxDuration": 30,
+      "memory": 1024
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/dist/utils/vercel.js" }
+  ]
 }
