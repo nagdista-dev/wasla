@@ -17,12 +17,14 @@ function getString(value: unknown): string | undefined {
 
 function getLink(value: unknown, fallback: string): string {
   if (Array.isArray(value)) return getString(value[0]?.$?.href) || fallback;
-  return getString((value as { $?: { href?: string } })?.$?.href) || fallback;
+  const obj = value as { $?: { href?: string } } | undefined;
+  return getString(obj?.$?.href) || fallback;
 }
 
 function getThumbnail(value: unknown): string | undefined {
   if (Array.isArray(value)) return getString(value[0]?.$?.url);
-  return getString((value as { $?: { url?: string } })?.$?.url);
+  const obj = value as { $?: { url?: string } } | undefined;
+  return getString(obj?.$?.url);
 }
 
 export async function fetchChannelData(channelId: string): Promise<ChannelFeedData> {
@@ -67,12 +69,18 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
 async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
   const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
   const response = await fetch(url, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
       Accept: 'application/xml, text/xml, */*',
     },
+    signal: controller.signal,
   });
+
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
@@ -172,12 +180,18 @@ async function fetchChannelIdFromHtml(handle: string): Promise<string | null> {
     ];
 
     for (const url of urls) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
           Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) continue;
 
