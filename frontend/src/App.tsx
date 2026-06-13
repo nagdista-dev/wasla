@@ -9,6 +9,7 @@ import ChannelPage from './pages/ChannelPage';
 import CategoryPage from './pages/CategoryPage';
 import SettingsPage from './pages/SettingsPage';
 import PlaylistsPage from './pages/PlaylistsPage';
+import MobileAppBanner from './components/MobileAppBanner';
 import type { Channel } from './types';
 import { loadChannels, saveChannels } from './storage';
 import { useLanguage } from './context/LanguageContext';
@@ -230,6 +231,7 @@ function App() {
         </main>
         <FloatingButton onClick={() => setShowModal(true)} />
         {showModal && <AddChannelModal onClose={() => setShowModal(false)} onAdd={handleAddChannel} existingCategories={Array.from(new Set(channels.flatMap(c => c.categories)))} />}
+        <MobileAppBanner />
       </div>
     </BrowserRouter>
   );
