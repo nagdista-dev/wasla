@@ -5,6 +5,8 @@ export interface VideoData {
   publishedDate: string;
   channelName: string;
   relativeTime?: string;
+  views?: number;
+  duration?: string;
 }
 
 export interface ChannelFeedData {
@@ -12,6 +14,20 @@ export interface ChannelFeedData {
   videos: VideoData[];
   latestVideo: VideoData;
   cached?: boolean;
+}
+
+export interface ChannelDetails {
+  channelName: string;
+  handle?: string;
+  avatar?: string;
+  banner?: string;
+  videos: VideoData[];
+}
+
+export interface ChannelDetailsResponse {
+  success: boolean;
+  data?: ChannelDetails;
+  error?: string;
 }
 
 export interface ChannelResponse {

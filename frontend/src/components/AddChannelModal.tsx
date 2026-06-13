@@ -42,15 +42,11 @@ const extractHandle = (value: string): string | null => {
   return null;
 };
 
-export default function AddChannelModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ch: ChannelEntry) => void }) {
-  useToast();
+export default function AddChannelModal({ onClose, onAdd, existingCategories = [] }: { onClose: () => void; onAdd: (ch: ChannelEntry) => void; existingCategories?: string[] }) {
+  const { showToast } = useToast();
   const [input, setInput] = useState('');
   const [customName, setCustomName] = useState('');
   const [categoryInput, setCategoryInput] = useState('');
-  const [prevCategories, setPrevCategories] = useState<string[]>(() => {
-    const stored = localStorage.getItem('prevCategories');
-    return stored ? JSON.parse(stored) : [];
-  });
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [isResolving, setIsResolving] = useState(false);
 
@@ -85,7 +81,7 @@ export default function AddChannelModal({ onClose, onAdd }: { onClose: () => voi
           setCustomName('');
         }
       } catch (error) {
-        console.error(error);
+        showToast('Failed to resolve channel. Check the URL or handle.', 'error');
         setResolvedId(null);
         setCustomName('');
       } finally {
@@ -117,7 +113,7 @@ export default function AddChannelModal({ onClose, onAdd }: { onClose: () => voi
         }
       }
     } catch (error) {
-      console.error(error);
+      showToast('Failed to refresh channel name.', 'error');
     } finally {
       setIsResolving(false);
     }
@@ -134,33 +130,39 @@ export default function AddChannelModal({ onClose, onAdd }: { onClose: () => voi
       categories: categoryInput ? categoryInput.split(',').map((category) => category.trim()).filter(Boolean) : [],
     };
 
-    const updatedPrev = Array.from(new Set([...prevCategories, ...entry.categories]));
-    localStorage.setItem('prevCategories', JSON.stringify(updatedPrev));
+    const updatedPrev = Array.from(new Set([...entry.categories]));
     onAdd(entry);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
-      <div className="relative w-full max-w-md rounded-lg bg-white p-6">
-        <button type="button" onClick={onClose} className="absolute top-2 rtl:left-2 ltr:right-2 text-gray-500">
-          <X className="h-5 w-5" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
+        <button type="button" onClick={onClose} className="absolute top-3 rtl:left-3 ltr:right-3 rounded-full bg-gray-100 p-1.5 text-gray-500 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20">
+          <X className="h-4 w-4" />
         </button>
-        <h2 className="mb-4 text-xl font-semibold">Add Channel</h2>
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">Add Channel</h2>
         <input
           placeholder="Channel URL, @handle, or ID"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          className="mb-2 w-full border p-2"
+          className="mb-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
         />
-        <div className="mb-2 flex items-center">
+        <div className="mb-2 relative">
           <input
             placeholder="Channel Name"
             value={customName}
             onChange={(event) => setCustomName(event.target.value)}
-            className="flex-1 border p-2"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
           />
-          <button type="button" onClick={refreshName} className="rtl:mr-2 ltr:ml-2 text-gray-600" title="Refresh name" disabled={isResolving}>
+          <button
+            type="button"
+            onClick={refreshName}
+            disabled={isResolving}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
+            title="Refresh name"
+          >
             {isResolving ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCcw className="h-5 w-5" />}
           </button>
         </div>
@@ -174,31 +176,43 @@ export default function AddChannelModal({ onClose, onAdd }: { onClose: () => voi
           onKeyDown={(event) => {
             if (event.key === 'Enter' && categoryInput.trim()) {
               event.preventDefault();
-              const newCat = categoryInput.trim();
-              setPrevCategories((prev) => Array.from(new Set([...prev, newCat])));
-              setCategoryInput('');
+              setCategoryInput((prev) => prev + (prev ? ', ' : '') + categoryInput.trim());
             }
           }}
-          className="mb-2 w-full border p-2"
+          className="mb-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
         />
-        {prevCategories.length > 0 && (
+        {existingCategories.length > 0 && (
           <div className="mb-2">
-            <p className="mb-1 text-sm text-gray-600">Quick categories:</p>
-            <div className="flex flex-wrap gap-1">
-              {prevCategories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setCategoryInput((prev) => (prev ? `${prev} ${category}` : category))}
-                  className="rounded bg-gray-200 px-2 py-1 text-sm"
-                >
-                  {category}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+              {existingCategories.map((cat) => {
+                const active = categoryInput.split(',').map(c => c.trim()).includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      const current = categoryInput ? categoryInput.split(',').map(c => c.trim()).filter(Boolean) : [];
+                      if (current.includes(cat)) {
+                        setCategoryInput(current.filter(c => c !== cat).join(', '));
+                      } else {
+                        setCategoryInput([...current, cat].join(', '));
+                      }
+                    }}
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition ${
+                      active
+                        ? 'bg-brand-coral text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20'
+                    }`}
+                  >
+                    {active ? null : <span className="text-base leading-none">+</span>}
+                    {cat}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
-        <button type="button" onClick={handleAdd} className="mt-4 w-full rounded bg-green-600 py-2 text-white">
+        <button type="button" onClick={handleAdd} className="mt-4 w-full rounded bg-brand-coral py-2 text-white hover:bg-brand-pink">
           Add Channel
         </button>
       </div>

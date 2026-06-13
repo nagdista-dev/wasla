@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { fetchChannelData, clearCache, getCacheStats, resolveChannelId } from '../services/rssService.js';
-import { ChannelResponse, ChannelFeedData, CacheEntry } from '../types/index.js';
+import { fetchChannelData, fetchChannelDetails, clearCache, getCacheStats, resolveChannelId } from '../services/rssService.js';
+import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse } from '../types/index.js';
 
 const router = Router();
 
@@ -44,6 +44,36 @@ router.get('/channel/:identifier', async (req: Request, res: Response) => {
       error: error instanceof Error ? error.message : 'Failed to fetch channel data',
     };
     res.status(500).json(response);
+  }
+});
+
+router.get('/channel/:identifier/videos', async (req: Request, res: Response) => {
+  try {
+    const identifier = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
+
+    if (!identifier) {
+      return res.status(400).json({ success: false, error: 'Channel identifier is required' });
+    }
+
+    let channelId = identifier;
+    let handle: string | undefined;
+
+    if (!identifier.startsWith('UC') || identifier.length !== 24) {
+      const resolved = await resolveChannelId(identifier);
+      if (!resolved) {
+        return res.status(404).json({ success: false, error: 'Could not resolve channel' });
+      }
+      channelId = resolved;
+      if (!identifier.startsWith('UC')) handle = identifier.replace(/^@/, '');
+    }
+
+    const data = await fetchChannelDetails(channelId, handle);
+    const response: ChannelDetailsResponse = { success: true, data };
+    res.json(response);
+  } catch (error) {
+    const id = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
+    console.error(`Error fetching channel details ${id}:`, error);
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to fetch channel details' });
   }
 });
 

@@ -3,6 +3,7 @@ export interface Channel {
   name: string;
   handle?: string;
   categories: string[];
+  favorite?: boolean;
 }
 
 export interface LatestVideo {
@@ -12,11 +13,27 @@ export interface LatestVideo {
   publishedDate: string;
   channelName: string;
   relativeTime?: string;
+  views?: number;
+  duration?: string;
 }
 
 export interface ChannelLatestVideo {
   channel: Channel;
   video?: LatestVideo;
   loading: boolean;
+  error?: string;
+}
+
+export interface ChannelDetailsData {
+  channelName: string;
+  handle?: string;
+  avatar?: string;
+  banner?: string;
+  videos: LatestVideo[];
+}
+
+export interface ChannelDetailsResponse {
+  success: boolean;
+  data?: ChannelDetailsData;
   error?: string;
 }

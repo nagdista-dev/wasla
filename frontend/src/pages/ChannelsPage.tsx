@@ -1,21 +1,75 @@
-import { useState } from 'react';
-import { Plus, Edit } from 'lucide-react';
-import FloatingButton from '../components/FloatingButton';
-import AddChannelModal from '../components/AddChannelModal';
+import { useState, useMemo } from 'react';
+import { Search, Heart, Edit3, Trash2, X } from 'lucide-react';
 import EditChannelModal from '../components/EditChannelModal';
 import type { Channel } from '../types';
 
 interface ChannelsPageProps {
   channels: Channel[];
-  onAdd: (entry: Channel) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, name: string, categories: string[]) => void;
+  onToggleFavorite: (id: string) => void;
 }
 
-export default function ChannelsPage({ channels, onAdd, onDelete, onUpdate }: ChannelsPageProps) {
-  const [showModal, setShowModal] = useState(false);
+function getLetter(name: string): string {
+  const first = name.trim().charAt(0).toUpperCase();
+  return /[A-Za-z]/.test(first) ? first : '#';
+}
+
+function loadPref<T>(key: string, fallback: T): T {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? (JSON.parse(val) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function savePref(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch { /* noop */ }
+}
+
+export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFavorite }: ChannelsPageProps) {
+  const [searchText, setSearchText] = useState(loadPref<string>('wasla_channels_search', ''));
+  const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_channels_category', ''));
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+
+  useMemo(() => savePref('wasla_channels_category', selectedCategory), [selectedCategory]);
+  useMemo(() => savePref('wasla_channels_search', searchText), [searchText]);
+
+  const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories)));
+
+  const filtered = useMemo(() => {
+    const q = searchText.toLowerCase().trim();
+    return channels.filter((ch) => {
+      if (selectedCategory && !ch.categories.includes(selectedCategory)) return false;
+      if (q) {
+        const name = ch.name.toLowerCase();
+        const handle = ch.handle?.toLowerCase() || '';
+        if (!name.includes(q) && !handle.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [channels, searchText, selectedCategory]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, Channel[]>();
+    const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+    for (const ch of sorted) {
+      const letter = getLetter(ch.name);
+      if (!map.has(letter)) map.set(letter, []);
+      map.get(letter)!.push(ch);
+    }
+    return map;
+  }, [filtered]);
+
+  const letters = Array.from(grouped.keys()).sort((a, b) => {
+    if (a === '#') return 1;
+    if (b === '#') return -1;
+    return a.localeCompare(b);
+  });
 
   const handleEdit = (channel: Channel) => {
     setEditingChannel(channel);
@@ -31,74 +85,134 @@ export default function ChannelsPage({ channels, onAdd, onDelete, onUpdate }: Ch
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen p-6">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">Channels</h1>
-            <p className="mt-2 text-gray-600">Manage the YouTube channels in your feed.</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Add Channel
-          </button>
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Channels</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            {filtered.length} of {channels.length} channel{channels.length !== 1 ? 's' : ''}
+            {(searchText || selectedCategory) && ' (filtered)'}
+          </p>
         </div>
 
-        {channels.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
-            <p className="text-lg font-semibold text-gray-900">No channels yet</p>
-            <p className="mt-2 text-gray-600">Add a YouTube channel to start building your feed.</p>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search channels..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-500"
+            />
+            {searchText && (
+              <button onClick={() => setSearchText('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {allCategories.length > 0 && (
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
+            >
+              <option value="">All Categories</option>
+              {allCategories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              {channels.length === 0 ? 'No channels yet' : 'No channels match your search'}
+            </p>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              {channels.length === 0 ? 'Tap the + button to add a YouTube channel.' : 'Try a different search or clear the filters.'}
+            </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {channels.map((channel) => (
-              <div
-                key={channel.id}
-                className="flex flex-col gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">{channel.name}</h2>
-                  <p className="text-sm text-gray-500">{channel.id}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {channel.categories.length > 0 ? (
-                      channel.categories.map((category) => (
-                        <span key={category} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                          {category}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-sm text-gray-500">No categories</span>
-                    )}
-                  </div>
+          <div className="space-y-8">
+            {letters.map((letter) => (
+              <section key={letter}>
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-coral text-sm font-bold text-white">
+                    {letter}
+                  </span>
+                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(channel)}
-                    className="flex items-center gap-1 rounded-lg border border-blue-200 px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(channel.id)}
-                    className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
+                <div className="space-y-3">
+                  {grouped.get(letter)!.map((channel) => (
+                    <div
+                      key={channel.id}
+                      className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-pink to-brand-yellow text-sm font-bold text-white">
+                          {channel.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-base font-semibold text-gray-900 dark:text-white">
+                            {channel.name}
+                          </h3>
+                          {channel.handle && (
+                            <p className="truncate text-sm text-gray-500 dark:text-gray-400">
+                              @{channel.handle}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onToggleFavorite(channel.id)}
+                          className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-white/10 flex-shrink-0"
+                          aria-label={channel.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          <Heart
+                            className={`h-5 w-5 ${channel.favorite ? 'fill-red-500 text-red-500' : ''}`}
+                          />
+                        </button>
+                      </div>
+                      {channel.categories.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {channel.categories.map((cat) => (
+                            <span
+                              key={cat}
+                              className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral"
+                            >
+                              {cat}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700/50">
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(channel)}
+                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDelete(channel.id)}
+                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              </section>
             ))}
           </div>
         )}
       </div>
-      <FloatingButton onClick={() => setShowModal(true)} />
-      {showModal && <AddChannelModal onClose={() => setShowModal(false)} onAdd={onAdd} />}
       {showEditModal && editingChannel && (
         <EditChannelModal
           channel={editingChannel}
@@ -107,6 +221,7 @@ export default function ChannelsPage({ channels, onAdd, onDelete, onUpdate }: Ch
             setEditingChannel(null);
           }}
           onUpdate={handleUpdate}
+          existingCategories={Array.from(new Set(channels.flatMap(c => c.categories)))}
         />
       )}
     </div>

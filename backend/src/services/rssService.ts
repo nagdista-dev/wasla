@@ -27,6 +27,21 @@ function getThumbnail(value: unknown): string | undefined {
   return getString(obj?.$?.url);
 }
 
+function getViews(value: unknown): number | undefined {
+  if (Array.isArray(value)) {
+    const str = getString(value[0]?.$?.views);
+    return str ? parseInt(str, 10) : undefined;
+  }
+  const obj = value as { $?: { views?: string } } | undefined;
+  return obj?.$?.views ? parseInt(obj.$.views, 10) : undefined;
+}
+
+function getDuration(value: unknown): string | undefined {
+  if (Array.isArray(value)) return getString(value[0]?.$?.duration);
+  const obj = value as { $?: { duration?: string } } | undefined;
+  return getString(obj?.$?.duration);
+}
+
 export async function fetchChannelData(channelId: string): Promise<ChannelFeedData> {
   const cached = cache.get(channelId);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -43,7 +58,7 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
     return pending;
   }
 
-  const promise = fetchAndParseRSS(channelId);
+  const promise = fetchAndParseRSS(channelId, VIDEO_LIMIT);
   pendingRequests.set(channelId, promise);
 
   try {
@@ -67,7 +82,7 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
   }
 }
 
-async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
+async function fetchAndParseRSS(channelId: string, limit = VIDEO_LIMIT): Promise<ChannelFeedData> {
   const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 
   const controller = new AbortController();
@@ -104,6 +119,7 @@ async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
   const videos = entryList
     .map((entry: Record<string, unknown>) => {
       const mediaGroup = (entry['media:group'] || {}) as Record<string, unknown>;
+      const mediaCommunity = (mediaGroup['media:community'] || {}) as Record<string, unknown>;
       const title = getString(entry.title) || 'Untitled';
       const link = getLink(entry.link, `https://www.youtube.com/channel/${channelId}`);
 
@@ -113,10 +129,12 @@ async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
         thumbnail: getThumbnail(mediaGroup['media:thumbnail']),
         publishedDate: getString(entry.published) || getString(entry.updated) || new Date().toISOString(),
         channelName,
+        views: getViews(mediaCommunity['media:statistics']),
+        duration: getDuration(mediaGroup['media:content']),
       };
     })
     .sort((a: VideoData, b: VideoData) => Date.parse(b.publishedDate) - Date.parse(a.publishedDate))
-    .slice(0, VIDEO_LIMIT);
+    .slice(0, limit);
 
   if (videos.length === 0) {
     throw new Error('No videos found in channel feed');
@@ -313,4 +331,90 @@ function extractChannelIdFromJsonLd(data: Record<string, unknown>): string | nul
     // Ignore
   }
   return null;
+}
+
+const DETAILS_CACHE = new Map<string, { data: import('../types/index.js').ChannelDetails; timestamp: number }>();
+
+export async function fetchChannelDetails(channelId: string, handle?: string): Promise<import('../types/index.js').ChannelDetails> {
+  const cached = DETAILS_CACHE.get(channelId);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return { ...cached.data, videos: cached.data.videos.map((v) => ({ ...v })) };
+  }
+
+  const [rssData, pageData] = await Promise.all([
+    fetchAndParseRSS(channelId, 15),
+    scrapeChannelPage(channelId, handle),
+  ]);
+
+  const result: import('../types/index.js').ChannelDetails = {
+    channelName: rssData.channelName,
+    handle: pageData.handle || handle,
+    avatar: pageData.avatar,
+    banner: pageData.banner,
+    videos: rssData.videos,
+  };
+
+  DETAILS_CACHE.set(channelId, { data: result, timestamp: Date.now() });
+  return result;
+}
+
+async function scrapeChannelPage(channelId: string, handle?: string): Promise<{ handle?: string; avatar?: string; banner?: string }> {
+  try {
+    const url = handle
+      ? `https://www.youtube.com/@${encodeURIComponent(handle)}`
+      : `https://www.youtube.com/channel/${channelId}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return {};
+
+    const html = await response.text();
+
+    let avatar: string | undefined;
+    let banner: string | undefined;
+
+    // Try og:image first (avatar)
+    const ogImage = html.match(/<meta property="og:image" content="([^"]+)"/);
+    if (ogImage) avatar = ogImage[1];
+
+    // Try ytInitialData for avatar + banner
+    const ytMatch = html.match(/var ytInitialData = ({.*?});/s);
+    if (ytMatch) {
+      try {
+        const data = JSON.parse(ytMatch[1]);
+        const header = data?.header?.c4TabbedHeaderRenderer as Record<string, unknown> | undefined;
+        if (header) {
+          if (!avatar) {
+            const avatarObj = header.avatar as Record<string, unknown> | undefined;
+            const thumbnails = avatarObj?.thumbnails as unknown[] | undefined;
+            if (thumbnails?.length) {
+              const thumbs = thumbnails as Array<{ url: string }>;
+              avatar = thumbs[thumbs.length - 1]?.url || avatar;
+            }
+          }
+          const bannerObj = header.banner as Record<string, unknown> | undefined;
+          const bannerThumbs = bannerObj?.thumbnails as unknown[] | undefined;
+          if (bannerThumbs?.length) {
+            const thumbs = bannerThumbs as Array<{ url: string }>;
+            banner = thumbs[thumbs.length - 1]?.url;
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    return { avatar, banner };
+  } catch {
+    return {};
+  }
 }

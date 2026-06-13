@@ -1,63 +1,172 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { Home, Users, Settings, Heart, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Home, Users, Settings, Heart, Menu, X, Sun, Moon, Tag } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import FloatingButton from './components/FloatingButton';
 import AddChannelModal from './components/AddChannelModal';
 import ChannelsPage from './pages/ChannelsPage';
 import HomePage from './pages/HomePage';
+import ChannelPage from './pages/ChannelPage';
+import CategoryPage from './pages/CategoryPage';
 import SettingsPage from './pages/SettingsPage';
 import PlaylistsPage from './pages/PlaylistsPage';
 import type { Channel } from './types';
 import { loadChannels, saveChannels } from './storage';
 import { useLanguage } from './context/LanguageContext';
+import { useTheme } from './context/ThemeContext';
 
-function Navigation() {
-  const { language, setLanguage } = useLanguage();
+function Navigation({ channels }: { channels: Channel[] }) {
+  const { pathname } = useLocation();
+  const { language, setLanguage, isRTL } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/channels', label: 'Channels', icon: Users },
     { path: '/playlists', label: 'Playlists', icon: Heart },
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
+  const categories = useMemo(
+    () => Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b)),
+    [channels],
+  );
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 justify-between">
           <div className="flex items-center gap-8">
-            <Link to="/" className="text-xl font-bold text-blue-600">
+            <Link to="/" className="bg-gradient-brand bg-clip-text text-xl font-bold text-transparent">
               Wasla
             </Link>
             <div className="hidden items-center gap-1 md:flex">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-blue-600"
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const isActive = pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-brand-coral/10 text-brand-coral'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-brand-coral dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-brand-coral'
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
           </div>
-            <div className="flex items-center gap-4">
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
-                className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 hidden md:block"
-              >
-                <option value="en">English</option>
-                <option value="ar">العربية</option>
-              </select>
-              <div className="flex items-center gap-4">
-                <button className="p-2 rounded-md hover:bg-gray-100" aria-label="Menu">
-                  <Menu className="h-5 w-5" />
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
+              className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300 hidden md:block"
+            >
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+            </select>
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="p-2 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 md:hidden"
+              aria-label="Menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeMenu} />
+          <div className={`fixed top-0 ${isRTL ? 'left-0' : 'right-0'} min-h-dvh w-64 bg-white shadow-2xl dark:bg-dark-navy ${isRTL ? 'animate-slide-in-rtl' : 'animate-slide-in'} flex flex-col`}>
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 h-16 flex-shrink-0 dark:border-gray-700">
+              <span className="bg-gradient-brand bg-clip-text text-lg font-bold text-transparent">Wasla</span>
+              <button onClick={closeMenu} className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10" aria-label="Close menu">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+              {navItems.map((item) => {
+                const isActive = pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={closeMenu}
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-brand-coral text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'
+                    }`}
+                  >
+                    <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : ''}`} />
+                    {item.label}
+                    {isActive && <span className="ml-auto h-2 w-2 rounded-full bg-white" />}
+                  </Link>
+                );
+              })}
+              {categories.length > 0 && (
+                <>
+                  <div className="my-2 border-t border-gray-200 pt-2 dark:border-gray-700">
+                    <p className="mb-1 px-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                      Categories
+                    </p>
+                  </div>
+                  {categories.map((cat) => {
+                    const isActive = pathname === `/category/${encodeURIComponent(cat)}`;
+                    return (
+                      <Link
+                        key={cat}
+                        to={`/category/${encodeURIComponent(cat)}`}
+                        onClick={closeMenu}
+                        className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                          isActive
+                            ? 'bg-brand-coral text-white shadow-md'
+                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'
+                        }`}
+                      >
+                        <Tag className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                        <span className="truncate">{cat}</span>
+                      </Link>
+                    );
+                  })}
+                </>
+              )}
+            </nav>
+            <div className="border-t border-gray-200 p-4 flex-shrink-0 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
+                  className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-coral focus:ring-1 focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
+                >
+                  <option value="en">English</option>
+                  <option value="ar">العربية</option>
+                </select>
+                <button
+                  onClick={toggleTheme}
+                  className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-white/10"
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </button>
               </div>
             </div>
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }
@@ -88,24 +197,30 @@ function App() {
     updateChannels(nextChannels);
   };
 
+  const handleToggleFavorite = (id: string) => {
+    const nextChannels = channels.map((channel) =>
+      channel.id === id ? { ...channel, favorite: !channel.favorite } : channel
+    );
+    updateChannels(nextChannels);
+  };
+
   return (
     <BrowserRouter>
-      <div className="flex min-h-screen flex-col">
-        <Navigation />
+      <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-dark-navy">
+        <Navigation channels={channels} />
         <main className="flex-1 pt-16">
           <Routes>
-            <Route path="/" element={<HomePage channels={channels} />} />
+            <Route path="/" element={<HomePage channels={channels} onUpdate={handleUpdateChannel} />} />
+            <Route path="/channel/:channelId" element={<ChannelPage />} />
+            <Route path="/category/:categoryName" element={<CategoryPage channels={channels} />} />
             <Route
               path="/channels"
               element={
                 <ChannelsPage
                   channels={channels}
-                  onAdd={(entry) => {
-                    handleAddChannel(entry);
-                    setShowModal(false);
-                  }}
                   onDelete={handleDeleteChannel}
                   onUpdate={handleUpdateChannel}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               }
             />
@@ -114,7 +229,7 @@ function App() {
           </Routes>
         </main>
         <FloatingButton onClick={() => setShowModal(true)} />
-        {showModal && <AddChannelModal onClose={() => setShowModal(false)} onAdd={handleAddChannel} />}
+        {showModal && <AddChannelModal onClose={() => setShowModal(false)} onAdd={handleAddChannel} existingCategories={Array.from(new Set(channels.flatMap(c => c.categories)))} />}
       </div>
     </BrowserRouter>
   );

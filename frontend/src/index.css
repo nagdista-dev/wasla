@@ -1,7 +1,23 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Poppins', 'Tajawal', sans-serif;
+  --color-dark-navy: #0A1128;
+  --color-brand-pink: #B51762;
+  --color-brand-coral: #E2436A;
+  --color-brand-orange: #F37345;
+  --color-brand-yellow: #FEB144;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@utility bg-gradient-brand {
+  background-image: linear-gradient(to right, #B51762, #E2436A, #F37345, #FEB144);
+}
+
 body {
   margin: 0;
+  font-family: 'Poppins', 'Tajawal', sans-serif;
 }
 
 #root {
@@ -46,4 +62,19 @@ body {
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-rtl {
+  animation: slide-in-rtl 0.3s ease-out;
 }
