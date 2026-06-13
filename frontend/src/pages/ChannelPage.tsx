@@ -137,7 +137,7 @@ export default function ChannelPage() {
           <div className="mx-auto max-w-6xl px-6 pb-6">
             <div className="-mt-12 sm:-mt-16 flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
               <div
-                className="relative flex h-24 w-24 sm:h-32 sm:w-32 flex-shrink-0 items-center justify-center rounded-full border-4 border-white text-2xl sm:text-4xl font-bold text-white shadow-lg dark:border-dark-navy"
+                className="relative flex h-24 w-24 sm:h-32 sm:w-32 flex-0 items-center justify-center rounded-full border-4 border-white text-2xl sm:text-4xl font-bold text-white shadow-lg dark:border-dark-navy"
                 style={{ backgroundColor: `rgb(${rgb})` }}
               >
                 {data.avatar ? (

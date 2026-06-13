@@ -239,7 +239,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         </div>
       </div>
 
-      <div className="px-6 ">
+        <div className="px-6 overflow-x-hidden">
         {showAllFilters && (
           <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowAllFilters(false)} />
@@ -334,9 +334,9 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         ) : (
           <>
             {viewMode === 'grid' ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-full">
                 {displayItems.map(({ channel, video, loading, error }) => (
-                  <div key={channel.id}>
+                  <div key={channel.id} className="min-w-0">
                     {loading ? (
                       <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy animate-pulse">
                         <div className="aspect-video bg-gray-200 dark:bg-gray-700" />
@@ -361,7 +361,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
 ) : (
               <div className="space-y-4">
                 {displayItems.map(({ channel, video, loading, error }) => (
-                  <div key={channel.id}>
+                  <div key={channel.id} className="min-w-0">
                     {loading ? (
                       <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700 animate-pulse">
                         <div className="flex-0 w-64 aspect-video rounded-lg bg-gray-200 dark:bg-gray-700" />
