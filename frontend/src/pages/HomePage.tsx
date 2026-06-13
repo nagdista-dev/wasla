@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, Clock, Edit3, Eye, ExternalLink, LayoutGrid, List, RefreshCw, Search, X, Play } from 'lucide-react';
+import { AlertCircle, Clock, Edit3, Eye, LayoutGrid,List, RefreshCw, Search, X, Play } from 'lucide-react';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import FilterDropdown from '../components/FilterDropdown';
@@ -220,10 +220,10 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
     });
 
   return (
-    <div className="min-h-screen">
-      <div className="sticky top-0 p-1 z-10 mb-6 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 ">
+    <div className="min-h-screen dark:bg-dark-navy">
+      <div className="sticky top-16 md:top-0 p-1 z-10 mb-6 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 ">
         <div className="flex items-center gap-2 px-4 md:px-6 py-3">
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-0">
             <button onClick={() => setShowSearch(true)}
               className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
               aria-label="Search">
@@ -244,14 +244,14 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             <FilterDropdown value={sortBy} onChange={v => setSortBy(v as any)}
               options={[{ value: 'newest', label: 'Newest' }, { value: 'views', label: 'Most Viewed' }, { value: 'channel', label: 'Channel A‑Z' }, { value: 'category', label: 'Category' }]} className="flex-1 min-w-0" />
             <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
-              className="hidden md:flex rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-shrink-0"
+              className="hidden md:flex rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0"
               aria-label={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}>
               {viewMode === 'grid' ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
             </button>
           </div>
           {hasOverflow && (
             <button type="button" onClick={() => setShowAllFilters(true)}
-              className="flex items-center gap-1 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-shrink-0 md:hidden">
+              className="flex items-center gap-1 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0 md:hidden">
               <span className="text-lg leading-none">…</span>
             </button>
           )}
@@ -352,7 +352,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             {viewMode === 'grid' ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {displayItems.map(({ channel, video, loading, error }) => (
-                  <article key={channel.id} className="rounded-lg overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-transform hover:scale-[1.02] cursor-pointer" onClick={() => window.open(video.link, '_blank')} role="button" tabIndex={0}>
+                  <article key={channel.id} className="rounded-lg overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-transform hover:scale-[1.02] cursor-pointer" onClick={() => window.open(video?.link, '_blank')} role="button" tabIndex={0}>
                     {loading ? (
                       <div className="p-4 space-y-3">
                         <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded" />
@@ -360,7 +360,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
                       </div>
                     ) : error ? (
-                      <div className="flex flex-col items-center justify-center p-5 text-center min-h-[200px]">
+                      <div className="flex flex-col items-center justify-center p-5 text-center min-h-50">
                         <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
                         <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
@@ -371,7 +371,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                           {video.thumbnail ? (
                             <img src={video.thumbnail} alt={video.title} className="aspect-video w-full object-cover" />
                           ) : (
-                            <div className="aspect-video bg-gradient-to-br from-brand-pink to-brand-yellow" />
+                            <div className="aspect-video bg-linear-to-br from-brand-pink to-brand-yellow" />
                           )}
                           {formatDuration(video.duration) && (
                             <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-xs px-1 rounded">
@@ -381,10 +381,10 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         </div>
                         <div className="p-3">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="flex items-center justify-center h-6 w-6 rounded-full bg-gradient-to-br from-brand-pink to-brand-yellow text-xs font-bold text-white">
+                            <span className="flex items-center justify-center h-6 w-6 rounded-full bg-linear-to-br from-brand-pink to-brand-yellow text-xs font-bold text-white">
                               {(video.channelName || channel.name).charAt(0).toUpperCase()}
                             </span>
-                            <Link to={`/channel/${channel.id}`} className="text-sm font-medium text-brand-coral hover:underline truncate">
+                            <Link to={`/channel/${channel.id}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium text-brand-coral hover:underline truncate">
                               {video.channelName || channel.name}
                             </Link>
                             {onUpdate && (
@@ -441,11 +441,11 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                       </div>
                     ) : video ? (
                       <>
-                        <div className="flex-shrink-0 w-64 aspect-video rounded-lg overflow-hidden relative cursor-pointer" onClick={() => window.open(video.link, '_blank')}>
+                        <div className="flex-0 w-64 aspect-video rounded-lg overflow-hidden relative cursor-pointer" onClick={() => window.open(video.link, '_blank')}>
                           {video.thumbnail ? (
                             <img src={video.thumbnail} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-brand-pink to-brand-yellow" />
+                            <div className="w-full h-full bg-linear-to-br from-brand-pink to-brand-yellow" />
                           )}
                           {formatDuration(video.duration) && (
                             <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white">
@@ -455,10 +455,10 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         </div>
                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-pink to-brand-yellow text-[10px] font-bold text-white">
+                            <span className="flex h-6 w-6 flex-0 items-center justify-center rounded-full bg-linear-to-br from-brand-pink to-brand-yellow text-[10px] font-bold text-white">
                               {(video.channelName || channel.name).charAt(0).toUpperCase()}
                             </span>
-                            <Link to={`/channel/${channel.id}`} className="text-sm font-medium text-brand-coral hover:underline truncate">
+                            <Link to={`/channel/${channel.id}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium text-brand-coral hover:underline truncate">
                               {video.channelName || channel.name}
                             </Link>
                             {onUpdate && (
@@ -514,7 +514,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 <div className="fixed inset-0 bg-black/50" onClick={() => { setShowSearch(false); setSearchText(''); }} />
                 <div className="relative z-10 w-full max-w-xl max-h-[70vh] flex flex-col rounded-xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
                   <div className="flex items-center gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
-                    <Search className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                    <Search className="h-5 w-5 flex-0 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Search channels..."
@@ -551,7 +551,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
                   >
                     {video!.thumbnail && (
-                      <img src={video!.thumbnail} alt="" className="h-12 w-20 flex-shrink-0 rounded object-cover" />
+                      <img src={video!.thumbnail} alt="" className="h-12 w-20 flex-0 rounded object-cover" />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-gray-900 dark:text-white">{video!.title}</p>

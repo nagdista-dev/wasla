@@ -49,7 +49,7 @@ export default function Sidebar({ channels }: SidebarProps) {
           })}
         </div>
         {categories.length > 0 && (
-          <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-200 dark:border-gray-700 categories-scroll">
+          <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-200 dark:border-gray-700 categories-scroll ">
             <div className="px-4 py-2">
               <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                 Categories

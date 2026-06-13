@@ -132,6 +132,32 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
       }
       if (sortBy === 'oldest') {
         return new Date(a.video.publishedDate).getTime() - new Date(b.video.publishedDate).getTime();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       }
       if (sortBy === 'most_viewed') {
         return (b.video.views ?? 0) - (a.video.views ?? 0);
@@ -143,7 +169,7 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
     });
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen py-15 p-6 md:p-6 dark:bg-dark-navy">
       <div className="px-6 md:px-0">
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -267,7 +293,6 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
               ))}
             </div>
           )}
-        )
       </div>
     </div>
   );

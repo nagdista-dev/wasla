@@ -110,8 +110,8 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
   };
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-screen p-6 dark:bg-dark-navy ">
+      <div className="mx-auto max-w-4xl ">
         <div className="mb-6">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Channels</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
