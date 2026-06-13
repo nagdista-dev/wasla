@@ -4,6 +4,7 @@ import { AlertCircle, Clock, Edit3, Eye, LayoutGrid, List, Play, RefreshCw, Sear
 import { api } from '../api';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import EditChannelModal from '../components/EditChannelModal';
+import FilterDropdown from '../components/FilterDropdown';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -244,38 +245,39 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
           </div>
 
           <div ref={filterControlsRef} className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-            <select
+            <FilterDropdown
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="flex-1 min-w-0 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 truncate"
-            >
-              <option value="">All</option>
-              {allCategories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-            <select
+              onChange={setSelectedCategory}
+              options={[
+                { value: '', label: 'All' },
+                ...allCategories.map((cat) => ({ value: cat, label: cat })),
+              ]}
+              className="flex-1 min-w-0"
+            />
+            <FilterDropdown
               value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
-              className="flex-1 min-w-0 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 truncate"
-            >
-              <option value="all">All Time</option>
-              <option value="hour">Last Hour</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="year">This Year</option>
-            </select>
-            <select
+              onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
+              options={[
+                { value: 'all', label: 'All Time' },
+                { value: 'hour', label: 'Last Hour' },
+                { value: 'today', label: 'Today' },
+                { value: 'week', label: 'This Week' },
+                { value: 'month', label: 'This Month' },
+                { value: 'year', label: 'This Year' },
+              ]}
+              className="flex-1 min-w-0"
+            />
+            <FilterDropdown
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'newest' | 'views' | 'channel' | 'category')}
-              className="flex-1 min-w-0 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 truncate"
-            >
-              <option value="newest">Newest</option>
-              <option value="views">Most Viewed</option>
-              <option value="channel">Channel A-Z</option>
-              <option value="category">Category</option>
-            </select>
+              onChange={(v) => setSortBy(v as 'newest' | 'views' | 'channel' | 'category')}
+              options={[
+                { value: 'newest', label: 'Newest' },
+                { value: 'views', label: 'Most Viewed' },
+                { value: 'channel', label: 'Channel A-Z' },
+                { value: 'category', label: 'Category' },
+              ]}
+              className="flex-1 min-w-0"
+            />
             <button
               type="button"
               onClick={() => setViewMode((prev) => (prev === 'grid' ? 'list' : 'grid'))}
@@ -310,44 +312,42 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
               <div className="space-y-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                  <select
+                  <FilterDropdown
                     value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
-                  >
-                    <option value="">All</option>
-                    {allCategories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                    onChange={setSelectedCategory}
+                    options={[
+                      { value: '', label: 'All' },
+                      ...allCategories.map((cat) => ({ value: cat, label: cat })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Time</label>
-                  <select
+                  <FilterDropdown
                     value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
-                  >
-                    <option value="all">All Time</option>
-                    <option value="hour">Last Hour</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                    <option value="year">This Year</option>
-                  </select>
+                    onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
+                    options={[
+                      { value: 'all', label: 'All Time' },
+                      { value: 'hour', label: 'Last Hour' },
+                      { value: 'today', label: 'Today' },
+                      { value: 'week', label: 'This Week' },
+                      { value: 'month', label: 'This Month' },
+                      { value: 'year', label: 'This Year' },
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort by</label>
-                  <select
+                  <FilterDropdown
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as 'newest' | 'views' | 'channel' | 'category')}
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
-                  >
-                    <option value="newest">Newest</option>
-                    <option value="views">Most Viewed</option>
-                    <option value="channel">Channel A-Z</option>
-                    <option value="category">Category</option>
-                  </select>
+                    onChange={(v) => setSortBy(v as 'newest' | 'views' | 'channel' | 'category')}
+                    options={[
+                      { value: 'newest', label: 'Newest' },
+                      { value: 'views', label: 'Most Viewed' },
+                      { value: 'channel', label: 'Channel A-Z' },
+                      { value: 'category', label: 'Category' },
+                    ]}
+                  />
                 </div>
                 <div className="flex justify-end">
                   <button
