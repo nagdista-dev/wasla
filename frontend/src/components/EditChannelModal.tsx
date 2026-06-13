@@ -211,13 +211,13 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
                   handleAddCategory();
                 }
               }}
-              className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100"
+              className="flex-1 min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100"
               placeholder="Add a category"
             />
             <button
               type="button"
               onClick={handleAddCategory}
-              className="rounded-md bg-brand-coral px-4 py-2 text-sm font-medium text-white hover:bg-brand-pink"
+              className="flex-shrink-0 rounded-md bg-brand-coral px-4 py-2 text-sm font-medium text-white hover:bg-brand-pink"
             >
               Add
             </button>
@@ -242,7 +242,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
           {existingCategories.length > 0 && (
             <div className="mb-4">
               <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">All categories:</p>
-              <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto">
+              <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto min-w-0">
                 {existingCategories.map((cat) => {
                   const active = categories.includes(cat);
                   return (

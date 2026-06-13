@@ -49,16 +49,12 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
           <div className="w-full h-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow" />
         )}
         {formatDuration(video.duration) && (
-          <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded">
+          <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
+            <Clock className="h-3 w-3" />
             {formatDuration(video.duration)}
           </span>
         )}
-        {formatViews(video.views) && (
-          <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
-            <Eye className="h-3 w-3" />
-            {formatViews(video.views)}
-          </span>
-        )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <button
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110 shadow-lg"
@@ -93,10 +89,20 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
           {video.title}
         </h3>
 
-        {video.relativeTime && (
-          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-            <Clock className="h-3.5 w-3.5 flex-0" />
-            <span>{video.relativeTime}</span>
+        {(video.relativeTime || formatViews(video.views)) && (
+          <div className="flex items-center gap-2 text-xs">
+            {video.relativeTime && (
+              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                <Clock className="h-3.5 w-3.5 flex-0 text-current" />
+                <span>{video.relativeTime}</span>
+              </span>
+            )}
+            {formatViews(video.views) && (
+              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                <Eye className="h-3.5 w-3.5 flex-0 text-current" />
+                {formatViews(video.views)}
+              </span>
+            )}
           </div>
         )}
 
