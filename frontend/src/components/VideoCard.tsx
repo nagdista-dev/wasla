@@ -31,7 +31,7 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
 
   return (
     <article
-      className="group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+      className="group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-700"
       onClick={() => window.open(video.link, '_blank')}
       role="button"
       tabIndex={0}
@@ -71,7 +71,7 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
 
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-2">
-          <span className="flex flex-0 items-center justify-center h-8 w-8 rounded-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow text-sm font-bold text-white shadow-sm">
+          <span className=" flex justify-center items-center h-9 w-9 rounded-full bg-brand-pink text-base font-bold text-white shadow-sm leading-none " style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
             {initial}
           </span>
           <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">

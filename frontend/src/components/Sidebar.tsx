@@ -25,7 +25,7 @@ export default function Sidebar({ channels }: SidebarProps) {
   return (
     <nav className="fixed inset-y-0 left-0 hidden w-64 border-r border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90 md:block">
       <Link to="/" className="flex h-16 items-center justify-center border-b border-gray-200 dark:border-gray-700">
-        <span className="bg-gradient-brand bg-clip-text text-lg font-bold text-transparent">Wasla</span>
+        <img src="/logo.png" alt="Wasla" className="h-12 w-12 object-contain" />
       </Link>
       <div className="flex flex-col h-full min-h-0">
         <div className="flex-shrink-0 p-4 space-y-1">

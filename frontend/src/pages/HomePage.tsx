@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { AlertCircle, Clock, Edit3, Eye, LayoutGrid,List, RefreshCw, Search, X, Play } from 'lucide-react';
+import { AlertCircle, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
@@ -22,24 +21,6 @@ type ChannelApiResponse = {
   error?: string;
   cached?: boolean;
 };
-
-function formatViews(views?: number): string | undefined {
-  if (views === undefined) return undefined;
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`;
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}K`;
-  return views.toString();
-}
-
-function formatDuration(duration?: string): string | undefined {
-  if (!duration) return undefined;
-  const total = parseInt(duration, 10);
-  if (isNaN(total)) return undefined;
-  const hrs = Math.floor(total / 3600);
-  const mins = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
 
 function getLatestVideo(channel: Channel, data: ChannelApiResponse['data']): LatestVideo | undefined {
   if (data?.latestVideo) return data.latestVideo;
@@ -372,92 +353,38 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
                       </article>
                     ) : video ? (
-                      <VideoCard channel={channel} video={video} onEdit={onEdit ? setEditingChannel : undefined} />
+                      <VideoCard channel={channel} video={video} onEdit={onUpdate ? setEditingChannel : undefined} />
                     ) : null}
                   </div>
                 ))}
               </div>
-            ) : (
+) : (
               <div className="space-y-4">
                 {displayItems.map(({ channel, video, loading, error }) => (
-                  <article key={channel.id} className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700">
+                  <div key={channel.id}>
                     {loading ? (
-                      <div className="flex-1 space-y-3">
-                        <div className="h-20 w-full rounded bg-gray-200 dark:bg-gray-700" />
-                        <div className="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-                        <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
-                      </div>
+                      <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700 animate-pulse">
+                        <div className="flex-0 w-64 aspect-video rounded-lg bg-gray-200 dark:bg-gray-700" />
+                        <div className="flex-1 min-w-0 space-y-3">
+                          <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                          <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+                          <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
+                        </div>
+                      </article>
                     ) : error ? (
-                      <div className="flex-1 flex flex-col justify-center text-center">
-                        <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
-                        <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
-                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
-                      </div>
+                      <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700">
+                        <div className="flex-1 flex flex-col justify-center text-center">
+                          <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
+                          <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
+                          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                        </div>
+                      </article>
                     ) : video ? (
-                      <>
-                        <div className="flex-0 w-64 aspect-video rounded-lg overflow-hidden relative cursor-pointer" onClick={() => window.open(video.link, '_blank')}>
-                          {video.thumbnail ? (
-                            <img src={video.thumbnail} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-brand-pink to-brand-yellow" />
-                          )}
-                          {formatDuration(video.duration) && (
-                            <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white">
-                              {formatDuration(video.duration)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                          <div className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 flex-0 items-center justify-center rounded-full bg-linear-to-br from-brand-pink to-brand-yellow text-[10px] font-bold text-white">
-                              {(video.channelName || channel.name).charAt(0).toUpperCase()}
-                            </span>
-                            <Link to={`/channel/${channel.id}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium text-brand-coral hover:underline truncate">
-                              {video.channelName || channel.name}
-                            </Link>
-                            {onUpdate && (
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setEditingChannel(channel); }}
-                                className="inline-flex items-center rounded p-0.5 text-gray-400 hover:text-brand-coral transition"
-                                aria-label="Edit channel"
-                              >
-                                <Edit3 className="h-3.5 w-3.5" />
-                              </button>
-                            )}
-                          </div>
-                          <h2 className="mt-1 line-clamp-2 text-lg font-semibold text-gray-900 dark:text-white">
-                            {video.title}
-                          </h2>
-                          <div className="mt-1 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                            {formatViews(video.views) && (
-                              <span className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" />
-                                {formatViews(video.views)}
-                              </span>
-                            )}
-                            {video.relativeTime && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {video.relativeTime}
-                              </span>
-                            )}
-                          </div>
-                          {channel.categories.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {channel.categories.map((category) => (
-                                <span key={category} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
-                                  {category}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </>
-                          ) : null}
-                        </article>
-                      ))}
-                    </div>
+                      <VideoCard channel={channel} video={video} onEdit={onUpdate ? setEditingChannel : undefined} />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
                   )}
                 </>
               )}

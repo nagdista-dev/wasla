@@ -62,7 +62,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
           to="/"
           className="bg-gradient-brand bg-clip-text text-xl font-bold text-transparent"
         >
-          Wasla
+          <img src="./logo.png" alt="Wasla" className="h-18 w-18 object-contain" />
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
@@ -136,9 +136,9 @@ function Navigation({ channels }: { channels: Channel[] }) {
       >
         {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-700 flex-shrink-0">
-          <span className="bg-gradient-brand bg-clip-text text-lg font-bold text-transparent">
-            Wasla
-          </span>
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="Wasla" className="h-12 w-12 object-contain" />
+          </Link>
 
           <button
             onClick={closeMenu}
