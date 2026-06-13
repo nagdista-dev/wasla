@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { AlertCircle, Clock, Edit3, Eye, LayoutGrid,List, RefreshCw, Search, X, Play } from 'lucide-react';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
-import FilterDropdown from '../components/FilterDropdown';
+import CustomFilterDropdown from '../components/CustomFilterDropdown';
+import VideoCard from '../components/VideoCard';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -235,13 +236,13 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             </button>
           </div>
           <div ref={filterControlsRef} className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-            <FilterDropdown value={selectedCategory} onChange={setSelectedCategory}
+            <CustomFilterDropdown value={selectedCategory} onChange={setSelectedCategory}
               options={[{ value: '', label: 'All' }, ...allCategories.map(cat => ({ value: cat, label: cat }))]}
-              className="flex-1 min-w-0" />
-            <FilterDropdown value={timeRange} onChange={v => setTimeRange(v as any)}
-              options={[{ value: 'all', label: 'All Time' }, { value: 'hour', label: 'Last Hour' }, { value: 'today', label: 'Today' }, { value: 'week', label: 'This Week' }, { value: 'month', label: 'This Month' }, { value: 'year', label: 'This Year' }]} className="flex-1 min-w-0" />
-            <FilterDropdown value={sortBy} onChange={v => setSortBy(v as any)}
-              options={[{ value: 'newest', label: 'Newest' }, { value: 'views', label: 'Most Viewed' }, { value: 'channel', label: 'Channel A‑Z' }, { value: 'category', label: 'Category' }]} className="flex-1 min-w-0" />
+              className="flex-1 min-w-0" placeholder="Category" />
+            <CustomFilterDropdown value={timeRange} onChange={v => setTimeRange(v as any)}
+              options={[{ value: 'all', label: 'All Time' }, { value: 'hour', label: 'Last Hour' }, { value: 'today', label: 'Today' }, { value: 'week', label: 'This Week' }, { value: 'month', label: 'This Month' }, { value: 'year', label: 'This Year' }]} className="flex-1 min-w-0" placeholder="Time" />
+            <CustomFilterDropdown value={sortBy} onChange={v => setSortBy(v as any)}
+              options={[{ value: 'newest', label: 'Newest' }, { value: 'views', label: 'Most Viewed' }, { value: 'channel', label: 'Channel A‑Z' }, { value: 'category', label: 'Category' }]} className="flex-1 min-w-0" placeholder="Sort" />
             <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
               className="hidden md:flex rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0"
               aria-label={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}>
@@ -271,18 +272,19 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
               <div className="space-y-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                  <FilterDropdown
+                  <CustomFilterDropdown
                     value={selectedCategory}
                     onChange={setSelectedCategory}
                     options={[
                       { value: '', label: 'All' },
                       ...allCategories.map((cat) => ({ value: cat, label: cat })),
                     ]}
+                    placeholder="Category"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Time</label>
-                  <FilterDropdown
+                  <CustomFilterDropdown
                     value={timeRange}
                     onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
                     options={[
@@ -293,11 +295,12 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                       { value: 'month', label: 'This Month' },
                       { value: 'year', label: 'This Year' },
                     ]}
+                    placeholder="Time"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort by</label>
-                  <FilterDropdown
+                  <CustomFilterDropdown
                     value={sortBy}
                     onChange={(v) => setSortBy(v as 'newest' | 'views' | 'channel' | 'category')}
                     options={[
@@ -306,6 +309,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                       { value: 'channel', label: 'Channel A-Z' },
                       { value: 'category', label: 'Category' },
                     ]}
+                    placeholder="Sort by"
                   />
                 </div>
                 <div className="flex justify-end">
@@ -351,75 +355,26 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             {viewMode === 'grid' ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {displayItems.map(({ channel, video, loading, error }) => (
-                  <article key={channel.id} className="rounded-lg overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-transform hover:scale-[1.02] cursor-pointer" onClick={() => window.open(video?.link, '_blank')} role="button" tabIndex={0}>
+                  <div key={channel.id}>
                     {loading ? (
-                      <div className="p-4 space-y-3">
-                        <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded" />
-                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
-                        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
-                      </div>
+                      <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy animate-pulse">
+                        <div className="aspect-video bg-gray-200 dark:bg-gray-700" />
+                        <div className="p-4 space-y-3">
+                          <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                          <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+                          <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
+                        </div>
+                      </article>
                     ) : error ? (
-                      <div className="flex flex-col items-center justify-center p-5 text-center min-h-50">
+                      <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy p-6 text-center min-h-[280px] flex flex-col items-center justify-center">
                         <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
                         <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
-                      </div>
+                      </article>
                     ) : video ? (
-                      <div className="group">
-                        <div className="relative">
-                          {video.thumbnail ? (
-                            <img src={video.thumbnail} alt={video.title} className="aspect-video w-full object-cover" />
-                          ) : (
-                            <div className="aspect-video bg-linear-to-br from-brand-pink to-brand-yellow" />
-                          )}
-                          {formatDuration(video.duration) && (
-                            <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-xs px-1 rounded">
-                              {formatDuration(video.duration)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="flex items-center justify-center h-6 w-6 rounded-full bg-linear-to-br from-brand-pink to-brand-yellow text-xs font-bold text-white">
-                              {(video.channelName || channel.name).charAt(0).toUpperCase()}
-                            </span>
-                            <Link to={`/channel/${channel.id}`} onClick={(e) => e.stopPropagation()} className="text-sm font-medium text-brand-coral hover:underline truncate">
-                              {video.channelName || channel.name}
-                            </Link>
-                            {onUpdate && (
-                              <button type="button" onClick={e => { e.stopPropagation(); setEditingChannel(channel); }} className="text-gray-400 hover:text-brand-coral">
-                                <Edit3 className="h-3.5 w-3.5" />
-                              </button>
-                            )}
-                          </div>
-                          <h2 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">{video.title}</h2>
-                          <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {formatViews(video.views) && (
-                              <span className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" />
-                                {formatViews(video.views)}
-                              </span>
-                            )}
-                            {video.relativeTime && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {video.relativeTime}
-                              </span>
-                            )}
-                          </div>
-                          {channel.categories.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {channel.categories.map(cat => (
-                                <span key={cat} className="bg-gray-100 dark:bg-white/10 text-xs text-gray-600 dark:text-gray-300 px-2.5 py-1 rounded">
-                                  {cat}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <VideoCard channel={channel} video={video} onEdit={onEdit ? setEditingChannel : undefined} />
                     ) : null}
-                  </article>
+                  </div>
                 ))}
               </div>
             ) : (

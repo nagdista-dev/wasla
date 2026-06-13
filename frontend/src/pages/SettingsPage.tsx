@@ -146,7 +146,7 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 dark:bg-dark-navy">
       <div className="px-6 md:px-0">
         <div className="mb-8">
       <div className="flex items-center justify-between">

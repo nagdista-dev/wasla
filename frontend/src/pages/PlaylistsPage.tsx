@@ -2,7 +2,7 @@ import { Heart, Music } from 'lucide-react';
 
 export default function PlaylistsPage() {
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-8 dark:bg-dark-navy">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8">
           <h1 className="flex items-center gap-2 text-4xl font-bold text-gray-900 dark:text-white">
