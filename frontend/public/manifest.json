@@ -1,0 +1,16 @@
+{
+  "name": "Wasla",
+  "short_name": "Wasla",
+  "description": "YouTube channel feed manager",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A1128",
+  "theme_color": "#E2436A",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
