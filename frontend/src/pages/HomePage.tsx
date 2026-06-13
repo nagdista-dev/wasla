@@ -85,7 +85,6 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_selected_category', ''));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAllFilters, setShowAllFilters] = useState(false);
-  const filterBarRef = useRef<HTMLDivElement>(null);
   const filterControlsRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
 

@@ -58,7 +58,6 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
   const { categoryName } = useParams<{ categoryName: string }>();
   const decoded = useMemo(() => categoryName ? decodeURIComponent(categoryName) : '', [categoryName]);
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<LatestVideo | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most_viewed' | 'least_viewed'>('newest');
   const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('all');

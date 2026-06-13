@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Heart, Edit3, Trash2, X ,Play} from 'lucide-react';
+import { Search, Heart, Edit3, Trash2, X } from 'lucide-react';
 import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import type { Channel } from '../types';

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Clock, Eye, AlertCircle, ArrowUpDown, ExternalLink, Play } from 'lucide-react';
+import { Clock, Eye, AlertCircle, ArrowUpDown, Play } from 'lucide-react';
 import { api } from '../api';
-import type { ChannelDetailsData, LatestVideo } from '../types';
+import type { ChannelDetailsData } from '../types';
 
 function hashColor(str: string): string {
   let hash = 0;
@@ -70,7 +70,6 @@ export default function ChannelPage() {
   const [data, setData] = useState<ChannelDetailsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedVideo, setSelectedVideo] = useState<LatestVideo | null>(null);
   const [sortBy, setSortBy] = useState<SortMode>('newest');
 
   useEffect(() => {
