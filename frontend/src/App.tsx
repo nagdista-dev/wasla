@@ -14,6 +14,7 @@ import type { Channel } from './types';
 import { loadChannels, saveChannels } from './storage';
 import { useLanguage } from './context/LanguageContext';
 import { useTheme } from './context/ThemeContext';
+import Sidebar from './components/Sidebar';
 
 function Navigation({ channels }: { channels: Channel[] }) {
   const { pathname } = useLocation();
@@ -34,7 +35,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90 md:hidden">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 justify-between">
           <div className="flex items-center gap-8">
@@ -98,7 +99,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          <nav className="flex flex-col flex-1 overflow-y-auto p-4 space-y-1">
               {navItems.map((item) => {
                 const isActive = pathname === item.path;
                 return (
@@ -118,13 +119,15 @@ function Navigation({ channels }: { channels: Channel[] }) {
                   </Link>
                 );
               })}
-              {categories.length > 0 && (
-                <>
-                  <div className="my-2 border-t border-gray-200 pt-2 dark:border-gray-700">
-                    <p className="mb-1 px-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                      Categories
-                    </p>
-                  </div>
+            </nav>
+            {categories.length > 0 && (
+              <div className="flex-1 min-h-0">
+                <div className="border-t border-gray-200 pt-2 dark:border-gray-700 px-4">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                    Categories
+                  </p>
+                </div>
+                <div className="overflow-y-auto p-4 space-y-1 categories-scroll">
                   {categories.map((cat) => {
                     const isActive = pathname === `/category/${encodeURIComponent(cat)}`;
                     return (
@@ -143,27 +146,17 @@ function Navigation({ channels }: { channels: Channel[] }) {
                       </Link>
                     );
                   })}
-                </>
-              )}
-            </nav>
-            <div className="border-t border-gray-200 p-4 flex-shrink-0 dark:border-gray-700">
-              <div className="flex items-center gap-2">
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
-                  className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-coral focus:ring-1 focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
-                >
-                  <option value="en">English</option>
-                  <option value="ar">العربية</option>
-                </select>
-                <button
-                  onClick={toggleTheme}
-                  className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-white/10"
-                  aria-label="Toggle theme"
-                >
-                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                </button>
+                </div>
               </div>
+            )}
+            <div className="border-t border-gray-200 p-4 flex-shrink-0 dark:border-gray-700">
+              <button
+                onClick={closeMenu}
+                className="w-full rounded-lg bg-brand-coral px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-coral/90"
+                aria-label="Close menu"
+              >
+                Close Menu
+              </button>
             </div>
           </div>
         </div>
@@ -207,9 +200,12 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-dark-navy">
-        <Navigation channels={channels} />
-        <main className="flex-1 pt-16">
+      {/* Mobile navigation */}
+      <Navigation channels={channels} />
+      {/* Desktop sidebar */}
+      <Sidebar channels={channels} />
+      <div className="flex flex-col flex-1 min-h-screen md:ml-64 pt-4 md:pt-0">
+        <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage channels={channels} onUpdate={handleUpdateChannel} />} />
             <Route path="/channel/:channelId" element={<ChannelPage />} />
@@ -230,7 +226,13 @@ function App() {
           </Routes>
         </main>
         <FloatingButton onClick={() => setShowModal(true)} />
-        {showModal && <AddChannelModal onClose={() => setShowModal(false)} onAdd={handleAddChannel} existingCategories={Array.from(new Set(channels.flatMap(c => c.categories)))} />}
+        {showModal && (
+          <AddChannelModal
+            onClose={() => setShowModal(false)}
+            onAdd={handleAddChannel}
+            existingCategories={Array.from(new Set(channels.flatMap((c) => c.categories)))}
+          />
+        )}
         <MobileAppBanner />
       </div>
     </BrowserRouter>

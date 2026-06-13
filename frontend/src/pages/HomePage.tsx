@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, Clock, Edit3, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
+import { AlertCircle, Clock, Edit3, Eye, ExternalLink, LayoutGrid, List, RefreshCw, Search, X, Play } from 'lucide-react';
 import { api } from '../api';
-import VideoPlayerModal from '../components/VideoPlayerModal';
 import EditChannelModal from '../components/EditChannelModal';
 import FilterDropdown from '../components/FilterDropdown';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
@@ -78,7 +77,6 @@ function savePref(key: string, value: unknown) {
 export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
-  const [selectedVideo, setSelectedVideo] = useState<LatestVideo | null>(null);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -222,83 +220,45 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
     });
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="mx-auto max-w-6xl">
-        <div ref={filterBarRef} className="sticky top-16 z-10 mb-6 -mx-6 flex items-center gap-2 border-b border-gray-200 bg-gray-50/95 px-4 py-3 backdrop-blur dark:border-gray-700 dark:bg-dark-navy/95">
+    <div className="min-h-screen">
+      <div className="sticky top-0 p-1 z-10 mb-6 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 ">
+        <div className="flex items-center gap-2 px-4 md:px-6 py-3">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              onClick={() => setShowSearch(true)}
+            <button onClick={() => setShowSearch(true)}
               className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
-              aria-label="Search"
-            >
+              aria-label="Search">
               <Search className="h-5 w-5" />
             </button>
-            <button
-              type="button"
-              onClick={() => fetchLatestVideos(true)}
-              disabled={isRefreshing}
+            <button type="button" onClick={() => fetchLatestVideos(true)} disabled={isRefreshing}
               className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
-              aria-label="Refresh videos"
-            >
+              aria-label="Refresh videos">
               <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-
           <div ref={filterControlsRef} className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-            <FilterDropdown
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              options={[
-                { value: '', label: 'All' },
-                ...allCategories.map((cat) => ({ value: cat, label: cat })),
-              ]}
-              className="flex-1 min-w-0"
-            />
-            <FilterDropdown
-              value={timeRange}
-              onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
-              options={[
-                { value: 'all', label: 'All Time' },
-                { value: 'hour', label: 'Last Hour' },
-                { value: 'today', label: 'Today' },
-                { value: 'week', label: 'This Week' },
-                { value: 'month', label: 'This Month' },
-                { value: 'year', label: 'This Year' },
-              ]}
-              className="flex-1 min-w-0"
-            />
-            <FilterDropdown
-              value={sortBy}
-              onChange={(v) => setSortBy(v as 'newest' | 'views' | 'channel' | 'category')}
-              options={[
-                { value: 'newest', label: 'Newest' },
-                { value: 'views', label: 'Most Viewed' },
-                { value: 'channel', label: 'Channel A-Z' },
-                { value: 'category', label: 'Category' },
-              ]}
-              className="flex-1 min-w-0"
-            />
-            <button
-              type="button"
-              onClick={() => setViewMode((prev) => (prev === 'grid' ? 'list' : 'grid'))}
+            <FilterDropdown value={selectedCategory} onChange={setSelectedCategory}
+              options={[{ value: '', label: 'All' }, ...allCategories.map(cat => ({ value: cat, label: cat }))]}
+              className="flex-1 min-w-0" />
+            <FilterDropdown value={timeRange} onChange={v => setTimeRange(v as any)}
+              options={[{ value: 'all', label: 'All Time' }, { value: 'hour', label: 'Last Hour' }, { value: 'today', label: 'Today' }, { value: 'week', label: 'This Week' }, { value: 'month', label: 'This Month' }, { value: 'year', label: 'This Year' }]} className="flex-1 min-w-0" />
+            <FilterDropdown value={sortBy} onChange={v => setSortBy(v as any)}
+              options={[{ value: 'newest', label: 'Newest' }, { value: 'views', label: 'Most Viewed' }, { value: 'channel', label: 'Channel A‑Z' }, { value: 'category', label: 'Category' }]} className="flex-1 min-w-0" />
+            <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
               className="hidden md:flex rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-shrink-0"
-              aria-label={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-            >
+              aria-label={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}>
               {viewMode === 'grid' ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
             </button>
           </div>
-
           {hasOverflow && (
-            <button
-              type="button"
-              onClick={() => setShowAllFilters(true)}
-              className="flex items-center gap-1 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-shrink-0 md:hidden"
-            >
-              <span className="text-lg leading-none">...</span>
+            <button type="button" onClick={() => setShowAllFilters(true)}
+              className="flex items-center gap-1 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-shrink-0 md:hidden">
+              <span className="text-lg leading-none">…</span>
             </button>
           )}
         </div>
+      </div>
 
+      <div className="px-6 ">
         {showAllFilters && (
           <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowAllFilters(false)} />
@@ -392,61 +352,49 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             {viewMode === 'grid' ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {displayItems.map(({ channel, video, loading, error }) => (
-                  <article key={channel.id} className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
+                  <article key={channel.id} className="rounded-lg overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-transform hover:scale-[1.02] cursor-pointer" onClick={() => window.open(video.link, '_blank')} role="button" tabIndex={0}>
                     {loading ? (
-                      <div className="space-y-3 p-5">
-                        <div className="aspect-video rounded-lg bg-gray-200 dark:bg-gray-700" />
-                        <div className="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-                        <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
+                      <div className="p-4 space-y-3">
+                        <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded" />
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+                        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
                       </div>
                     ) : error ? (
-                      <div className="flex h-full min-h-[220px] flex-col justify-center p-5 text-center">
-                        <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
+                      <div className="flex flex-col items-center justify-center p-5 text-center min-h-[200px]">
+                        <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
                         <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
-                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
                       </div>
                     ) : video ? (
-                      <>
-                        <button onClick={() => setSelectedVideo(video)} className="group w-full text-left relative">
+                      <div className="group">
+                        <div className="relative">
                           {video.thumbnail ? (
-                            <img src={video.thumbnail} alt="" className="aspect-video w-full object-cover" />
+                            <img src={video.thumbnail} alt={video.title} className="aspect-video w-full object-cover" />
                           ) : (
                             <div className="aspect-video bg-gradient-to-br from-brand-pink to-brand-yellow" />
                           )}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-brand-coral opacity-0 shadow-lg transition group-hover:opacity-100">
-                              <Play className="ml-0.5 h-6 w-6 fill-current" />
-                            </span>
-                          </div>
                           {formatDuration(video.duration) && (
-                            <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white">
+                            <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-xs px-1 rounded">
                               {formatDuration(video.duration)}
                             </span>
                           )}
-                        </button>
-                        <div className="p-5">
-                          <div className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-pink to-brand-yellow text-[10px] font-bold text-white">
+                        </div>
+                        <div className="p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="flex items-center justify-center h-6 w-6 rounded-full bg-gradient-to-br from-brand-pink to-brand-yellow text-xs font-bold text-white">
                               {(video.channelName || channel.name).charAt(0).toUpperCase()}
                             </span>
                             <Link to={`/channel/${channel.id}`} className="text-sm font-medium text-brand-coral hover:underline truncate">
                               {video.channelName || channel.name}
                             </Link>
                             {onUpdate && (
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setEditingChannel(channel); }}
-                                className="inline-flex items-center rounded p-0.5 text-gray-400 hover:text-brand-coral transition"
-                                aria-label="Edit channel"
-                              >
+                              <button type="button" onClick={e => { e.stopPropagation(); setEditingChannel(channel); }} className="text-gray-400 hover:text-brand-coral">
                                 <Edit3 className="h-3.5 w-3.5" />
                               </button>
                             )}
                           </div>
-                          <h2 className="mt-2 line-clamp-2 text-lg font-semibold text-gray-900 dark:text-white">
-                            {video.title}
-                          </h2>
-                          <div className="mt-3 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                          <h2 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">{video.title}</h2>
+                          <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
                             {formatViews(video.views) && (
                               <span className="flex items-center gap-1">
                                 <Eye className="h-4 w-4" />
@@ -461,16 +409,16 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                             )}
                           </div>
                           {channel.categories.length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              {channel.categories.map((category) => (
-                                <span key={category} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
-                                  {category}
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {channel.categories.map(cat => (
+                                <span key={cat} className="bg-gray-100 dark:bg-white/10 text-xs text-gray-600 dark:text-gray-300 px-2.5 py-1 rounded">
+                                  {cat}
                                 </span>
                               ))}
                             </div>
                           )}
                         </div>
-                      </>
+                      </div>
                     ) : null}
                   </article>
                 ))}
@@ -480,36 +428,31 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <article key={channel.id} className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700">
                     {loading ? (
-                      <div className="flex-1 space-y-3 p-5">
+                      <div className="flex-1 space-y-3">
                         <div className="h-20 w-full rounded bg-gray-200 dark:bg-gray-700" />
                         <div className="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
                         <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
                       </div>
                     ) : error ? (
-                      <div className="flex-1 flex flex-col justify-center p-5 text-center">
+                      <div className="flex-1 flex flex-col justify-center text-center">
                         <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
                         <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
                       </div>
                     ) : video ? (
                       <>
-                        <button onClick={() => setSelectedVideo(video)} className="group flex-shrink-0 w-64 aspect-video rounded-lg overflow-hidden relative">
+                        <div className="flex-shrink-0 w-64 aspect-video rounded-lg overflow-hidden relative cursor-pointer" onClick={() => window.open(video.link, '_blank')}>
                           {video.thumbnail ? (
                             <img src={video.thumbnail} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-brand-pink to-brand-yellow" />
                           )}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-brand-coral opacity-0 shadow-lg transition group-hover:opacity-100">
-                              <Play className="ml-0.5 h-6 w-6 fill-current" />
-                            </span>
-                          </div>
                           {formatDuration(video.duration) && (
                             <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white">
                               {formatDuration(video.duration)}
                             </span>
                           )}
-                        </button>
+                        </div>
                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                           <div className="flex items-center gap-2">
                             <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-pink to-brand-yellow text-[10px] font-bold text-white">
@@ -557,43 +500,40 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                           )}
                         </div>
                       </>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-      {selectedVideo && (
-        <VideoPlayerModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
-      )}
-
-      {showSearch && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
-          <div className="fixed inset-0 bg-black/50" onClick={() => { setShowSearch(false); setSearchText(''); }} />
-          <div className="relative z-10 w-full max-w-xl max-h-[70vh] flex flex-col rounded-xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
-            <div className="flex items-center gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
-              <Search className="h-5 w-5 flex-shrink-0 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search channels..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="flex-1 bg-transparent text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
-                autoFocus
-              />
-              <button
-                onClick={() => { setShowSearch(false); setSearchText(''); }}
-                className="rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
-              >
-                <X className="h-5 w-5" />
-              </button>
+                          ) : null}
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              {items
-                .filter((item) => !item.loading && item.video)
-                .filter((item) => {
+
+            {showSearch && (
+              <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
+                <div className="fixed inset-0 bg-black/50" onClick={() => { setShowSearch(false); setSearchText(''); }} />
+                <div className="relative z-10 w-full max-w-xl max-h-[70vh] flex flex-col rounded-xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
+                  <div className="flex items-center gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
+                    <Search className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search channels..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      className="flex-1 bg-transparent text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => { setShowSearch(false); setSearchText(''); }}
+                      className="rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4">
+                    {items
+                      .filter((item) => !item.loading && item.video)
+                      .filter((item) => {
                   if (!searchText) return true;
                   const q = searchText.toLowerCase();
                   const name = item.channel.name.toLowerCase();
@@ -607,7 +547,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 .map(({ channel, video }) => (
                   <button
                     key={channel.id}
-                    onClick={() => { setShowSearch(false); setSearchText(''); setSelectedVideo(video!); }}
+                    onClick={() => { setShowSearch(false); setSearchText(''); }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
                   >
                     {video!.thumbnail && (

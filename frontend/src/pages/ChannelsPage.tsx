@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Search, Heart, Edit3, Trash2, X } from 'lucide-react';
+import { Search, Heart, Edit3, Trash2, X ,Play} from 'lucide-react';
 import EditChannelModal from '../components/EditChannelModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import type { Channel } from '../types';
 
 interface ChannelsPageProps {
@@ -35,6 +36,11 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_channels_category', ''));
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; channelId: string | null; channelName: string }>({
+    isOpen: false,
+    channelId: null,
+    channelName: '',
+  });
 
   useMemo(() => savePref('wasla_channels_category', selectedCategory), [selectedCategory]);
   useMemo(() => savePref('wasla_channels_search', searchText), [searchText]);
@@ -82,6 +88,25 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
       setShowEditModal(false);
       setEditingChannel(null);
     }
+  };
+
+  const handleDeleteClick = (channel: Channel) => {
+    setDeleteConfirmModal({
+      isOpen: true,
+      channelId: channel.id,
+      channelName: channel.name,
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmModal.channelId) {
+      onDelete(deleteConfirmModal.channelId);
+      setDeleteConfirmModal({ isOpen: false, channelId: null, channelName: '' });
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmModal({ isOpen: false, channelId: null, channelName: '' });
   };
 
   return (
@@ -196,11 +221,11 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                           <Edit3 className="h-4 w-4" />
                           Edit
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => onDelete(channel.id)}
-                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
-                        >
+                         <button
+                           type="button"
+                           onClick={() => handleDeleteClick(channel)}
+                           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
+                         >
                           <Trash2 className="h-4 w-4" />
                           Delete
                         </button>
@@ -222,6 +247,15 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
           }}
           onUpdate={handleUpdate}
           existingCategories={Array.from(new Set(channels.flatMap(c => c.categories)))}
+         />
+      )}
+      {deleteConfirmModal.isOpen && (
+        <ConfirmDeleteModal
+          isOpen={deleteConfirmModal.isOpen}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          title="Delete Channel"
+          description={`Are you sure you want to delete "${deleteConfirmModal.channelName}"? This action cannot be undone.`}
         />
       )}
     </div>

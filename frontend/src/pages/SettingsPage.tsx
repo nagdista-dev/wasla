@@ -50,6 +50,7 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
   const { showToast } = useToast();
   const [resolving, setResolving] = useState(false);
   const [progress, setProgress] = useState('');
+  const [mode, setMode] = useState<'basic' | 'advanced'>('basic');
 
   const exportChannels = () => {
     const dataStr = JSON.stringify(channels, null, 2);
@@ -146,8 +147,10 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
 
   return (
     <div className="min-h-screen p-6">
-      <div className="mx-auto max-w-3xl">
+      <div className="px-6 md:px-0">
         <div className="mb-8">
+      <div className="flex items-center justify-between">
+        <div>
           <h1 className="flex items-center gap-3 text-4xl font-bold text-gray-900 dark:text-white">
             <Settings className="h-8 w-8 text-brand-coral" />
             Settings
@@ -156,6 +159,14 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
             Manage your app preferences and channel data.
           </p>
         </div>
+        <button
+          onClick={() => setMode(mode === 'basic' ? 'advanced' : 'basic')}
+          className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300 dark:hover:bg-white/10"
+        >
+          {mode === 'basic' ? 'Advanced Mode' : 'Basic Mode'}
+        </button>
+      </div>
+    </div>
 
         <div className="space-y-6">
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
@@ -207,6 +218,44 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
               </ul>
             </div>
           </div>
+
+          {mode === 'advanced' && (
+            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Advanced Settings</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Auto-refresh videos</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Automatically refresh video data every hour</p>
+                  </div>
+                  <button className="rounded-lg bg-brand-coral px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-pink">
+                    Enabled
+                  </button>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Cache duration</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">How long to cache video data (minutes)</p>
+                  </div>
+                  <select className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300">
+                    <option value="15">15 min</option>
+                    <option value="30">30 min</option>
+                    <option value="60">1 hour</option>
+                    <option value="120">2 hours</option>
+                  </select>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Debug mode</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Enable debug logging and error details</p>
+                  </div>
+                  <button className="rounded-lg bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                    Disabled
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

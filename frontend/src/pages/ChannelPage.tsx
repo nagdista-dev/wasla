@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Play, Clock, Eye, AlertCircle, ArrowUpDown } from 'lucide-react';
+import { Clock, Eye, AlertCircle, ArrowUpDown, ExternalLink, Play } from 'lucide-react';
 import { api } from '../api';
-import VideoPlayerModal from '../components/VideoPlayerModal';
 import type { ChannelDetailsData, LatestVideo } from '../types';
 
 function hashColor(str: string): string {
@@ -186,7 +185,7 @@ export default function ChannelPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sortedVideos.map((video) => (
                 <article key={video.link} className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700">
-                  <button onClick={() => setSelectedVideo(video)} className="w-full text-left relative">
+                  <div className="w-full text-left relative">
                     {video.thumbnail ? (
                       <img src={video.thumbnail} alt="" className="aspect-video w-full object-cover" />
                     ) : (
@@ -197,7 +196,7 @@ export default function ChannelPage() {
                         {formatDuration(video.duration)}
                       </span>
                     )}
-                  </button>
+                  </div>
                   <div className="p-4">
                     <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-white">
                       {video.title}
@@ -224,9 +223,6 @@ export default function ChannelPage() {
         </>
       )}
 
-      {selectedVideo && (
-        <VideoPlayerModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
-      )}
     </div>
   );
 }

@@ -18,7 +18,7 @@ export default function FilterDropdown({ value, onChange, options, className = '
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none rounded-lg bg-white pl-2.5 pr-7 py-2 text-sm text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 hover:ring-gray-300 transition cursor-pointer dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/[0.08] dark:hover:ring-gray-600 truncate"
+        className="w-full appearance-none rounded-lg bg-white pl-2.5 pr-7 py-2 text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer dark:bg-dark-navy dark:text-gray-300 dark:hover:bg-white/[0.08] truncate"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
