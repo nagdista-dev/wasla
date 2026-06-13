@@ -3,7 +3,8 @@
   "short_name": "Wasla",
   "description": "YouTube channel feed manager",
   "start_url": "/",
-  "display": "standalone",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "background_color": "#0A1128",
   "theme_color": "#E2436A",
   "icons": [
