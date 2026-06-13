@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Download, Upload, Loader2 } from 'lucide-react';
+import { Settings, Download, Upload } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../components/Toast';
@@ -90,8 +90,8 @@ export default function SettingsPage({ channels, onUpdate }: SettingsPageProps) 
         }
 
         if (isChannelObject(data[0])) {
-          const valid = data.filter((item): item => item.id && item.name);
-          onUpdate(valid as Channel[]);
+          const valid = data.filter((item): item is Channel => item.id && item.name);
+          onUpdate(valid);
           showToast(`Imported ${valid.length} channel${valid.length !== 1 ? 's' : ''}`, 'success');
           setResolving(false);
           setProgress('');

@@ -171,9 +171,6 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
       return;
     }
 
-    const cached = loadPref<ChannelLatestVideo[] | null>('wasla_videos_cache', null);
-    const hasCached = cached && cached.length > 0 && cached.length === channels.length;
-
     const loadVideos = async () => {
       await fetchLatestVideos();
     };

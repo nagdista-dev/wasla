@@ -130,7 +130,6 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
       categories: categoryInput ? categoryInput.split(',').map((category) => category.trim()).filter(Boolean) : [],
     };
 
-    const updatedPrev = Array.from(new Set([...entry.categories]));
     onAdd(entry);
     onClose();
   };

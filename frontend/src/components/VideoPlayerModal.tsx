@@ -2,6 +2,20 @@ import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import type { LatestVideo } from '../types';
 
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady?: () => void;
+    YT?: {
+      Player: new (element: string | HTMLElement, options: Record<string, unknown>) => {
+        playVideo: () => void;
+        pauseVideo: () => void;
+        getCurrentTime: () => number;
+        destroy: () => void;
+      };
+    };
+  }
+}
+
 function getYoutubeVideoId(url: string): string | null {
   const match = url.match(
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
@@ -14,7 +28,7 @@ let ytLoadPromise: Promise<void> | null = null;
 function loadYoutubeApi(): Promise<void> {
   if (ytLoadPromise) return ytLoadPromise;
   ytLoadPromise = new Promise((resolve) => {
-    if ((window as any).YT?.Player) {
+    if (window.YT?.Player) {
       resolve();
       return;
     }
@@ -51,9 +65,9 @@ export default function VideoPlayerModal({
 
     const init = async () => {
       await loadYoutubeApi();
-      if (!containerRef.current) return;
+      if (!containerRef.current || !window.YT?.Player) return;
 
-      playerRef.current = new (window as any).YT.Player(containerRef.current, {
+      playerRef.current = new window.YT.Player(containerRef.current, {
         videoId,
         width: '100%',
         height: '100%',
