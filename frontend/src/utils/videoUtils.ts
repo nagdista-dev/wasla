@@ -58,7 +58,7 @@ export function normalizeVideo(video: LatestVideo): (LatestVideo & { _videoId: s
 
   if (!videoId) {
     // No valid ID could be derived — video is unplayable, skip gracefully
-    if (process.env.NODE_ENV !== 'production') {
+    if (import.meta.env.MODE !== 'production') {
       console.warn('[Wasla] Could not resolve videoId for:', video.link, video.title);
     }
     return null;
