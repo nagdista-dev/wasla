@@ -19,7 +19,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('wasla_language') as Language | null;
     if (saved) return saved;
-    return navigator.language.startsWith('ar') ? 'ar' : 'en';
+    return 'ar';
   });
 
   const isRTL = language === 'ar';

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Settings, Download, Upload } from 'lucide-react';
+import { Settings, Download, Upload, Sun, Moon, RotateCcw } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/Toast';
 import type { Channel, Playlist } from '../types';
 
@@ -35,10 +36,25 @@ function isStringArray(data: unknown): data is string[] {
   return Array.isArray(data) && data.every((item) => typeof item === 'string');
 }
 
+function getStartPagePath(page: string): string {
+  const map: Record<string, string> = {
+    home: '/',
+    channels: '/channels',
+    playlists: '/playlists',
+    settings: '/settings',
+  };
+  return map[page] || '/';
+}
+
 export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePlaylists }: SettingsPageProps) {
   const { language, setLanguage, isRTL, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const { showToast } = useToast();
   const [resolving, setResolving] = useState(false);
+
+  const [startPage, setStartPage] = useState<string>(() => {
+    return localStorage.getItem('wasla_start_page') || 'home';
+  });
 
   const allCategories = useMemo(
     () => Array.from(new Set([
@@ -47,6 +63,62 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
     ])).sort((a, b) => a.localeCompare(b)),
     [channels, playlists],
   );
+
+  const handleStartPageChange = (value: string) => {
+    setStartPage(value);
+    if (value === 'home') {
+      localStorage.removeItem('wasla_start_page');
+    } else {
+      localStorage.setItem('wasla_start_page', getStartPagePath(value));
+    }
+  };
+
+  const resetDefaults = () => {
+    localStorage.removeItem('wasla_start_page');
+    localStorage.removeItem('wasla_theme');
+    localStorage.removeItem('wasla_language');
+    setStartPage('home');
+    window.location.reload();
+  };
+
+  const exportSettings = () => {
+    const settings: Record<string, string | null> = {};
+    const keys = ['wasla_language', 'wasla_theme', 'wasla_start_page'];
+    for (const key of keys) {
+      settings[key] = localStorage.getItem(key);
+    }
+    downloadJson(settings, 'wasla_settings.json');
+    showToast(t('settings.settingsExported'), 'success');
+  };
+
+  const importSettings = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || resolving) return;
+    setResolving(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        if (typeof data !== 'object' || data === null) {
+          showToast(t('settings.invalidSettingsFile'), 'error');
+          return;
+        }
+        const keys = ['wasla_language', 'wasla_theme', 'wasla_start_page'];
+        for (const key of keys) {
+          if (data[key] !== undefined && data[key] !== null) {
+            localStorage.setItem(key, data[key]);
+          }
+        }
+        showToast(t('settings.settingsImported'), 'success');
+        window.location.reload();
+      } catch {
+        showToast(t('settings.invalidSettingsFile'), 'error');
+      }
+      setResolving(false);
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
 
   const exportChannels = () => {
     downloadJson(channels, 'wasla_channels.json');
@@ -165,6 +237,8 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
         </div>
 
         <div className="space-y-6">
+
+          {/* ===== Language ===== */}
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.languageDirection')}</h2>
             <div className="flex items-center gap-4">
@@ -183,78 +257,147 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
             </div>
           </div>
 
+          {/* ===== Appearance ===== */}
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.channels')}</h2>
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              {channels.length === 1 ? t('settings.channelsDesc', { count: 1 }) : t('settings.channelsDescPlural', { count: channels.length })}
-            </p>
-            <div className="flex flex-wrap gap-3">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.appearance')}</h2>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600 dark:text-gray-400">{t('settings.theme')}</span>
               <button
-                onClick={exportChannels}
-                className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink"
+                onClick={toggleTheme}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  theme === 'dark'
+                    ? 'bg-gray-900 text-white ring-1 ring-gray-700'
+                    : 'bg-white text-gray-700 ring-1 ring-gray-300'
+                }`}
               >
-                <Download className="h-4 w-4" />
-                {t('settings.export')}
+                {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                {theme === 'dark' ? t('settings.darkMode') : t('settings.lightMode')}
               </button>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
-                <Upload className="h-4 w-4" />
-                {t('settings.import')}
-                <input type="file" accept=".json" className="hidden" onChange={importChannels} disabled={resolving} />
-              </label>
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                {t('settings.toggleHint')}
+              </span>
             </div>
           </div>
 
+          {/* ===== Startup Behavior ===== */}
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.playlists')}</h2>
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              {playlists.length === 1 ? t('settings.playlistsDesc', { count: 1 }) : t('settings.playlistsDescPlural', { count: playlists.length })}
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.startupBehavior')}</h2>
+            <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+              {t('settings.startPageDesc')}
             </p>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={exportPlaylists}
-                className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink"
-              >
-                <Download className="h-4 w-4" />
-                {t('settings.export')}
-              </button>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
-                <Upload className="h-4 w-4" />
-                {t('settings.import')}
-                <input type="file" accept=".json" className="hidden" onChange={importPlaylists} disabled={resolving} />
-              </label>
-            </div>
+            <select
+              value={startPage}
+              onChange={(e) => handleStartPageChange(e.target.value)}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
+            >
+              <option value="home">{t('nav.home')}</option>
+              <option value="channels">{t('nav.channels')}</option>
+              <option value="playlists">{t('nav.playlists')}</option>
+              <option value="settings">{t('nav.settings')}</option>
+            </select>
           </div>
 
+          {/* ===== Advanced ===== */}
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.categories')}</h2>
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              {allCategories.length === 1 ? t('settings.categoriesDesc', { count: 1 }) : t('settings.categoriesDescPlural', { count: allCategories.length })}
-            </p>
-            {allCategories.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-1.5">
-                {allCategories.map((cat) => (
-                  <span
-                    key={cat}
-                    className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral"
-                  >
-                    {cat}
-                  </span>
-                ))}
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.advanced')}</h2>
+            <div className="space-y-4">
+
+              {/* Channels */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('settings.channels')}</h3>
+                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                  {channels.length === 1 ? t('settings.channelsDesc', { count: 1 }) : t('settings.channelsDescPlural', { count: channels.length })}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={exportChannels} className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink">
+                    <Download className="h-4 w-4" />
+                    {t('settings.export')}
+                  </button>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
+                    <Upload className="h-4 w-4" />
+                    {t('settings.import')}
+                    <input type="file" accept=".json" className="hidden" onChange={importChannels} disabled={resolving} />
+                  </label>
+                </div>
               </div>
-            )}
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={exportCategories}
-                className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink"
-              >
-                <Download className="h-4 w-4" />
-                {t('settings.export')}
-              </button>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
-                <Upload className="h-4 w-4" />
-                {t('settings.import')}
-                <input type="file" accept=".json" className="hidden" onChange={importCategoriesFile} disabled={resolving} />
-              </label>
+
+              {/* Playlists */}
+              <div className="border-t border-gray-100 pt-4 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('settings.playlists')}</h3>
+                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                  {playlists.length === 1 ? t('settings.playlistsDesc', { count: 1 }) : t('settings.playlistsDescPlural', { count: playlists.length })}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={exportPlaylists} className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink">
+                    <Download className="h-4 w-4" />
+                    {t('settings.export')}
+                  </button>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
+                    <Upload className="h-4 w-4" />
+                    {t('settings.import')}
+                    <input type="file" accept=".json" className="hidden" onChange={importPlaylists} disabled={resolving} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div className="border-t border-gray-100 pt-4 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('settings.categories')}</h3>
+                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                  {allCategories.length === 1 ? t('settings.categoriesDesc', { count: 1 }) : t('settings.categoriesDescPlural', { count: allCategories.length })}
+                </p>
+                {allCategories.length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    {allCategories.map((cat) => (
+                      <span key={cat} className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral">
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={exportCategories} className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink">
+                    <Download className="h-4 w-4" />
+                    {t('settings.export')}
+                  </button>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
+                    <Upload className="h-4 w-4" />
+                    {t('settings.import')}
+                    <input type="file" accept=".json" className="hidden" onChange={importCategoriesFile} disabled={resolving} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Settings Export/Import */}
+              <div className="border-t border-gray-100 pt-4 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('settings.appPreferences')}</h3>
+                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                  {t('settings.appPreferencesDesc')}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={exportSettings} className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink">
+                    <Download className="h-4 w-4" />
+                    {t('settings.export')}
+                  </button>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
+                    <Upload className="h-4 w-4" />
+                    {t('settings.import')}
+                    <input type="file" accept=".json" className="hidden" onChange={importSettings} disabled={resolving} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Reset */}
+              <div className="border-t border-gray-100 pt-4 dark:border-gray-700">
+                <button
+                  onClick={resetDefaults}
+                  className="flex items-center gap-2 rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  {t('settings.resetDefaults')}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import {
   Route,
   Link,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import {
   Home,
@@ -45,6 +46,20 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+  return null;
+}
+
+function StartupRedirect() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const startPage = localStorage.getItem('wasla_start_page');
+    if (startPage && pathname === '/') {
+      navigate(startPage, { replace: true });
+    }
+  }, []);
+
   return null;
 }
 
@@ -312,6 +327,7 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <StartupRedirect />
       {/* Mobile navigation */}
       <Navigation channels={channels} />
       {/* Desktop sidebar */}
