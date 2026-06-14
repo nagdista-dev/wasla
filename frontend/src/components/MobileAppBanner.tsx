@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { X, Smartphone, Download } from 'lucide-react';
+import { Smartphone, Download } from 'lucide-react';
 
 export default function MobileAppBanner() {
   const [visible, setVisible] = useState(false);
@@ -11,6 +11,9 @@ export default function MobileAppBanner() {
 
     const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (!isMobile) return;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+    if (isStandalone) return;
 
     const handler = (e: Event) => {
       e.preventDefault();
@@ -25,7 +28,7 @@ export default function MobileAppBanner() {
     };
   }, []);
 
-  const handleDownload = async () => {
+  const handleInstall = async () => {
     if (deferredPrompt) {
       (deferredPrompt as any).prompt();
       const result = await (deferredPrompt as any).userChoice;
@@ -41,43 +44,44 @@ export default function MobileAppBanner() {
       }
     }
     setVisible(false);
-    localStorage.setItem('wasla_app_banner_dismissed', 'true');
+    localStorage.setItem('wasla_install_dismissed', 'true');
   };
 
-  const dismiss = () => {
+  const handleNotNow = () => {
     setVisible(false);
-    localStorage.setItem('wasla_app_banner_dismissed', 'true');
+    localStorage.setItem('wasla_install_dismissed', 'true');
   };
 
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-4 px-4">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={dismiss} />
-      <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
-        <button
-          onClick={dismiss}
-          className="absolute right-3 top-3 rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
-          aria-label="Close"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <div className="mb-5 mt-1 flex items-center gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-coral/10 text-brand-coral">
-            <Smartphone className="h-5 w-5" />
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleNotNow} />
+      <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-brand-coral/10 text-brand-coral">
+            <Smartphone className="h-6 w-6" />
           </span>
           <div>
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Get the app</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Install Wasla on your device</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Install Wasla</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Get the best experience on your device</p>
           </div>
         </div>
-        <button
-          onClick={handleDownload}
-          className="w-full rounded-xl bg-brand-coral px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-brand-pink"
-        >
-          <Download className="mr-1.5 inline-block h-4 w-4" />
-          Download
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleInstall}
+            className="w-full rounded-xl bg-brand-coral px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-brand-pink"
+          >
+            <Download className="mr-1.5 inline-block h-4 w-4" />
+            Install
+          </button>
+          <button
+            onClick={handleNotNow}
+            className="w-full rounded-xl px-4 py-2.5 text-center text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+          >
+            Not now
+          </button>
+        </div>
       </div>
     </div>
   );

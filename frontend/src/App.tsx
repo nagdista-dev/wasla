@@ -15,10 +15,12 @@ import {
   Sun,
   Moon,
   Tag,
+  LayoutDashboard,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
 import AddChannelModal from "./components/AddChannelModal";
+import AddPlaylistModal from "./components/AddPlaylistModal";
 import ChannelsPage from "./pages/ChannelsPage";
 import HomePage from "./pages/HomePage";
 import ChannelPage from "./pages/ChannelPage";
@@ -27,8 +29,8 @@ import SettingsPage from "./pages/SettingsPage";
 import PlaylistsPage from "./pages/PlaylistsPage";
 import MobileAppBanner from "./components/MobileAppBanner";
 import MiniPlayerModal from "./components/MiniPlayerModal";
-import type { Channel } from "./types";
-import { loadChannels, saveChannels } from "./storage";
+import type { Channel, Playlist } from "./types";
+import { loadChannels, saveChannels, loadPlaylists, savePlaylists } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
 import Sidebar from "./components/Sidebar";
@@ -186,42 +188,56 @@ function Navigation({ channels }: { channels: Channel[] }) {
         </nav>
 
         {/* Categories (scroll area) */}
-        {categories.length > 0 && (
-          <div className="flex flex-col flex-1 min-h-0 border-t border-gray-200 dark:border-gray-700">
-            <div className="px-4 pt-2 flex-0">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                Categories
-              </p>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800 px-2 pb-4">
-              {categories.map((cat) => {
-                const isActive =
-                  pathname === `/category/${encodeURIComponent(cat)}`;
-
-                return (
-                  <Link
-                    key={cat}
-                    to={`/category/${encodeURIComponent(cat)}`}
-                    onClick={closeMenu}
-                    className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                      isActive
-                        ? "bg-brand-coral text-white shadow-md"
-                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
-                    }`}
-                  >
-                    <Tag
-                      className={`h-4 w-4 ${
-                        isActive ? "text-white" : "text-gray-400"
-                      }`}
-                    />
-                    <span className="truncate">{cat}</span>
-                  </Link>
-                );
-              })}
-            </div>
+        <div className="flex flex-col flex-1 min-h-0 border-t border-gray-200 dark:border-gray-700">
+          <div className="px-4 pt-2 flex-0">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              Categories
+            </p>
           </div>
-        )}
+
+          <div className="flex-1 min-h-0 modal-scroll px-2 pb-4">
+            <Link
+              to="/"
+              onClick={closeMenu}
+              className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                pathname === "/"
+                  ? "bg-brand-coral text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+              }`}
+            >
+              <LayoutDashboard
+                className={`h-4 w-4 ${
+                  pathname === "/" ? "text-white" : "text-gray-400"
+                }`}
+              />
+              <span className="truncate">All</span>
+            </Link>
+            {categories.map((cat) => {
+              const isActive =
+                pathname === `/category/${encodeURIComponent(cat)}`;
+
+              return (
+                <Link
+                  key={cat}
+                  to={`/category/${encodeURIComponent(cat)}`}
+                  onClick={closeMenu}
+                  className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-brand-coral text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+                  }`}
+                >
+                  <Tag
+                    className={`h-4 w-4 ${
+                      isActive ? "text-white" : "text-gray-400"
+                    }`}
+                  />
+                  <span className="truncate">{cat}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )}
@@ -231,11 +247,18 @@ function Navigation({ channels }: { channels: Channel[] }) {
 
 function App() {
   const [channels, setChannels] = useState<Channel[]>(loadChannels);
-  const [showModal, setShowModal] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlist[]>(loadPlaylists);
+  const [showChannelModal, setShowChannelModal] = useState(false);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
 
   const updateChannels = (nextChannels: Channel[]) => {
     setChannels(nextChannels);
     saveChannels(nextChannels);
+  };
+
+  const updatePlaylists = (nextPlaylists: Playlist[]) => {
+    setPlaylists(nextPlaylists);
+    savePlaylists(nextPlaylists);
   };
 
   const handleAddChannel = (entry: Channel) => {
@@ -268,13 +291,44 @@ function App() {
     updateChannels(nextChannels);
   };
 
+  const handleAddPlaylist = (entry: { id: string; name: string; url?: string; thumbnail?: string; channelName?: string; categories: string[] }) => {
+    const withoutDuplicate = playlists.filter(
+      (pl) => pl.id !== entry.id && pl.url !== entry.url,
+    );
+    updatePlaylists([...withoutDuplicate, { ...entry, timestamp: Date.now() }]);
+  };
+
+  const handleDeletePlaylist = (id: string) => {
+    const nextPlaylists = playlists.filter((pl) => pl.id !== id);
+    updatePlaylists(nextPlaylists);
+  };
+
+  const handleUpdatePlaylist = (
+    id: string,
+    name: string,
+    categories: string[],
+  ) => {
+    const nextPlaylists = playlists.map((pl) =>
+      pl.id === id ? { ...pl, name, categories } : pl,
+    );
+    updatePlaylists(nextPlaylists);
+  };
+
+  const allCategories = useMemo(
+    () => Array.from(new Set([
+      ...channels.flatMap((c) => c.categories),
+      ...playlists.flatMap((p) => p.categories),
+    ])).sort((a, b) => a.localeCompare(b)),
+    [channels, playlists],
+  );
+
   return (
     <BrowserRouter>
       <ScrollToTop />
       {/* Mobile navigation */}
       <Navigation channels={channels} />
       {/* Desktop sidebar */}
-      <Sidebar channels={channels} />
+      <Sidebar channels={channels} playlists={playlists} />
       <div className="flex flex-col flex-1 min-h-screen md:ml-64 pt-16">
         <main className="flex-1">
           <Routes>
@@ -300,7 +354,16 @@ function App() {
                 />
               }
             />
-            <Route path="/playlists" element={<PlaylistsPage />} />
+            <Route
+              path="/playlists"
+              element={
+                <PlaylistsPage
+                  playlists={playlists}
+                  onDelete={handleDeletePlaylist}
+                  onUpdate={handleUpdatePlaylist}
+                />
+              }
+            />
             <Route
               path="/settings"
               element={
@@ -309,14 +372,22 @@ function App() {
             />
           </Routes>
         </main>
-        <FloatingButton onClick={() => setShowModal(true)} />
-        {showModal && (
+        <FloatingButton
+          onAddChannel={() => setShowChannelModal(true)}
+          onAddPlaylist={() => setShowPlaylistModal(true)}
+        />
+        {showChannelModal && (
           <AddChannelModal
-            onClose={() => setShowModal(false)}
+            onClose={() => setShowChannelModal(false)}
             onAdd={handleAddChannel}
-            existingCategories={Array.from(
-              new Set(channels.flatMap((c) => c.categories)),
-            )}
+            existingCategories={allCategories}
+          />
+        )}
+        {showPlaylistModal && (
+          <AddPlaylistModal
+            onClose={() => setShowPlaylistModal(false)}
+            onAdd={handleAddPlaylist}
+            existingCategories={allCategories}
           />
         )}
         <MobileAppBanner />

@@ -1,23 +1,143 @@
-import { Heart, Music } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Heart, Search, X } from 'lucide-react';
+import CustomFilterDropdown from '../components/CustomFilterDropdown';
+import PlaylistCard from '../components/PlaylistCard';
+import EditPlaylistModal from '../components/EditPlaylistModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import type { Playlist } from '../types';
 
-export default function PlaylistsPage() {
+interface PlaylistsPageProps {
+  playlists: Playlist[];
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, name: string, categories: string[]) => void;
+}
+
+function loadPref<T>(key: string, fallback: T): T {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? (JSON.parse(val) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function savePref(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch { /* noop */ }
+}
+
+export default function PlaylistsPage({ playlists, onDelete, onUpdate }: PlaylistsPageProps) {
+  const [searchText, setSearchText] = useState(loadPref<string>('wasla_playlists_search', ''));
+  const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_playlists_category', ''));
+  const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Playlist | null>(null);
+
+  useMemo(() => savePref('wasla_playlists_search', searchText), [searchText]);
+  useMemo(() => savePref('wasla_playlists_category', selectedCategory), [selectedCategory]);
+
+  const allCategories = Array.from(new Set(playlists.flatMap((p) => p.categories))).sort((a, b) => a.localeCompare(b));
+
+  const filtered = useMemo(() => {
+    const q = searchText.toLowerCase().trim();
+    return playlists.filter((pl) => {
+      if (selectedCategory && !pl.categories.includes(selectedCategory)) return false;
+      if (q && !pl.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [playlists, searchText, selectedCategory]);
+
   return (
-    <div className="min-h-screen p-8 dark:bg-dark-navy">
+    <div className="min-h-screen p-6 dark:bg-dark-navy">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="flex items-center gap-2 text-4xl font-bold text-gray-900 dark:text-white">
             <Heart className="h-8 w-8 text-brand-coral" />
             Playlists
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Manage your video playlists.</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            {filtered.length} of {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
+            {(searchText || selectedCategory) && ' (filtered)'}
+          </p>
         </div>
 
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
-          <Music className="mx-auto mb-4 h-12 w-12 text-brand-coral" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">No playlists yet</h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Create a playlist to organize your favorite videos.</p>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search playlists..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-500"
+            />
+            {searchText && (
+              <button onClick={() => setSearchText('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {allCategories.length > 0 && (
+            <CustomFilterDropdown
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={[
+                { value: '', label: 'All Categories' },
+                ...allCategories.map((cat) => ({ value: cat, label: cat })),
+              ]}
+              className="min-w-[160px]"
+              placeholder="Category"
+            />
+          )}
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              {playlists.length === 0 ? 'No playlists yet' : 'No playlists match your search'}
+            </p>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              {playlists.length === 0 ? 'Tap the + button to add a YouTube playlist.' : 'Try a different search or clear the filters.'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((pl) => (
+              <PlaylistCard
+                key={pl.id}
+                playlist={pl}
+                onEdit={setEditingPlaylist}
+                onDelete={setDeleteTarget}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      {editingPlaylist && (
+        <EditPlaylistModal
+          playlist={editingPlaylist}
+          onClose={() => setEditingPlaylist(null)}
+          onUpdate={(name, categories) => {
+            onUpdate(editingPlaylist.id, name, categories);
+            setEditingPlaylist(null);
+          }}
+          existingCategories={allCategories}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          isOpen={true}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={() => {
+            onDelete(deleteTarget.id);
+            setDeleteTarget(null);
+          }}
+          title="Delete Playlist"
+          description={`Are you sure you want to delete "${deleteTarget.name}"? This action cannot be undone.`}
+        />
+      )}
     </div>
   );
 }

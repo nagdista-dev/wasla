@@ -12,7 +12,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('language') as Language | null;
+    const saved = localStorage.getItem('wasla_language') as Language | null;
     if (saved) return saved;
     return navigator.language.startsWith('ar') ? 'ar' : 'en';
   });
@@ -22,7 +22,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-    localStorage.setItem('language', language);
+    localStorage.setItem('wasla_language', language);
   }, [language, isRTL]);
 
   return (

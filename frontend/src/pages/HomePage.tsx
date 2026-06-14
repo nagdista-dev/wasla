@@ -242,8 +242,8 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
       </div>
 
         <div className="px-6 overflow-x-hidden">
-        {showAllFilters && (
-          <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
+          {showAllFilters && (
+          <div className="fixed inset-0 z-[55] flex items-start justify-center p-4 pt-20">
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowAllFilters(false)} />
             <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-5 shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
               <div className="flex items-center justify-between mb-4">
@@ -393,8 +393,8 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             </div>
 
             {showSearch && (
-              <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20">
-                <div className="fixed inset-0 bg-black/50" onClick={() => { setShowSearch(false); setSearchText(''); }} />
+              <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-20">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowSearch(false); setSearchText(''); }} />
                 <div className="relative z-10 w-full max-w-xl max-h-[70vh] flex flex-col rounded-xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
                   <div className="flex items-center gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
                     <Search className="h-5 w-5 flex-0 text-gray-400" />

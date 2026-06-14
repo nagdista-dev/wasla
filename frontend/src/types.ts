@@ -37,3 +37,13 @@ export interface ChannelDetailsResponse {
   data?: ChannelDetailsData;
   error?: string;
 }
+
+export interface Playlist {
+  id: string;
+  name: string;
+  url?: string;
+  thumbnail?: string;
+  channelName?: string;
+  categories: string[];
+  timestamp: number;
+}

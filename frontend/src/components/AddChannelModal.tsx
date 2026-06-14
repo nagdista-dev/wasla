@@ -182,7 +182,7 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
         />
         {existingCategories.length > 0 && (
           <div className="mb-2">
-            <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+            <div className="modal-scroll flex flex-wrap gap-1.5 max-h-28">
               {existingCategories.map((cat) => {
                 const active = categoryInput.split(',').map(c => c.trim()).includes(cat);
                 return (

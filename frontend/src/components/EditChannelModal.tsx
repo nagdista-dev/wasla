@@ -53,7 +53,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
   const [isResolving, setIsResolving] = useState(false);
   const [resolvedId, setResolvedId] = useState<string | null>(channel.handle || null);
   const [prevCategories, setPrevCategories] = useState<string[]>(() => {
-    const stored = localStorage.getItem('prevCategories');
+    const stored = localStorage.getItem('wasla_prev_categories');
     return stored ? JSON.parse(stored) : [];
   });
 
@@ -106,7 +106,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
       const updated = Array.from(new Set([...categories, newCat]));
       setCategories(updated);
       setPrevCategories((prev) => Array.from(new Set([...prev, newCat])));
-      localStorage.setItem('prevCategories', JSON.stringify(Array.from(new Set([...prevCategories, newCat]))));
+      localStorage.setItem('wasla_prev_categories', JSON.stringify(Array.from(new Set([...prevCategories, newCat]))));
       setCategoryInput('');
     }
   };
@@ -242,7 +242,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
           {existingCategories.length > 0 && (
             <div className="mb-4">
               <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">All categories:</p>
-              <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto min-w-0">
+              <div className="modal-scroll flex flex-wrap gap-1 max-h-28 min-w-0">
                 {existingCategories.map((cat) => {
                   const active = categories.includes(cat);
                   return (
