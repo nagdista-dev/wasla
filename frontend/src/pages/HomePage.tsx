@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AlertCircle, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
-import { usePlayer } from '../context/PlayerContext';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -58,7 +58,7 @@ function savePref(key: string, value: unknown) {
 }
 
 export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
-  const { play } = usePlayer();
+  const navigate = useNavigate();
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
@@ -430,7 +430,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 .map(({ channel, video }) => (
                   <button
                     key={channel.id}
-                    onClick={() => { play(video!); setShowSearch(false); setSearchText(''); }}
+                    onClick={() => { navigate(`/channel/${channel.id}`); setShowSearch(false); setSearchText(''); }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
                   >
                     {video!.thumbnail && (

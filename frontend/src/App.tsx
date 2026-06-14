@@ -32,6 +32,7 @@ import { loadChannels, saveChannels } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
 import Sidebar from "./components/Sidebar";
+import logo from "./assets/logo.png";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -65,14 +66,14 @@ function Navigation({ channels }: { channels: Channel[] }) {
   return (
  <nav className="fixed top-0 left-0 right-0 min-h-fit z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90">
   <div className="mx-auto max-w-7xl px-4">
-    <div className="grid grid-cols-3 h-16 items-center">
-      <div className="flex items-center justify-start">
+    <div className="flex items-center justify-between h-16">
+      <div className="flex items-center">
         <Link to="/">
-          <img src="./logo.png" alt="Wasla" className="h-18 w-18 object-contain" />
+          <img src={logo} alt="Wasla" className="h-18 w-18 object-contain" />
         </Link>
       </div>
 
-      <div className="hidden items-center justify-center gap-1 md:flex">
+      <div className="hidden md:flex items-center justify-center gap-1">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
 
@@ -93,7 +94,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
         })}
       </div>
 
-      <div className="flex items-center justify-end gap-4">
+      <div className="flex items-center gap-4">
         <button
           onClick={toggleTheme}
           className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
@@ -143,7 +144,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
         {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-700 flex-shrink-0">
           <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="Wasla" className="h-12 w-12 object-contain" />
+            <img src={logo} alt="Wasla" className="h-12 w-12 object-contain" />
           </Link>
 
           <button
