@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react';
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 type ToastType = 'error' | 'success' | 'info' | 'warning';
 
@@ -48,8 +49,9 @@ export function useToast() {
 }
 
 function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: number) => void }) {
+  const { isRTL } = useLanguage();
   return (
-    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div className={`fixed bottom-4 z-[100] flex flex-col gap-2 pointer-events-none ${isRTL ? 'left-4' : 'right-4'}`}>
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onRemove={onRemove} />
       ))}
@@ -58,6 +60,7 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
 }
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) => void }) {
+  const { t, isRTL } = useLanguage();
   useEffect(() => {
     const timer = setTimeout(() => onRemove(toast.id), 5000);
     return () => clearTimeout(timer);
@@ -81,7 +84,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) =
 
   return (
     <div
-      className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[280px] max-w-md animate-slide-in ${colors[toast.type]}`}
+      className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[280px] max-w-md ${isRTL ? 'animate-slide-in-rtl' : 'animate-slide-in'} ${colors[toast.type]}`}
       role="alert"
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
@@ -89,7 +92,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) =
       <button
         onClick={() => onRemove(toast.id)}
         className="flex-shrink-0 text-current opacity-50 hover:opacity-100 transition-opacity"
-        aria-label="Dismiss"
+        aria-label={t('toast.dismiss')}
       >
         <X className="h-4 w-4" />
       </button>

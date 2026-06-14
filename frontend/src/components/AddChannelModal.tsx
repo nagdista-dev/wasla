@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { X, RefreshCcw, Loader2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import { useToast } from './Toast';
 
 interface ChannelEntry {
@@ -43,6 +44,7 @@ const extractHandle = (value: string): string | null => {
 };
 
 export default function AddChannelModal({ onClose, onAdd, existingCategories = [] }: { onClose: () => void; onAdd: (ch: ChannelEntry) => void; existingCategories?: string[] }) {
+  const { t } = useLanguage();
   const { showToast } = useToast();
   const [input, setInput] = useState('');
   const [customName, setCustomName] = useState('');
@@ -81,7 +83,7 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
           setCustomName('');
         }
       } catch (error) {
-        showToast('Failed to resolve channel. Check the URL or handle.', 'error');
+        showToast(t('addChannel.failedResolve'), 'error');
         setResolvedId(null);
         setCustomName('');
       } finally {
@@ -94,7 +96,7 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
         clearTimeout(debounceRef.current);
       }
     };
-  }, [input]);
+  }, [input, t]);
 
   const refreshName = async () => {
     const identifier = extractHandle(input);
@@ -113,7 +115,7 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
         }
       }
     } catch (error) {
-      showToast('Failed to refresh channel name.', 'error');
+      showToast(t('addChannel.failedResolve'), 'error');
     } finally {
       setIsResolving(false);
     }
@@ -141,17 +143,17 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
         <button type="button" onClick={onClose} className="absolute top-3 rtl:left-3 ltr:right-3 rounded-full bg-gray-100 p-1.5 text-gray-500 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20">
           <X className="h-4 w-4" />
         </button>
-        <h2 className="mb-4 text-xl font-semibold dark:text-white">Add Channel</h2>
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">{t('addChannel.title')}</h2>
         <input
-          placeholder="Channel URL, @handle, or ID"
+          placeholder={t('addChannel.inputPlaceholder')}
           value={input}
           onChange={(event) => setInput(event.target.value)}
           className="mb-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
         />
         <div className="mb-2 relative">
           <input
-            placeholder="Channel Name"
-            value={customName}
+          placeholder={t('addChannel.namePlaceholder')}
+          value={customName}
             onChange={(event) => setCustomName(event.target.value)}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
           />
@@ -160,16 +162,16 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
             onClick={refreshName}
             disabled={isResolving}
             className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
-            title="Refresh name"
+            title={t('addChannel.refreshName')}
           >
             {isResolving ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCcw className="h-5 w-5" />}
           </button>
         </div>
         {resolvedId && (
-          <p className="mb-2 text-xs text-green-600">Resolved to channel ID: {resolvedId}</p>
+          <p className="mb-2 text-xs text-green-600">{t('addChannel.resolved', { id: resolvedId })}</p>
         )}
         <input
-          placeholder="Categories (press Enter)"
+          placeholder={t('addChannel.categoriesPlaceholder')}
           value={categoryInput}
           onChange={(event) => setCategoryInput(event.target.value)}
           onKeyDown={(event) => {
@@ -212,7 +214,7 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
           </div>
         )}
         <button type="button" onClick={handleAdd} className="mt-4 w-full rounded bg-brand-coral py-2 text-white hover:bg-brand-pink">
-          Add Channel
+          {t('addChannel.addButton')}
         </button>
       </div>
     </div>

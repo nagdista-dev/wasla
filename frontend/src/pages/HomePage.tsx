@@ -5,6 +5,7 @@ import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
@@ -60,8 +61,9 @@ function savePref(key: string, value: unknown) {
 
 export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
-  useMeta({ title: 'Home', description: `${channels.length} channels in your feed.` });
+  useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [showSearch, setShowSearch] = useState(false);
@@ -123,7 +125,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         return {
           channel: channels[index],
           loading: false,
-          error: 'Could not fetch this channel',
+          error: t('home.couldNotFetch'),
         };
       }
 
@@ -133,7 +135,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         return {
           channel: channels[index],
           loading: false,
-          error: result.value.response.data.error || 'Could not fetch this channel',
+          error: result.value.response.data.error || t('home.couldNotFetch'),
         };
       }
 
@@ -141,14 +143,14 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         channel: channels[index],
         video: getLatestVideo(channels[index], data),
         loading: false,
-        error: data.latestVideo || data.videos?.[0] || data.title ? undefined : 'No video found for this channel',
+        error: data.latestVideo || data.videos?.[0] || data.title ? undefined : t('home.noVideoFound'),
       };
     });
 
     setItems(newItems);
     savePref('wasla_videos_cache', newItems);
     if (force) setIsRefreshing(false);
-  }, [channels]);
+  }, [channels, t]);
 
   useEffect(() => {
     if (channels.length === 0) {
@@ -211,26 +213,26 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
           <div className="flex items-center gap-1.5 flex-0">
             <button onClick={() => setShowSearch(true)}
               className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
-              aria-label="Search">
+              aria-label={t('home.search')}>
               <Search className="h-5 w-5" />
             </button>
             <button type="button" onClick={() => fetchLatestVideos(true)} disabled={isRefreshing}
               className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
-              aria-label="Refresh videos">
+              aria-label={t('home.refresh')}>
               <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
           <div ref={filterControlsRef} className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
             <CustomFilterDropdown value={selectedCategory} onChange={setSelectedCategory}
-              options={[{ value: '', label: 'All' }, ...allCategories.map(cat => ({ value: cat, label: cat }))]}
-              className="flex-1 min-w-0" placeholder="Category" />
+              options={[{ value: '', label: t('home.filterAll') }, ...allCategories.map(cat => ({ value: cat, label: cat }))]}
+              className="flex-1 min-w-0" placeholder={t('home.filterCategory')} />
             <CustomFilterDropdown value={timeRange} onChange={v => setTimeRange(v as any)}
-              options={[{ value: 'all', label: 'All Time' }, { value: 'hour', label: 'Last Hour' }, { value: 'today', label: 'Today' }, { value: 'week', label: 'This Week' }, { value: 'month', label: 'This Month' }, { value: 'year', label: 'This Year' }]} className="flex-1 min-w-0" placeholder="Time" />
+              options={[{ value: 'all', label: t('home.allTime') }, { value: 'hour', label: t('home.lastHour') }, { value: 'today', label: t('home.today') }, { value: 'week', label: t('home.thisWeek') }, { value: 'month', label: t('home.thisMonth') }, { value: 'year', label: t('home.thisYear') }]} className="flex-1 min-w-0" placeholder={t('home.filterTime')} />
             <CustomFilterDropdown value={sortBy} onChange={v => setSortBy(v as any)}
-              options={[{ value: 'newest', label: 'Newest' }, { value: 'views', label: 'Most Viewed' }, { value: 'channel', label: 'Channel A‑Z' }, { value: 'category', label: 'Category' }]} className="flex-1 min-w-0" placeholder="Sort" />
+              options={[{ value: 'newest', label: t('home.newest') }, { value: 'views', label: t('home.mostViewed') }, { value: 'channel', label: t('home.channelAZ') }, { value: 'category', label: t('home.category') }]} className="flex-1 min-w-0" placeholder={t('home.filterSort')} />
             <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
               className="hidden md:flex rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0"
-              aria-label={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}>
+              aria-label={viewMode === 'grid' ? t('home.switchToListView') : t('home.switchToGridView')}>
               {viewMode === 'grid' ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
             </button>
           </div>
@@ -249,52 +251,52 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowAllFilters(false)} />
             <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-5 shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('home.filters')}</h3>
                 <button onClick={() => setShowAllFilters(false)} className="rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10">
                   <X className="h-5 w-5" />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('home.filterCategory')}</label>
                   <CustomFilterDropdown
                     value={selectedCategory}
                     onChange={setSelectedCategory}
                     options={[
-                      { value: '', label: 'All' },
+                      { value: '', label: t('home.filterAll') },
                       ...allCategories.map((cat) => ({ value: cat, label: cat })),
                     ]}
-                    placeholder="Category"
+                    placeholder={t('home.filterCategory')}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Time</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('home.filterTime')}</label>
                   <CustomFilterDropdown
                     value={timeRange}
                     onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
                     options={[
-                      { value: 'all', label: 'All Time' },
-                      { value: 'hour', label: 'Last Hour' },
-                      { value: 'today', label: 'Today' },
-                      { value: 'week', label: 'This Week' },
-                      { value: 'month', label: 'This Month' },
-                      { value: 'year', label: 'This Year' },
+                      { value: 'all', label: t('home.allTime') },
+                      { value: 'hour', label: t('home.lastHour') },
+                      { value: 'today', label: t('home.today') },
+                      { value: 'week', label: t('home.thisWeek') },
+                      { value: 'month', label: t('home.thisMonth') },
+                      { value: 'year', label: t('home.thisYear') },
                     ]}
-                    placeholder="Time"
+                    placeholder={t('home.filterTime')}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sort by</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('home.sortBy')}</label>
                   <CustomFilterDropdown
                     value={sortBy}
                     onChange={(v) => setSortBy(v as 'newest' | 'views' | 'channel' | 'category')}
                     options={[
-                      { value: 'newest', label: 'Newest' },
-                      { value: 'views', label: 'Most Viewed' },
-                      { value: 'channel', label: 'Channel A-Z' },
-                      { value: 'category', label: 'Category' },
+                      { value: 'newest', label: t('home.newest') },
+                      { value: 'views', label: t('home.mostViewed') },
+                      { value: 'channel', label: t('home.channelAZ') },
+                      { value: 'category', label: t('home.category') },
                     ]}
-                    placeholder="Sort by"
+                    placeholder={t('home.sortBy')}
                   />
                 </div>
                 <div className="flex justify-end">
@@ -303,7 +305,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     onClick={() => setViewMode((prev) => (prev === 'grid' ? 'list' : 'grid'))}
                     className="rounded-lg bg-white px-3 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
                   >
-                    {viewMode === 'grid' ? 'Switch to list' : 'Switch to grid'}
+                    {viewMode === 'grid' ? t('home.switchToList') : t('home.switchToGrid')}
                   </button>
                 </div>
               </div>
@@ -316,12 +318,13 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             {items.some((i) => i.loading) ? (
               <span className="flex items-center gap-1.5">
                 <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
-                {isRefreshing ? 'Refreshing...' : 'Loading channels...'}
+                {isRefreshing ? t('home.refreshing') : t('home.loadingChannels')}
               </span>
             ) : (
               <span>
-                Showing {displayItems.length} of {items.length} channels
-                {selectedCategory && ` (${selectedCategory})`}
+                {selectedCategory
+                  ? t('home.showingWithCategory', { count: displayItems.length, total: items.length, category: selectedCategory })
+                  : t('home.showing', { count: displayItems.length, total: items.length })}
               </span>
             )}
           </div>
@@ -330,9 +333,9 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         {channels.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <Play className="mx-auto mb-4 h-12 w-12 text-brand-coral" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add your first channel</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('home.addFirstChannel')}</h2>
             <p className="mx-auto mt-2 max-w-md text-gray-600 dark:text-gray-400">
-              Use the plus button to add a YouTube channel. Its latest video will appear here.
+              {t('home.addFirstChannelDesc')}
             </p>
           </div>
         ) : (
@@ -402,7 +405,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     <Search className="h-5 w-5 flex-0 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Search channels..."
+                      placeholder={t('home.searchChannels')}
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                       className="flex-1 bg-transparent text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
@@ -450,7 +453,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 const title = item.video!.title.toLowerCase();
                 return name.includes(q) || title.includes(q);
               }).length === 0 && (
-                <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">No videos match your search.</p>
+                <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.noVideosMatch')}</p>
               )}
             </div>
           </div>

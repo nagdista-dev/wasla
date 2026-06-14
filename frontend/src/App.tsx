@@ -50,15 +50,15 @@ function ScrollToTop() {
 
 function Navigation({ channels }: { channels: Channel[] }) {
   const { pathname } = useLocation();
-  const { language, setLanguage, isRTL } = useLanguage();
+  const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const navItems = [
-    { path: "/", label: "Home", icon: Home },
-    { path: "/channels", label: "Channels", icon: Users },
-    { path: "/playlists", label: "Playlists", icon: Heart },
-    { path: "/how-to-use", label: "How to Use", icon: BookOpen },
-    { path: "/settings", label: "Settings", icon: Settings },
+    { path: "/", label: t('nav.home'), icon: Home },
+    { path: "/channels", label: t('nav.channels'), icon: Users },
+    { path: "/playlists", label: t('nav.playlists'), icon: Heart },
+    { path: "/how-to-use", label: t('nav.howToUse'), icon: BookOpen },
+    { path: "/settings", label: t('nav.settings'), icon: Settings },
   ];
   const categories = useMemo(
     () =>
@@ -75,14 +75,14 @@ function Navigation({ channels }: { channels: Channel[] }) {
   <div className="mx-auto max-w-7xl px-4">
     <div className="flex items-center justify-between h-16">
       <Link to="/">
-        <img src={logo} alt="Wasla" className="h-18 w-18 object-contain" />
+        <img src={logo} alt={t('app.name')} className="h-18 w-18 object-contain" />
       </Link>
 
       <div className="flex items-center gap-2">
         <button
           onClick={toggleTheme}
           className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-          aria-label="Toggle theme"
+          aria-label={t('nav.toggleTheme')}
         >
           {theme === "dark" ? (
             <Sun className="h-4 w-4" />
@@ -94,7 +94,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
         <button
           onClick={() => setLanguage(language === "en" ? "ar" : "en")}
           className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-          aria-label="Toggle language"
+          aria-label={t('nav.toggleLanguage')}
         >
           <Languages className="h-4 w-4" />
         </button>
@@ -102,7 +102,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
         <button
           onClick={() => setMenuOpen(true)}
           className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-          aria-label="Menu"
+          aria-label={t('nav.menu')}
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -127,13 +127,13 @@ function Navigation({ channels }: { channels: Channel[] }) {
         {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-700 flex-shrink-0">
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="Wasla" className="h-12 w-12 object-contain" />
+            <img src={logo} alt={t('app.name')} className="h-12 w-12 object-contain" />
           </Link>
 
           <button
             onClick={closeMenu}
             className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-            aria-label="Close menu"
+            aria-label={t('nav.closeMenu')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -172,7 +172,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
         <div className="flex flex-col flex-1 min-h-0 border-t border-gray-200 dark:border-gray-700">
           <div className="px-4 pt-2 flex-0">
             <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              Categories
+              {t('nav.categories')}
             </p>
           </div>
 
@@ -191,7 +191,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
                   pathname === "/" ? "text-white" : "text-gray-400"
                 }`}
               />
-              <span className="truncate">All</span>
+              <span className="truncate">{t('nav.all')}</span>
             </Link>
             {categories.map((cat) => {
               const isActive =
@@ -227,6 +227,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
 }
 
 function App() {
+  const { isRTL } = useLanguage();
   const [channels, setChannels] = useState<Channel[]>(loadChannels);
   const [playlists, setPlaylists] = useState<Playlist[]>(loadPlaylists);
   const [showChannelModal, setShowChannelModal] = useState(false);
@@ -311,7 +312,9 @@ function App() {
       <Navigation channels={channels} />
       {/* Desktop sidebar */}
       <Sidebar channels={channels} playlists={playlists} />
-      <div className="flex flex-col flex-1 min-h-screen md:ml-64 pt-16 overflow-visible">
+      <div className={`flex flex-col flex-1 min-h-screen pt-16 overflow-visible ${
+        isRTL ? 'md:mr-64' : 'md:ml-64'
+      }`}>
         <main className="flex-1 overflow-visible">
           <Routes>
             <Route

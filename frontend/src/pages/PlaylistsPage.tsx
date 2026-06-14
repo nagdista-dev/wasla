@@ -4,6 +4,7 @@ import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import PlaylistCard from '../components/PlaylistCard';
 import EditPlaylistModal from '../components/EditPlaylistModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Playlist } from '../types';
 
@@ -29,7 +30,8 @@ function savePref(key: string, value: unknown) {
 }
 
 export default function PlaylistsPage({ playlists, onDelete, onUpdate }: PlaylistsPageProps) {
-  useMeta({ title: 'Playlists', description: `${playlists.length} playlist${playlists.length !== 1 ? 's' : ''} saved.` });
+  const { t } = useLanguage();
+  useMeta({ title: t('playlists.title'), description: `${playlists.length} playlist${playlists.length !== 1 ? 's' : ''} saved.` });
   const [searchText, setSearchText] = useState(loadPref<string>('wasla_playlists_search', ''));
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_playlists_category', ''));
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
@@ -55,11 +57,11 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
         <div className="mb-6">
           <h1 className="flex items-center gap-2 text-4xl font-bold text-gray-900 dark:text-white">
             <Heart className="h-8 w-8 text-brand-coral" />
-            Playlists
+            {t('playlists.title')}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            {filtered.length} of {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
-            {(searchText || selectedCategory) && ' (filtered)'}
+            {t('playlists.count', { count: filtered.length, total: playlists.length })}
+            {(searchText || selectedCategory) && ` ${t('playlists.filtered')}`}
           </p>
         </div>
 
@@ -68,7 +70,7 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search playlists..."
+              placeholder={t('playlists.searchPlaceholder')}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-500"
@@ -84,11 +86,11 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
               value={selectedCategory}
               onChange={setSelectedCategory}
               options={[
-                { value: '', label: 'All Categories' },
+                { value: '', label: t('playlists.allCategories') },
                 ...allCategories.map((cat) => ({ value: cat, label: cat })),
               ]}
               className="min-w-[160px]"
-              placeholder="Category"
+              placeholder={t('playlists.category')}
             />
           )}
         </div>
@@ -96,10 +98,10 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
         {filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              {playlists.length === 0 ? 'No playlists yet' : 'No playlists match your search'}
+              {playlists.length === 0 ? t('playlists.noPlaylistsYet') : t('playlists.noMatch')}
             </p>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              {playlists.length === 0 ? 'Tap the + button to add a YouTube playlist.' : 'Try a different search or clear the filters.'}
+              {playlists.length === 0 ? t('playlists.addPlaylistHint') : t('playlists.tryDifferentSearch')}
             </p>
           </div>
         ) : (
@@ -136,8 +138,8 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
             onDelete(deleteTarget.id);
             setDeleteTarget(null);
           }}
-          title="Delete Playlist"
-          description={`Are you sure you want to delete "${deleteTarget.name}"? This action cannot be undone.`}
+          title={t('playlists.deleteTitle')}
+          description={t('playlists.deleteDescription', { name: deleteTarget.name })}
         />
       )}
     </div>

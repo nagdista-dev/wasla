@@ -4,6 +4,7 @@ import { AlertCircle, Play, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
@@ -40,6 +41,7 @@ function getLatestVideo(channel: Channel, data: ChannelApiResponse['data']): Lat
 }
 
 export default function CategoryPage({ channels }: { channels: Channel[] }) {
+  const { t } = useLanguage();
   const { categoryName } = useParams<{ categoryName: string }>();
   const decoded = useMemo(() => categoryName ? decodeURIComponent(categoryName) : '', [categoryName]);
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
@@ -54,7 +56,7 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
 
   useMeta(decoded ? {
     title: decoded,
-    description: `${categoryChannels.length} channel${categoryChannels.length !== 1 ? 's' : ''}`,
+    description: t('category.channels', { count: categoryChannels.length }),
     url: window.location.href,
   } : undefined);
 
@@ -75,23 +77,23 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
 
     const newItems: ChannelLatestVideo[] = results.map((result) => {
       if (result.status === 'rejected') {
-        return { channel: result.reason.channel, loading: false, error: 'Could not fetch this channel' };
+        return { channel: result.reason.channel, loading: false, error: t('category.couldNotFetch') };
       }
       const data = result.value.response.data.data;
       if (!result.value.response.data.success || !data) {
-        return { channel: result.value.channel, loading: false, error: result.value.response.data.error || 'Could not fetch this channel' };
+        return { channel: result.value.channel, loading: false, error: result.value.response.data.error || t('category.couldNotFetch') };
       }
       return {
         channel: result.value.channel,
         video: getLatestVideo(result.value.channel, data),
         loading: false,
-        error: data.latestVideo || data.videos?.[0] || data.title ? undefined : 'No video found',
+        error: data.latestVideo || data.videos?.[0] || data.title ? undefined : t('category.noVideoFound'),
       };
     });
 
     setItems(newItems);
     if (force) setIsRefreshing(false);
-  }, [categoryChannels]);
+  }, [categoryChannels, t]);
 
   useEffect(() => {
     if (categoryChannels.length > 0) {
@@ -139,8 +141,8 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{decoded}</h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              {categoryChannels.length} channel{categoryChannels.length !== 1 ? 's' : ''}
-              {items.some((i) => i.loading) ? ' — loading...' : ` — ${displayItems.length} video${displayItems.length !== 1 ? 's' : ''}`}
+              {t('category.channels', { count: categoryChannels.length })}
+              {items.some((i) => i.loading) ? t('category.loading') : t('category.videos', { count: displayItems.length })}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -148,34 +150,34 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
               value={sortBy}
               onChange={(v) => setSortBy(v as 'newest' | 'oldest' | 'most_viewed' | 'least_viewed')}
               options={[
-                { value: 'newest', label: 'Newest first' },
-                { value: 'oldest', label: 'Oldest first' },
-                { value: 'most_viewed', label: 'Most viewed' },
-                { value: 'least_viewed', label: 'Least viewed' },
+                { value: 'newest', label: t('category.newestFirst') },
+                { value: 'oldest', label: t('category.oldestFirst') },
+                { value: 'most_viewed', label: t('category.mostViewed') },
+                { value: 'least_viewed', label: t('category.leastViewed') },
               ]}
               className="min-w-[140px]"
-              placeholder="Sort by"
+              placeholder={t('category.sortBy')}
             />
             <CustomFilterDropdown
               value={timeRange}
               onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
               options={[
-                { value: 'all', label: 'All time' },
-                { value: 'hour', label: 'Last hour' },
-                { value: 'today', label: 'Today' },
-                { value: 'week', label: 'This week' },
-                { value: 'month', label: 'This month' },
-                { value: 'year', label: 'This year' },
+                { value: 'all', label: t('category.allTime') },
+                { value: 'hour', label: t('category.lastHour') },
+                { value: 'today', label: t('category.today') },
+                { value: 'week', label: t('category.thisWeek') },
+                { value: 'month', label: t('category.thisMonth') },
+                { value: 'year', label: t('category.thisYear') },
               ]}
               className="min-w-[140px]"
-              placeholder="Time"
+              placeholder={t('category.time')}
             />
             <button
               type="button"
               onClick={() => fetchVideos(true)}
               disabled={isRefreshing}
               className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
-              aria-label="Refresh"
+              aria-label={t('category.refresh')}
             >
               <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -185,17 +187,17 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
         {categoryChannels.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <Play className="mx-auto mb-4 h-12 w-12 text-brand-coral" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">No channels in this category</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('category.noChannels')}</h2>
             <p className="mx-auto mt-2 max-w-md text-gray-600 dark:text-gray-400">
-              Add a channel with the "{decoded}" category to see videos here.
+              {t('category.noChannelsDesc', { name: decoded })}
             </p>
           </div>
         ) : displayItems.length === 0 && !items.some((i) => i.loading) ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <AlertCircle className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">No videos found</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('category.noVideosFound')}</h2>
             <p className="mx-auto mt-2 max-w-md text-gray-600 dark:text-gray-400">
-              Videos for these channels could not be loaded.
+              {t('category.noVideosDesc')}
             </p>
           </div>
         ) : (

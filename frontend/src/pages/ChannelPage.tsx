@@ -4,6 +4,7 @@ import { AlertCircle, ArrowUpDown, Play } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelDetailsData } from '../types';
 
@@ -51,6 +52,7 @@ function rgba(color: string, alpha: number): string {
 type SortMode = 'newest' | 'oldest' | 'most_viewed' | 'least_viewed';
 
 export default function ChannelPage() {
+  const { t } = useLanguage();
   const { channelId } = useParams<{ channelId: string }>();
   const [data, setData] = useState<ChannelDetailsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,16 +72,16 @@ export default function ChannelPage() {
         if (res.data.success && res.data.data) {
           setData(res.data.data);
         } else {
-          setError(res.data.error || 'Failed to load channel');
+          setError(res.data.error || t('channel.failedToLoad'));
         }
       })
-      .catch(() => setError('Failed to load channel'))
+      .catch(() => setError(t('channel.failedToLoad')))
       .finally(() => setLoading(false));
-  }, [channelId]);
+  }, [channelId, t]);
 
   useMeta(data ? {
     title: data.channelName,
-    description: `${data.videos.length} videos`,
+    description: t('channel.videoCount', { count: data.videos.length }),
     image: data.avatar || data.banner || undefined,
     url: window.location.href,
   } : undefined);
@@ -113,7 +115,7 @@ export default function ChannelPage() {
         <div className="mx-auto max-w-4xl p-6">
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">{error || 'Channel not found'}</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">{error || t('channel.notFound')}</p>
           </div>
         </div>
       ) : (
@@ -146,7 +148,7 @@ export default function ChannelPage() {
                   <p className="text-sm text-gray-500 dark:text-gray-400">@{data.handle}</p>
                 )}
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {data.videos.length} videos
+                  {t('channel.videoCount', { count: data.videos.length })}
                 </p>
               </div>
             </div>
@@ -155,7 +157,7 @@ export default function ChannelPage() {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Play className="h-5 w-5 text-brand-coral" />
-                Videos
+                {t('channel.videos')}
               </h2>
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-gray-400" />
@@ -163,13 +165,13 @@ export default function ChannelPage() {
                   value={sortBy}
                   onChange={(v) => setSortBy(v as SortMode)}
                   options={[
-                    { value: 'newest', label: 'Newest' },
-                    { value: 'oldest', label: 'Oldest' },
-                    { value: 'most_viewed', label: 'Most viewed' },
-                    { value: 'least_viewed', label: 'Least viewed' },
+                    { value: 'newest', label: t('channel.newest') },
+                    { value: 'oldest', label: t('channel.oldest') },
+                    { value: 'most_viewed', label: t('channel.mostViewed') },
+                    { value: 'least_viewed', label: t('channel.leastViewed') },
                   ]}
                   className="min-w-[130px]"
-                  placeholder="Sort"
+                  placeholder={t('channel.sort')}
                 />
               </div>
             </div>

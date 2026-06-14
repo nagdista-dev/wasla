@@ -26,15 +26,28 @@
 }
 
 html {
-  overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
 }
 
+html[lang="ar"] {
+  font-family: "Tajawal", "Poppins", sans-serif;
+}
+
+html[lang="en"] {
+  font-family: "Poppins", "Tajawal", sans-serif;
+}
+
 body {
   margin: 0;
+}
+
+html[lang="ar"] body {
+  font-family: "Tajawal", "Poppins", sans-serif;
+}
+
+html[lang="en"] body {
   font-family: "Poppins", "Tajawal", sans-serif;
-  overflow-x: hidden;
 }
 
 #root {

@@ -1,4 +1,5 @@
 import { X, ExternalLink } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ConfirmActionModalProps {
   isOpen: boolean;
@@ -9,7 +10,9 @@ interface ConfirmActionModalProps {
   confirmLabel?: string;
 }
 
-export default function ConfirmActionModal({ isOpen, onClose, onConfirm, title, description, confirmLabel = 'Confirm' }: ConfirmActionModalProps) {
+export default function ConfirmActionModal({ isOpen, onClose, onConfirm, title, description, confirmLabel }: ConfirmActionModalProps) {
+  const { t, isRTL } = useLanguage();
+  const label = confirmLabel || t('confirmAction.confirm');
   if (!isOpen) return null;
 
   const handleConfirm = () => {
@@ -30,7 +33,7 @@ export default function ConfirmActionModal({ isOpen, onClose, onConfirm, title, 
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3 right-3 rounded-full p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+          className={`absolute top-3 ${isRTL ? 'left-3' : 'right-3'} rounded-full p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300`}
         >
           <X className="h-4 w-4" />
         </button>
@@ -49,14 +52,14 @@ export default function ConfirmActionModal({ isOpen, onClose, onConfirm, title, 
             onClick={onClose}
             className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           >
-            Cancel
+            {t('confirmAction.cancel')}
           </button>
           <button
             type="button"
             onClick={handleConfirm}
             className="rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink focus:outline-none focus:ring-2 focus:ring-brand-coral focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
-            {confirmLabel}
+            {label}
           </button>
         </div>
       </div>

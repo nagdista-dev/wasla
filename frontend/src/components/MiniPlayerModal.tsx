@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, X } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -65,6 +66,7 @@ function loadYouTubeAPI(): Promise<void> {
 loadYouTubeAPI();
 
 export default function MiniPlayerModal() {
+  const { t, isRTL } = useLanguage();
   const { currentVideo, close } = usePlayer();
   const { theme } = useTheme();
   const playerRef = useRef<YTPlayer | null>(null);
@@ -162,8 +164,8 @@ export default function MiniPlayerModal() {
       <div className="relative z-10 w-full max-w-4xl rounded-xl overflow-hidden bg-black shadow-2xl flex flex-col">
         <button
           onClick={close}
-          className="absolute top-3 right-3 z-20 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition-colors"
-          aria-label="Close player"
+          className={`absolute top-3 ${isRTL ? 'left-3' : 'right-3'} z-20 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition-colors`}
+          aria-label={t('miniPlayer.close')}
         >
           <X className="h-5 w-5" />
         </button>
@@ -185,7 +187,7 @@ export default function MiniPlayerModal() {
             )
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-white">
-              <p>Could not load video</p>
+              <p>{t('miniPlayer.couldNotLoad')}</p>
             </div>
           )}
         </div>
@@ -193,10 +195,10 @@ export default function MiniPlayerModal() {
           <button
             onClick={openAtCurrentTime}
             className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-            aria-label="Open on YouTube at current time"
+            aria-label={t('miniPlayer.openOnYoutube')}
           >
             <ExternalLink className="h-4 w-4" />
-            Open on YouTube at current time
+            {t('miniPlayer.openOnYoutube')}
           </button>
         </div>
       </div>

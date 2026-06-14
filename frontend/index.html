@@ -21,7 +21,7 @@
     <meta property="og:site_name" content="Wasla" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Wasla</title>
-    <script>try{document.documentElement.classList.toggle('dark',localStorage.getItem('wasla_theme')!=='light')}catch(e){}</script>
+    <script>try{var l=localStorage.getItem('wasla_language');if(l==='ar'){document.documentElement.lang='ar';document.documentElement.dir='rtl'}else{document.documentElement.lang='en';document.documentElement.dir='ltr'}document.documentElement.classList.toggle('dark',localStorage.getItem('wasla_theme')!=='light')}catch(e){}</script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import type { Playlist } from '../types';
 
 interface EditPlaylistModalProps {
@@ -10,6 +11,7 @@ interface EditPlaylistModalProps {
 }
 
 export default function EditPlaylistModal({ playlist, onClose, onUpdate, existingCategories = [] }: EditPlaylistModalProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState(playlist.name);
   const [description, setDescription] = useState(playlist.description || '');
   const [categories, setCategories] = useState<string[]>(playlist.categories);
@@ -43,30 +45,30 @@ export default function EditPlaylistModal({ playlist, onClose, onUpdate, existin
         >
           <X className="h-4 w-4" />
         </button>
-        <h2 className="mb-4 text-xl font-semibold dark:text-white">Edit Playlist</h2>
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">{t('editPlaylist.title')}</h2>
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Playlist Name</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('editPlaylist.nameLabel')}</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100"
-            placeholder="Playlist Name"
+            placeholder={t('editPlaylist.namePlaceholder')}
             maxLength={100}
           />
         </div>
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('editPlaylist.descLabel')}</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400 resize-none"
-            placeholder="Description (optional)"
+            placeholder={t('editPlaylist.descPlaceholder')}
           />
         </div>
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Categories</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('editPlaylist.categoriesLabel')}</label>
           <div className="mb-2 flex gap-2">
             <input
               type="text"
@@ -79,14 +81,14 @@ export default function EditPlaylistModal({ playlist, onClose, onUpdate, existin
                 }
               }}
               className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100"
-              placeholder="Add a category"
+              placeholder={t('editPlaylist.addCategoryPlaceholder')}
             />
             <button
               type="button"
               onClick={handleAddCategory}
               className="flex-shrink-0 rounded-md bg-brand-coral px-4 py-2 text-sm font-medium text-white hover:bg-brand-pink"
             >
-              Add
+              {t('editPlaylist.addButton')}
             </button>
           </div>
           <div className="flex flex-wrap gap-1">
@@ -108,7 +110,7 @@ export default function EditPlaylistModal({ playlist, onClose, onUpdate, existin
           </div>
           {existingCategories.length > 0 && (
             <div className="mb-4">
-              <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">All categories:</p>
+              <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">{t('editPlaylist.allCategories')}</p>
               <div className="modal-scroll flex max-h-28 min-w-0 flex-wrap gap-1">
                 {existingCategories.map((cat) => {
                   const active = categories.includes(cat);
@@ -143,7 +145,7 @@ export default function EditPlaylistModal({ playlist, onClose, onUpdate, existin
           disabled={!name.trim()}
           className="w-full rounded-md bg-brand-coral px-4 py-2 font-medium text-white transition hover:bg-brand-pink disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700"
         >
-          Update Playlist
+          {t('editPlaylist.updateButton')}
         </button>
       </div>
     </div>

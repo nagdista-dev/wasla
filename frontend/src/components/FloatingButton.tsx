@@ -8,7 +8,7 @@ interface FloatingButtonProps {
 }
 
 export default function FloatingButton({ onAddChannel, onAddPlaylist }: FloatingButtonProps) {
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   const side = isRTL ? 'left-6' : 'right-6';
@@ -22,14 +22,14 @@ export default function FloatingButton({ onAddChannel, onAddPlaylist }: Floating
             className="flex items-center gap-2 rounded-full bg-brand-orange px-4 py-2 text-sm font-medium text-white shadow-lg transition-all hover:bg-brand-yellow hover:text-gray-900"
           >
             <ListVideo className="h-4 w-4" />
-            Playlist
+            {t('floatingButton.playlist')}
           </button>
           <button
             onClick={() => { setOpen(false); onAddChannel(); }}
             className="flex items-center gap-2 rounded-full bg-brand-coral px-4 py-2 text-sm font-medium text-white shadow-lg transition-all hover:bg-brand-pink"
           >
             <Users className="h-4 w-4" />
-            Channel
+            {t('floatingButton.channel')}
           </button>
         </>
       )}

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useMemo, useLayoutEffect, useCallback } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 export interface FilterOption {
   value: string;
@@ -16,13 +17,14 @@ interface CustomFilterDropdownProps {
 }
 
 export default function CustomFilterDropdown({ value, onChange, options, className = '', placeholder }: CustomFilterDropdownProps) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = useMemo(() => options.find(opt => opt.value === value), [options, value]);
-  const displayValue = selectedOption?.label || placeholder || 'Select...';
+  const displayValue = selectedOption?.label || placeholder || t('filterDropdown.select');
 
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;

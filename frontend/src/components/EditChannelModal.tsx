@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { X, Loader2, RefreshCcw } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import { useToast } from './Toast';
 import type { Channel } from '../types';
 
@@ -45,6 +46,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
   onUpdate: (name: string, categories: string[]) => void;
   existingCategories?: string[];
 }) {
+  const { t } = useLanguage();
   const { showToast } = useToast();
   const [name, setName] = useState(channel.name);
   const [categories, setCategories] = useState<string[]>(channel.categories);
@@ -86,7 +88,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
           setResolvedId(null);
         }
       } catch (error) {
-        showToast('Failed to resolve channel.', 'error');
+        showToast(t('editChannel.failedUpdate'), 'error');
         setResolvedId(null);
       } finally {
         setIsResolving(false);
@@ -98,7 +100,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
         clearTimeout(debounceRef.current);
       }
     };
-  }, [resolvedId, channel.name]);
+  }, [resolvedId, channel.name, t]);
 
   const handleAddCategory = () => {
     if (categoryInput.trim()) {
@@ -132,7 +134,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
         }
       }
     } catch (error) {
-      showToast('Failed to refresh channel name.', 'error');
+      showToast(t('editChannel.connectionError'), 'error');
     } finally {
       setIsResolving(false);
     }
@@ -170,16 +172,16 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
         <button type="button" onClick={onClose} className="absolute top-3 rtl:left-3 ltr:right-3 rounded-full bg-gray-100 p-1.5 text-gray-500 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20">
           <X className="h-4 w-4" />
         </button>
-        <h2 className="mb-4 text-xl font-semibold dark:text-white">Edit Channel</h2>
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">{t('editChannel.title')}</h2>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Channel Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">{t('editChannel.nameLabel')}</label>
           <div className="relative">
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-gray-900 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100"
-              placeholder="Channel Name"
+              placeholder={t('editChannel.nameLabel')}
               maxLength={100}
             />
             <button
@@ -187,7 +189,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
               onClick={refreshName}
               disabled={isResolving}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
-              title="Refresh name"
+              title={t('editChannel.refreshName')}
             >
               {isResolving ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -196,10 +198,10 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
               )}
             </button>
           </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum 100 characters</p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('editChannel.maxChars')}</p>
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Categories</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">{t('editChannel.categoriesLabel')}</label>
           <div className="flex gap-2 mb-2">
             <input
               type="text"
@@ -212,14 +214,14 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
                 }
               }}
               className="flex-1 min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100"
-              placeholder="Add a category"
+              placeholder={t('editChannel.addCategoryPlaceholder')}
             />
             <button
               type="button"
               onClick={handleAddCategory}
               className="flex-shrink-0 rounded-md bg-brand-coral px-4 py-2 text-sm font-medium text-white hover:bg-brand-pink"
             >
-              Add
+              {t('editChannel.addButton')}
             </button>
           </div>
           <div className="flex flex-wrap gap-1">
@@ -241,7 +243,7 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
           </div>
           {existingCategories.length > 0 && (
             <div className="mb-4">
-              <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">All categories:</p>
+              <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">{t('editChannel.allCategories')}</p>
               <div className="modal-scroll flex flex-wrap gap-1 max-h-28 min-w-0">
                 {existingCategories.map((cat) => {
                   const active = categories.includes(cat);
@@ -279,10 +281,10 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
           {isUpdating ? (
             <span className="flex items-center justify-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Updating...
+              {t('editChannel.updating')}
             </span>
           ) : (
-            'Update Channel'
+            t('editChannel.updateButton')
           )}
         </button>
       </div>

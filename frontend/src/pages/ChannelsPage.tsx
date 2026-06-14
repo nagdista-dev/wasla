@@ -3,6 +3,7 @@ import { Search, Heart, Edit3, Trash2, X } from 'lucide-react';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel } from '../types';
 
@@ -34,7 +35,8 @@ function savePref(key: string, value: unknown) {
 }
 
 export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFavorite }: ChannelsPageProps) {
-  useMeta({ title: 'Channels', description: `${channels.length} channel${channels.length !== 1 ? 's' : ''} in your collection.` });
+  const { t } = useLanguage();
+  useMeta({ title: t('channels.title'), description: `${channels.length} channel${channels.length !== 1 ? 's' : ''} in your collection.` });
   const [searchText, setSearchText] = useState(loadPref<string>('wasla_channels_search', ''));
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_channels_category', ''));
   const [showEditModal, setShowEditModal] = useState(false);
@@ -116,10 +118,10 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
     <div className="min-h-screen p-6 dark:bg-dark-navy ">
       <div className="mx-auto max-w-4xl ">
         <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Channels</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{t('channels.title')}</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            {filtered.length} of {channels.length} channel{channels.length !== 1 ? 's' : ''}
-            {(searchText || selectedCategory) && ' (filtered)'}
+            {t('channels.count', { count: filtered.length, total: channels.length })}
+            {(searchText || selectedCategory) && ` ${t('channels.filtered')}`}
           </p>
         </div>
 
@@ -128,7 +130,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search channels..."
+              placeholder={t('channels.searchPlaceholder')}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-8 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-500"
@@ -144,11 +146,11 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
               value={selectedCategory}
               onChange={setSelectedCategory}
               options={[
-                { value: '', label: 'All Categories' },
+                { value: '', label: t('channels.allCategories') },
                 ...allCategories.map((cat) => ({ value: cat, label: cat })),
               ]}
               className="min-w-[160px]"
-              placeholder="Category"
+              placeholder={t('channels.category')}
             />
           )}
         </div>
@@ -156,10 +158,10 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
         {filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              {channels.length === 0 ? 'No channels yet' : 'No channels match your search'}
+              {channels.length === 0 ? t('channels.noChannelsYet') : t('channels.noMatch')}
             </p>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              {channels.length === 0 ? 'Tap the + button to add a YouTube channel.' : 'Try a different search or clear the filters.'}
+              {channels.length === 0 ? t('channels.addChannelHint') : t('channels.tryDifferentSearch')}
             </p>
           </div>
         ) : (
@@ -196,7 +198,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                           type="button"
                           onClick={() => onToggleFavorite(channel.id)}
                           className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-white/10 flex-shrink-0"
-                          aria-label={channel.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                          aria-label={channel.favorite ? t('channels.removeFromFavorites') : t('channels.addToFavorites')}
                         >
                           <Heart
                             className={`h-5 w-5 ${channel.favorite ? 'fill-red-500 text-red-500' : ''}`}
@@ -222,7 +224,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
                         >
                           <Edit3 className="h-4 w-4" />
-                          Edit
+                          {t('channels.edit')}
                         </button>
                          <button
                            type="button"
@@ -230,7 +232,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
                          >
                           <Trash2 className="h-4 w-4" />
-                          Delete
+                          {t('channels.delete')}
                         </button>
                       </div>
                     </div>
@@ -257,8 +259,8 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
           isOpen={deleteConfirmModal.isOpen}
           onClose={handleCancelDelete}
           onConfirm={handleConfirmDelete}
-          title="Delete Channel"
-          description={`Are you sure you want to delete "${deleteConfirmModal.channelName}"? This action cannot be undone.`}
+          title={t('channels.deleteTitle')}
+          description={t('channels.deleteDescription', { name: deleteConfirmModal.channelName })}
         />
       )}
     </div>

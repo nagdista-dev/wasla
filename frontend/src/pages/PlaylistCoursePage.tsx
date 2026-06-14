@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Circle, Clock, Film, Play } from 'lucide-react';
 import { api } from '../api';
 import { usePlayer } from '../context/PlayerContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { LatestVideo, Playlist } from '../types';
 
@@ -48,6 +49,7 @@ function formatDuration(duration?: string): string {
 }
 
 export default function PlaylistCoursePage() {
+  const { t } = useLanguage();
   const { playlistId } = useParams<{ playlistId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,7 +70,7 @@ export default function PlaylistCoursePage() {
 
   useMeta(playlistName ? {
     title: playlistName,
-    description: playlistFromState?.description || `${videos.length} videos`,
+    description: playlistFromState?.description || t('course.videosCount', { count: videos.length }),
     url: window.location.href,
   } : undefined);
 
@@ -97,14 +99,14 @@ export default function PlaylistCoursePage() {
         setPlaylistName(res.data.data.playlistName);
         setChannelName(res.data.data.channelName || '');
       } else {
-        setError(res.data.error || 'Failed to load playlist');
+        setError(res.data.error || t('course.failedToLoad'));
       }
     } catch {
-      setError('Failed to load playlist');
+      setError(t('course.failedToLoad'));
     } finally {
       setLoading(false);
     }
-  }, [playlistId]);
+  }, [playlistId, t]);
 
   useEffect(() => {
     void fetchPlaylist();
@@ -153,7 +155,7 @@ export default function PlaylistCoursePage() {
             className="mb-6 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t('course.back')}
           </button>
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <Film className="mx-auto mb-4 h-12 w-12 text-gray-400" />
@@ -172,7 +174,7 @@ export default function PlaylistCoursePage() {
           className="mb-6 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Playlists
+          {t('course.backToPlaylists')}
         </button>
 
         <div className="mb-8">
@@ -195,7 +197,7 @@ export default function PlaylistCoursePage() {
               </span>
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalCount}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total videos</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('course.totalVideos')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -204,7 +206,7 @@ export default function PlaylistCoursePage() {
               </span>
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedCount}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('course.completed')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -213,7 +215,7 @@ export default function PlaylistCoursePage() {
               </span>
               <div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{progressPercent}%</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Progress</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('course.progress')}</p>
               </div>
             </div>
           </div>
@@ -228,7 +230,7 @@ export default function PlaylistCoursePage() {
         {videos.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <Film className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">No videos in this playlist</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('course.noVideos')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -250,7 +252,7 @@ export default function PlaylistCoursePage() {
                         ? 'text-green-500'
                         : 'text-gray-300 hover:text-green-400 dark:text-gray-600 dark:hover:text-green-400'
                     }`}
-                    aria-label={completed ? 'Mark as incomplete' : 'Mark as complete'}
+                    aria-label={completed ? t('course.markIncomplete') : t('course.markComplete')}
                   >
                     {completed ? (
                       <CheckCircle2 className="h-6 w-6" />
@@ -270,7 +272,7 @@ export default function PlaylistCoursePage() {
                       <button
                         onClick={() => handlePlayVideo(video)}
                         className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
-                        aria-label="Play video"
+                        aria-label={t('course.playVideo')}
                       >
                         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">
                           <Play className="h-5 w-5 pl-0.5" />
@@ -283,7 +285,7 @@ export default function PlaylistCoursePage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
-                          Lesson {index + 1}
+                          {t('course.lesson', { number: index + 1 })}
                         </span>
                         <h3
                           className={`mt-0.5 line-clamp-2 text-sm font-semibold ${
@@ -312,9 +314,9 @@ export default function PlaylistCoursePage() {
                       className="mt-2 flex items-center gap-1.5 text-xs font-medium text-brand-coral hover:text-brand-pink"
                     >
                       <Play className="h-3.5 w-3.5" />
-                      Play video
-                    </button>
-                  </div>
+                        {t('course.playVideo')}
+                      </button>
+                    </div>
                 </div>
               );
             })}

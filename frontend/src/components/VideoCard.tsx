@@ -1,5 +1,6 @@
 import { Clock, Edit3, ExternalLink, Eye, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import type { Channel, LatestVideo } from '../types';
 import { usePlayer } from '../context/PlayerContext';
 
@@ -30,6 +31,7 @@ function formatDuration(duration?: string): string | undefined {
 }
 
 export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
+  const { t } = useLanguage();
   const { play } = usePlayer();
   const navigate = useNavigate();
   const channelName = video.channelName || channel.name;
@@ -78,7 +80,7 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
         {isLive ? (
           <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 animate-pulse">
             <span className="h-2 w-2 rounded-full bg-white" />
-            LIVE
+            {t('videoCard.live')}
           </span>
         ) : (
           <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1 min-w-[48px] justify-center">
@@ -92,14 +94,14 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
           <button
             className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
             onClick={handlePlay}
-            aria-label="Play video"
+            aria-label={t('videoCard.playVideo')}
           >
             <Play className="h-5 w-5 text-brand-coral" style={{ marginLeft: '1px' }} />
           </button>
           <button
             className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
             onClick={handleYoutube}
-            aria-label="Watch on YouTube"
+            aria-label={t('videoCard.watchOnYoutube')}
           >
             <ExternalLink className="h-5 w-5 text-red-600" />
           </button>
@@ -122,7 +124,7 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
               type="button"
               onClick={(e) => { e.stopPropagation(); onEdit(channel); }}
               className="flex-0 ml-auto p-1.5 rounded-lg text-gray-400 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-              aria-label="Edit channel"
+              aria-label={t('videoCard.editChannel')}
             >
               <Edit3 className="h-4 w-4" />
             </button>

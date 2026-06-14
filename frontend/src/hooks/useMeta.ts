@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 
-const APP_NAME = 'Wasla';
 const DEFAULT_DESCRIPTION = 'Your curated collection of YouTube channels, playlists, and video courses.';
 const DEFAULT_IMAGE = '/logo.png';
 
@@ -25,7 +24,8 @@ export function useMeta(opts?: {
   url?: string;
 }) {
   useEffect(() => {
-    const title = opts?.title ? `${opts.title} — ${APP_NAME}` : APP_NAME;
+    const appName = localStorage.getItem('wasla_language') === 'ar' ? 'وصـلة' : 'Wasla';
+    const title = opts?.title ? `${opts.title} — ${appName}` : appName;
     const description = opts?.description || DEFAULT_DESCRIPTION;
     const image = opts?.image || DEFAULT_IMAGE;
     const url = opts?.url || window.location.href;
@@ -37,14 +37,14 @@ export function useMeta(opts?: {
     setMeta('og:image', image);
     setMeta('og:url', url);
     setMeta('og:type', 'website');
-    setMeta('og:site_name', APP_NAME);
+    setMeta('og:site_name', appName);
     setMeta('twitter:card', 'summary_large_image');
     setMeta('twitter:title', title);
     setMeta('twitter:description', description);
     setMeta('twitter:image', image);
 
     return () => {
-      document.title = APP_NAME;
+      document.title = appName;
     };
   }, [opts?.title, opts?.description, opts?.image, opts?.url]);
 }

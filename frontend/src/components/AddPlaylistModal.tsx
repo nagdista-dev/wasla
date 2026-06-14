@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import { useToast } from './Toast';
 
 interface PlaylistEntry {
@@ -66,6 +67,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function AddPlaylistModal({ onClose, onAdd, existingCategories = [] }: AddPlaylistModalProps) {
+  const { t } = useLanguage();
   const { showToast } = useToast();
   const [input, setInput] = useState('');
   const [customName, setCustomName] = useState('');
@@ -98,7 +100,7 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
   const handleAdd = () => {
     const id = extractPlaylistId(input);
     if (!id) {
-      showToast('Please enter a valid playlist URL or ID.', 'error');
+      showToast(t('addPlaylist.enterValid'), 'error');
       return;
     }
 
@@ -127,10 +129,10 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
         >
           <X className="h-4 w-4" />
         </button>
-        <h2 className="mb-4 text-xl font-semibold dark:text-white">Add Playlist</h2>
+        <h2 className="mb-4 text-xl font-semibold dark:text-white">{t('addPlaylist.title')}</h2>
         <div className="mb-2 relative">
           <input
-            placeholder="Playlist URL or ID"
+            placeholder={t('addPlaylist.inputPlaceholder')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
@@ -140,23 +142,23 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
           )}
         </div>
         <input
-          placeholder="Playlist Name"
+          placeholder={t('addPlaylist.namePlaceholder')}
           value={customName}
           onChange={(e) => setCustomName(e.target.value)}
           className="mb-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
         />
         <textarea
-          placeholder="Description (optional)"
+          placeholder={t('addPlaylist.descPlaceholder')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
           className="mb-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400 resize-none"
         />
         {resolvedId && (
-          <p className="mb-2 text-xs text-green-600">Detected playlist ID: {resolvedId}</p>
+          <p className="mb-2 text-xs text-green-600">{t('addPlaylist.detected', { id: resolvedId })}</p>
         )}
         <input
-          placeholder="Categories (press Enter)"
+          placeholder={t('addPlaylist.categoriesPlaceholder')}
           value={categoryInput}
           onChange={(e) => setCategoryInput(e.target.value)}
           onKeyDown={(e) => {
@@ -204,7 +206,7 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
           disabled={!input.trim()}
           className="mt-4 w-full rounded bg-brand-coral py-2 text-white hover:bg-brand-pink disabled:bg-gray-300 dark:disabled:bg-gray-700"
         >
-          Add Playlist
+          {t('addPlaylist.addButton')}
         </button>
       </div>
     </div>

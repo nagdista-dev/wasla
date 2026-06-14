@@ -36,7 +36,7 @@ function isStringArray(data: unknown): data is string[] {
 }
 
 export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePlaylists }: SettingsPageProps) {
-  const { language, setLanguage, isRTL } = useLanguage();
+  const { language, setLanguage, isRTL, t } = useLanguage();
   const { showToast } = useToast();
   const [resolving, setResolving] = useState(false);
 
@@ -61,22 +61,22 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
       try {
         const data = JSON.parse(event.target?.result as string);
         if (!Array.isArray(data)) {
-          showToast('File must contain a JSON array', 'error');
+          showToast(t('settings.mustBeArray'), 'error');
           return;
         }
         if (data.length === 0) {
-          showToast('File is empty', 'error');
+          showToast(t('settings.fileEmpty'), 'error');
           return;
         }
         if (isChannelArray(data)) {
           const merged = mergeChannels(channels, data);
           onUpdate(merged);
-          showToast(`Imported ${data.length} channels (${merged.length - channels.length} new, ${merged.length} total)`, 'success');
+          showToast(t('settings.importSuccess', { count: data.length, newCount: merged.length - channels.length, total: merged.length }), 'success');
         } else {
-          showToast('File does not contain valid channel data', 'error');
+          showToast(t('settings.notChannelArray'), 'error');
         }
       } catch {
-        showToast('Invalid JSON file', 'error');
+        showToast(t('settings.invalidJson'), 'error');
       }
       setResolving(false);
       e.target.value = '';
@@ -97,22 +97,22 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
       try {
         const data = JSON.parse(event.target?.result as string);
         if (!Array.isArray(data)) {
-          showToast('File must contain a JSON array', 'error');
+          showToast(t('settings.mustBeArray'), 'error');
           return;
         }
         if (data.length === 0) {
-          showToast('File is empty', 'error');
+          showToast(t('settings.fileEmpty'), 'error');
           return;
         }
         if (isPlaylistArray(data)) {
           const merged = mergePlaylists(playlists, data);
           onUpdatePlaylists(merged);
-          showToast(`Imported ${data.length} playlists (${merged.length - playlists.length} new, ${merged.length} total)`, 'success');
+          showToast(t('settings.importPlaylistSuccess', { count: data.length, newCount: merged.length - playlists.length, total: merged.length }), 'success');
         } else {
-          showToast('File does not contain valid playlist data', 'error');
+          showToast(t('settings.notPlaylistArray'), 'error');
         }
       } catch {
-        showToast('Invalid JSON file', 'error');
+        showToast(t('settings.invalidJson'), 'error');
       }
       setResolving(false);
       e.target.value = '';
@@ -133,17 +133,17 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
       try {
         const data = JSON.parse(event.target?.result as string);
         if (!isStringArray(data)) {
-          showToast('File must contain a JSON array of category names', 'error');
+          showToast(t('settings.notStringArray'), 'error');
           return;
         }
         if (data.length === 0) {
-          showToast('File is empty', 'error');
+          showToast(t('settings.fileEmpty'), 'error');
           return;
         }
         const merged = Array.from(new Set([...allCategories, ...data])).sort((a, b) => a.localeCompare(b));
-        showToast(`Categories updated: ${merged.length} total (${data.length} in file)`, 'success');
+        showToast(t('settings.importCategoriesSuccess', { total: merged.length, fileCount: data.length }), 'success');
       } catch {
-        showToast('Invalid JSON file', 'error');
+        showToast(t('settings.invalidJson'), 'error');
       }
       setResolving(false);
       e.target.value = '';
@@ -157,16 +157,16 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
         <div className="mb-8">
           <h1 className="flex items-center gap-3 text-4xl font-bold text-gray-900 dark:text-white">
             <Settings className="h-8 w-8 text-brand-coral" />
-            Settings
+            {t('settings.title')}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Manage your app preferences, channels, playlists, and categories.
+            {t('settings.description')}
           </p>
         </div>
 
         <div className="space-y-6">
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Language & Direction</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.languageDirection')}</h2>
             <div className="flex items-center gap-4">
               <select
                 id="language"
@@ -174,19 +174,19 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
                 onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
                 className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
               >
-                <option value="en">English</option>
-                <option value="ar">العربية</option>
+                <option value="en">{t('settings.english')}</option>
+                <option value="ar">{t('settings.arabic')}</option>
               </select>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {isRTL ? 'RTL' : 'LTR'} — {language === 'ar' ? 'Arabic' : 'English'}
+                {t('settings.languageLabel', { direction: isRTL ? t('settings.rtl') : t('settings.ltr'), language: language === 'ar' ? t('settings.arabic') : t('settings.english') })}
               </span>
             </div>
           </div>
 
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Channels</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.channels')}</h2>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              {channels.length} channel{channels.length !== 1 ? 's' : ''} in your feed. Export to back up your channels, or import from a previous export.
+              {channels.length === 1 ? t('settings.channelsDesc', { count: 1 }) : t('settings.channelsDescPlural', { count: channels.length })}
             </p>
             <div className="flex flex-wrap gap-3">
               <button
@@ -194,20 +194,20 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
                 className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink"
               >
                 <Download className="h-4 w-4" />
-                Export
+                {t('settings.export')}
               </button>
               <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
                 <Upload className="h-4 w-4" />
-                Import
+                {t('settings.import')}
                 <input type="file" accept=".json" className="hidden" onChange={importChannels} disabled={resolving} />
               </label>
             </div>
           </div>
 
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Playlists</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.playlists')}</h2>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              {playlists.length} playlist{playlists.length !== 1 ? 's' : ''} saved. Export to back up your playlists, or import from a previous export.
+              {playlists.length === 1 ? t('settings.playlistsDesc', { count: 1 }) : t('settings.playlistsDescPlural', { count: playlists.length })}
             </p>
             <div className="flex flex-wrap gap-3">
               <button
@@ -215,20 +215,20 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
                 className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink"
               >
                 <Download className="h-4 w-4" />
-                Export
+                {t('settings.export')}
               </button>
               <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
                 <Upload className="h-4 w-4" />
-                Import
+                {t('settings.import')}
                 <input type="file" accept=".json" className="hidden" onChange={importPlaylists} disabled={resolving} />
               </label>
             </div>
           </div>
 
           <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Categories</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{t('settings.categories')}</h2>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              {allCategories.length} categor{allCategories.length !== 1 ? 'ies' : 'y'} across your channels and playlists. Export to view or share your category structure.
+              {allCategories.length === 1 ? t('settings.categoriesDesc', { count: 1 }) : t('settings.categoriesDescPlural', { count: allCategories.length })}
             </p>
             {allCategories.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-1.5">
@@ -248,11 +248,11 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
                 className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink"
               >
                 <Download className="h-4 w-4" />
-                Export
+                {t('settings.export')}
               </button>
               <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
                 <Upload className="h-4 w-4" />
-                Import
+                {t('settings.import')}
                 <input type="file" accept=".json" className="hidden" onChange={importCategoriesFile} disabled={resolving} />
               </label>
             </div>

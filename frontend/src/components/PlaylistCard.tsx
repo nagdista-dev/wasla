@@ -1,6 +1,7 @@
 import { ExternalLink, ListVideo, Edit3, Trash2, Film } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import ConfirmActionModal from './ConfirmActionModal';
 import type { Playlist } from '../types';
 
@@ -11,6 +12,7 @@ interface PlaylistCardProps {
 }
 
 export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCardProps) {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -86,7 +88,7 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
               ))}
             </div>
           )}
-          <div className="mt-auto flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700/50">
+          <div className="mt-auto flex items-center gap-2 flex-wrap border-t border-gray-100 pt-3 dark:border-gray-700/50">
             {playlist.url && (
               <button
                 type="button"
@@ -94,7 +96,7 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
                 className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
               >
                 <ExternalLink className="h-4 w-4" />
-                YouTube
+                {t('playlistCard.youtube')}
               </button>
             )}
             <button
@@ -103,7 +105,7 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
               className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
             >
               <Edit3 className="h-4 w-4" />
-              Edit
+              {t('playlistCard.edit')}
             </button>
             <button
               type="button"
@@ -111,7 +113,7 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
               className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              {t('playlistCard.delete')}
             </button>
           </div>
         </div>
@@ -122,9 +124,9 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
           isOpen={showConfirm}
           onClose={() => setShowConfirm(false)}
           onConfirm={confirmOpenYoutube}
-          title="Open in YouTube"
-          description={`This will open "${playlist.name}" in YouTube in a new tab.`}
-          confirmLabel="Open YouTube"
+          title={t('playlistCard.openYoutubeTitle')}
+          description={t('playlistCard.openYoutubeDesc', { name: playlist.name })}
+          confirmLabel={t('playlistCard.openYoutubeConfirm')}
         />
       )}
     </>

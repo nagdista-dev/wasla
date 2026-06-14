@@ -1,4 +1,6 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import en from '../locales/en';
+import ar from '../locales/ar';
 
 type Language = 'en' | 'ar';
 
@@ -6,9 +8,12 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   isRTL: boolean;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+const translations: Record<Language, Record<string, string>> = { en, ar };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
@@ -25,8 +30,25 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('wasla_language', language);
   }, [language, isRTL]);
 
+  const t = useCallback(
+    (key: string, params?: Record<string, string | number>): string => {
+      const dict = translations[language];
+      let value = dict[key];
+      if (value === undefined) {
+        value = translations['en'][key] ?? key;
+      }
+      if (params) {
+        for (const [k, v] of Object.entries(params)) {
+          value = value.replace(`{${k}}`, String(v));
+        }
+      }
+      return value;
+    },
+    [language],
+  );
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, isRTL }}>
+    <LanguageContext.Provider value={{ language, setLanguage, isRTL, t }}>
       {children}
     </LanguageContext.Provider>
   );
