@@ -232,8 +232,12 @@ const en = {
   'editPlaylist.updateButton': 'Update Playlist',
 
   // Floating Button
+  'floatingButton.add': 'Add',
+  'floatingButton.addNew': 'Add New',
   'floatingButton.playlist': 'Playlist',
   'floatingButton.channel': 'Channel',
+  'floatingButton.channelDesc': 'Add a YouTube channel to your feed',
+  'floatingButton.playlistDesc': 'Add a YouTube playlist to track progress',
 
   // Video Card
   'videoCard.playVideo': 'Play video',
@@ -276,6 +280,23 @@ const en = {
 
   // App
   'app.name': 'Wasla',
+
+  // Relative Time
+  'time.justNow': 'just now',
+  'time.secondsAgo': '{count} seconds ago',
+  'time.secondAgo': 'a second ago',
+  'time.minutesAgo': '{count} minutes ago',
+  'time.minuteAgo': 'a minute ago',
+  'time.hoursAgo': '{count} hours ago',
+  'time.hourAgo': 'an hour ago',
+  'time.daysAgo': '{count} days ago',
+  'time.dayAgo': 'a day ago',
+  'time.weeksAgo': '{count} weeks ago',
+  'time.weekAgo': 'a week ago',
+  'time.monthsAgo': '{count} months ago',
+  'time.monthAgo': 'a month ago',
+  'time.yearsAgo': '{count} years ago',
+  'time.yearAgo': 'a year ago',
 
   // General
   'general.untitled': 'Untitled',

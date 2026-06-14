@@ -232,8 +232,12 @@ const ar: Record<string, string> = {
   'editPlaylist.updateButton': 'تحديث قائمة التشغيل',
 
   // Floating Button
+  'floatingButton.add': 'إضافة',
+  'floatingButton.addNew': 'إضافة جديد',
   'floatingButton.playlist': 'قائمة تشغيل',
   'floatingButton.channel': 'قناة',
+  'floatingButton.channelDesc': 'أضف قناة يوتيوب إلى خلاصتك',
+  'floatingButton.playlistDesc': 'أضف قائمة تشغيل يوتيوب لتتبع التقدم',
 
   // Video Card
   'videoCard.playVideo': 'تشغيل الفيديو',
@@ -276,6 +280,23 @@ const ar: Record<string, string> = {
 
   // App
   'app.name': 'وصـلة',
+
+  // Relative Time
+  'time.justNow': 'الآن',
+  'time.secondsAgo': 'منذ {count} ثوانٍ',
+  'time.secondAgo': 'منذ ثانية',
+  'time.minutesAgo': 'منذ {count} دقائق',
+  'time.minuteAgo': 'منذ دقيقة',
+  'time.hoursAgo': 'منذ {count} ساعات',
+  'time.hourAgo': 'منذ ساعة',
+  'time.daysAgo': 'منذ {count} أيام',
+  'time.dayAgo': 'منذ يوم',
+  'time.weeksAgo': 'منذ {count} أسابيع',
+  'time.weekAgo': 'منذ أسبوع',
+  'time.monthsAgo': 'منذ {count} أشهر',
+  'time.monthAgo': 'منذ شهر',
+  'time.yearsAgo': 'منذ {count} سنوات',
+  'time.yearAgo': 'منذ سنة',
 
   // General
   'general.untitled': 'بدون عنوان',

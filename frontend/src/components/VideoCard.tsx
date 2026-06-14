@@ -1,6 +1,7 @@
 import { Clock, Edit3, ExternalLink, Eye, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { formatRelativeTime } from '../utils/formatRelativeTime';
 import type { Channel, LatestVideo } from '../types';
 import { usePlayer } from '../context/PlayerContext';
 
@@ -138,7 +139,7 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
         <div className="flex items-center gap-3 text-xs">
           <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 min-w-0">
             <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="truncate">{video.relativeTime || '—'}</span>
+            <span className="truncate">{formatRelativeTime(video.publishedDate, t)}</span>
           </span>
           <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 min-w-0">
             <Eye className="h-3.5 w-3.5 flex-shrink-0" />

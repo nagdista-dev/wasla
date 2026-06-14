@@ -110,6 +110,27 @@ html[lang="en"] body {
   animation: slide-in-rtl 0.3s ease-out;
 }
 
+@keyframes pulse-soft {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(226, 67, 106, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(226, 67, 106, 0);
+    transform: scale(1.04);
+  }
+}
+
+.floating-btn {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.floating-btn:hover,
+.floating-btn:focus-visible {
+  animation: none;
+  transform: scale(1.1);
+}
+
 .categories-scroll {
   overflow-y: auto !important;
   scrollbar-width: none;

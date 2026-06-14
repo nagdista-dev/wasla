@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Circle, Clock, Film, Play } from 'lucide-react
 import { api } from '../api';
 import { usePlayer } from '../context/PlayerContext';
 import { useLanguage } from '../context/LanguageContext';
+import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import type { LatestVideo, Playlist } from '../types';
 
@@ -303,6 +304,12 @@ export default function PlaylistCoursePage() {
                         <span className="flex items-center gap-1">
                           <Clock className="h-3.5 w-3.5" />
                           {formatDuration(video.duration)}
+                        </span>
+                      )}
+                      {video.publishedDate && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" />
+                          {formatRelativeTime(video.publishedDate, t)}
                         </span>
                       )}
                       {video.channelName && (
