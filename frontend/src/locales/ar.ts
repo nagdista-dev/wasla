@@ -44,6 +44,7 @@ const ar: Record<string, string> = {
   'home.filters': 'الفلاتر',
   'home.refreshing': 'جارٍ التحديث...',
   'home.loadingChannels': 'جارٍ تحميل القنوات...',
+  'home.loadingVideos': 'جارٍ تحميل الفيديوهات…',
   'home.showing': 'عرض {count} من {total} قناة',
   'home.showingWithCategory': 'عرض {count} من {total} قناة ({category})',
   'home.addFirstChannel': 'أضف قناتك الأولى',

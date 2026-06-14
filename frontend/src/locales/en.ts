@@ -44,6 +44,7 @@ const en = {
   'home.filters': 'Filters',
   'home.refreshing': 'Refreshing...',
   'home.loadingChannels': 'Loading channels...',
+  'home.loadingVideos': 'Loading videos…',
   'home.showing': 'Showing {count} of {total} channels',
   'home.showingWithCategory': 'Showing {count} of {total} channels ({category})',
   'home.addFirstChannel': 'Add your first channel',

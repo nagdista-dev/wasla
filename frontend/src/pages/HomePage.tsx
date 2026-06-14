@@ -329,11 +329,11 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
 
         {channels.length > 0 && (
           <div className="mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            {items.some((i) => i.loading) ? (
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
-                {isRefreshing ? t('home.refreshing') : t('home.loadingChannels')}
-              </span>
+          {items.some((i) => i.loading) ? (
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+              {isRefreshing ? t('home.refreshing') : t('home.loadingVideos')}
+            </span>
             ) : (
               <span>
                 {selectedCategory
