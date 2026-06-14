@@ -59,5 +59,20 @@ export interface PlaylistResponse {
   error?: string;
 }
 
+export interface ChannelPlaylistsResponse {
+  success: boolean;
+  channelId: string;
+  channelName: string;
+  playlists: PlaylistSummary[];
+}
+
+export interface PlaylistSummary {
+  id: string;
+  title: string;
+  thumbnail: string;
+  url: string;
+  videoCount?: number;
+}
+
 // Force emission of JS file
 export const __typesOnly = true;

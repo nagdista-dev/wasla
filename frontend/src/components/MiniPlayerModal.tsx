@@ -3,20 +3,9 @@ import { ExternalLink, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useTheme } from '../context/ThemeContext';
+import { extractVideoId, buildWatchUrl } from '../utils/videoUtils';
 
-function getYoutubeVideoId(link: string): string | null {
-  try {
-    const url = new URL(link);
-    const v = url.searchParams.get('v');
-    if (v) return v;
-    const pathMatch = link.match(/youtu\.be\/([\w-]+)/);
-    if (pathMatch) return pathMatch[1];
-  } catch {
-    const pathMatch = link.match(/youtu\.be\/([\w-]+)/);
-    if (pathMatch) return pathMatch[1];
-  }
-  return null;
-}
+// ─── YouTube IFrame API types ─────────────────────────────────────────────────
 
 declare global {
   interface Window {
@@ -44,6 +33,8 @@ interface YTPlayer {
   destroy: () => void;
 }
 
+// ─── API loader (singleton) ───────────────────────────────────────────────────
+
 let apiLoaded = false;
 let apiPromise: Promise<void> | null = null;
 
@@ -65,6 +56,8 @@ function loadYouTubeAPI(): Promise<void> {
 
 loadYouTubeAPI();
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const MiniPlayerModal = memo(function MiniPlayerModal() {
   const { t, isRTL } = useLanguage();
   const { currentVideo, close } = usePlayer();
@@ -72,17 +65,32 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
   const playerRef = useRef<YTPlayer | null>(null);
   const playerReadyRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Per-video state — reset whenever currentVideo changes
   const [apiFailed, setApiFailed] = useState(false);
 
   useEffect(() => {
     if (!currentVideo) return;
-    const videoId = getYoutubeVideoId(currentVideo.link);
-    if (!videoId) return;
 
-    let destroyed = false;
+    // Task 5: Derive videoId from the (already-normalized) link.
+    // The link is guaranteed to be watch?v= by PlayerContext, but we add
+    // a second layer of extraction as a defensive fallback.
+    let videoId = extractVideoId(currentVideo.link);
+
+    if (!videoId) {
+      // Final safeguard — log and skip gracefully (Task 5)
+      console.warn('[MiniPlayer] Cannot resolve videoId from:', currentVideo.link);
+      setApiFailed(true);
+      return;
+    }
+
+    // Reset state for this video (Task 5 — correct state reset on video switch)
+    setApiFailed(false);
     playerReadyRef.current = false;
+    let destroyed = false;
 
-    let timeout = setTimeout(() => {
+    // 5-second API-load timeout → fall back to plain iframe embed
+    const timeout = setTimeout(() => {
       if (!destroyed && !playerReadyRef.current) {
         setApiFailed(true);
       }
@@ -91,8 +99,10 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
     loadYouTubeAPI().then(() => {
       if (destroyed) return;
       clearTimeout(timeout);
+
+      // Destroy any previous player instance before creating a new one
       if (playerRef.current) {
-        playerRef.current.destroy();
+        try { playerRef.current.destroy(); } catch { /* ignore */ }
         playerRef.current = null;
       }
 
@@ -125,33 +135,43 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
       destroyed = true;
       clearTimeout(timeout);
       if (playerRef.current) {
-        playerRef.current.destroy();
+        try { playerRef.current.destroy(); } catch { /* ignore */ }
         playerRef.current = null;
       }
     };
   }, [currentVideo]);
 
+  // Task 5: Safe open-at-current-time — builds URL from canonical watch link
   const openAtCurrentTime = () => {
     if (!currentVideo) return;
+
     let currentTime = 0;
     if (playerRef.current && playerReadyRef.current) {
       try {
         currentTime = Math.floor(playerRef.current.getCurrentTime());
-      } catch {
-        // fallback if player not ready
+      } catch { /* player may not be ready */ }
+    }
+
+    // Use the normalized link (always watch?v=...) — safe to parse
+    const videoId = extractVideoId(currentVideo.link);
+    const baseUrl = videoId ? buildWatchUrl(videoId) : currentVideo.link;
+
+    try {
+      const url = new URL(baseUrl);
+      if (currentTime > 0) {
+        url.searchParams.set('t', `${currentTime}s`);
       }
+      window.open(url.toString(), '_blank');
+    } catch {
+      window.open(baseUrl, '_blank');
     }
-    const url = new URL(currentVideo.link);
-    if (currentTime > 0) {
-      url.searchParams.set('t', `${currentTime}s`);
-    }
-    window.open(url.toString(), '_blank');
     close();
   };
 
   if (!currentVideo) return null;
 
-  const videoId = getYoutubeVideoId(currentVideo.link);
+  // Task 3: ID resolution is purely from the video link — no origin check
+  const videoId = extractVideoId(currentVideo.link);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -169,28 +189,40 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
         >
           <X className="h-5 w-5" />
         </button>
+
         <div className="relative aspect-video w-full">
           {videoId ? (
             apiFailed ? (
+              /* Fallback: plain iframe embed — always works */
               <iframe
                 src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                title="YouTube video"
+                title={currentVideo.title || 'YouTube video'}
                 className="absolute inset-0 w-full h-full"
                 allow="autoplay; encrypted-media"
                 allowFullScreen
               />
             ) : (
+              /* Primary: YouTube IFrame Player API */
               <div
                 ref={containerRef}
                 className="absolute inset-0 w-full h-full"
               />
             )
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-white">
-              <p>{t('miniPlayer.couldNotLoad')}</p>
+            /* No usable video ID — graceful failure message */
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+              <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+              <button
+                onClick={() => { window.open(currentVideo.link, '_blank'); close(); }}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {t('miniPlayer.openOnYoutube')}
+              </button>
             </div>
           )}
         </div>
+
         <div className="flex items-center justify-center gap-4 px-4 py-3 bg-black/80">
           <button
             onClick={openAtCurrentTime}

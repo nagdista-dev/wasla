@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import { ExternalLink, ListVideo, Edit3, Trash2, Film } from 'lucide-react';
+import { ExternalLink, ListVideo, Edit3, Trash2, Film, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import ConfirmActionModal from './ConfirmActionModal';
@@ -18,6 +18,10 @@ const PlaylistCard = memo(function PlaylistCard({ playlist, onEdit, onDelete }: 
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleCardClick = () => {
+    navigate(`/playlist/${encodeURIComponent(playlist.id)}`, { state: { playlist } });
+  };
+
+  const handlePlay = () => {
     navigate(`/playlist/${encodeURIComponent(playlist.id)}`, { state: { playlist } });
   };
 
@@ -59,22 +63,22 @@ const PlaylistCard = memo(function PlaylistCard({ playlist, onEdit, onDelete }: 
             </span>
           )}
         </div>
-        <div className="flex flex-1 flex-col p-4">
-          <h3 className="line-clamp-2 text-base font-semibold text-gray-900 dark:text-white">
+        <div className="flex flex-1 flex-col p-4 gap-1.5">
+          <h3 className="line-clamp-2 text-base font-semibold text-gray-900 dark:text-white leading-snug">
             {playlist.name}
           </h3>
           {playlist.channelName && (
-            <p className="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">
+            <p className="truncate text-sm text-gray-500 dark:text-gray-400">
               {playlist.channelName}
             </p>
           )}
           {playlist.description && (
-            <p className="mt-1.5 line-clamp-2 text-sm text-gray-600 dark:text-gray-400 leading-snug min-h-0">
+            <p className="line-clamp-2 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
               {playlist.description}
             </p>
           )}
           {playlist.categories.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
               {playlist.categories.map((cat) => (
                 <span
                   key={cat}
@@ -85,7 +89,15 @@ const PlaylistCard = memo(function PlaylistCard({ playlist, onEdit, onDelete }: 
               ))}
             </div>
           )}
-          <div className="mt-auto flex items-center gap-2 flex-wrap border-t border-gray-100 pt-3 dark:border-gray-700/50">
+          <div className="mt-auto flex items-center gap-1.5 flex-wrap border-t border-gray-100 pt-3 dark:border-gray-700/50">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); handlePlay(); }}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-coral bg-brand-coral/10 hover:bg-brand-coral/20 transition"
+            >
+              <Play className="h-4 w-4" />
+              {t('course.playVideo')}
+            </button>
             {playlist.url && (
               <button
                 type="button"

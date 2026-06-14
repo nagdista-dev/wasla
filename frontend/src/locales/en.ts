@@ -76,12 +76,17 @@ const en = {
   'channel.failedToLoad': 'Failed to load channel',
   'channel.notFound': 'Channel not found',
   'channel.videos': 'Videos',
+  'channel.playlists': 'Playlists',
   'channel.newest': 'Newest',
   'channel.oldest': 'Oldest',
   'channel.mostViewed': 'Most viewed',
   'channel.leastViewed': 'Least viewed',
   'channel.sort': 'Sort',
   'channel.videoCount': '{count} videos',
+  'channel.loadingPlaylists': 'Loading playlists...',
+  'channel.failedToLoadPlaylists': 'Failed to load playlists',
+  'channel.noPlaylistsFound': 'No playlists found',
+  'channel.noVideosFound': 'No videos found',
 
   // Playlists Page
   'playlists.title': 'Playlists',

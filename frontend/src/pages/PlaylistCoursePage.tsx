@@ -336,54 +336,57 @@ export default function PlaylistCoursePage() {
               return (
                 <div
                   key={video.link}
-                  className={`group flex items-start gap-4 rounded-xl p-4 transition ${
+                  className={`group rounded-xl transition ${
                     completed
                       ? 'bg-gray-50 ring-1 ring-gray-200 dark:bg-white/5 dark:ring-gray-700'
                       : 'bg-white shadow-sm ring-1 ring-gray-200 hover:shadow-md dark:bg-dark-navy dark:ring-gray-700'
                   }`}
                 >
-                  <button
-                    onClick={() => toggleComplete(video.link)}
-                    className={`mt-1 flex-shrink-0 transition ${
-                      completed
-                        ? 'text-green-500'
-                        : 'text-gray-300 hover:text-green-400 dark:text-gray-600 dark:hover:text-green-400'
-                    }`}
-                    aria-label={completed ? t('course.markIncomplete') : t('course.markComplete')}
-                  >
-                    {completed ? (
-                      <CheckCircle2 className="h-6 w-6" />
-                    ) : (
-                      <Circle className="h-6 w-6" />
+                  {/* Mobile: stack vertically. sm+: horizontal row */}
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-0 sm:gap-4 sm:p-4">
+                    {/* Thumbnail — full width on mobile, fixed width on sm+ */}
+                    {video.thumbnail && (
+                      <div className="relative w-full sm:w-40 sm:flex-shrink-0 aspect-video overflow-hidden rounded-t-xl sm:rounded-lg">
+                        <ThumbnailWithPlaceholder
+                          src={video.thumbnail}
+                          alt={video.title}
+                        />
+                        <button
+                          onClick={() => handlePlayVideo(video)}
+                          className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
+                          aria-label={t('course.playVideo')}
+                        >
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">
+                            <Play className="h-5 w-5 pl-0.5" />
+                          </span>
+                        </button>
+                      </div>
                     )}
-                  </button>
 
-                  {video.thumbnail && (
-                    <div className="relative aspect-video w-40 flex-shrink-0 overflow-hidden rounded-lg">
-                      <ThumbnailWithPlaceholder
-                        src={video.thumbnail}
-                        alt={video.title}
-                      />
+                    {/* Content row: checkbox + text */}
+                    <div className="flex items-start gap-3 flex-1 min-w-0 p-3 sm:p-0">
                       <button
-                        onClick={() => handlePlayVideo(video)}
-                        className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
-                        aria-label={t('course.playVideo')}
+                        onClick={() => toggleComplete(video.link)}
+                        className={`mt-0.5 flex-shrink-0 transition ${
+                          completed
+                            ? 'text-green-500'
+                            : 'text-gray-300 hover:text-green-400 dark:text-gray-600 dark:hover:text-green-400'
+                        }`}
+                        aria-label={completed ? t('course.markIncomplete') : t('course.markComplete')}
                       >
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">
-                          <Play className="h-5 w-5 pl-0.5" />
-                        </span>
+                        {completed ? (
+                          <CheckCircle2 className="h-6 w-6" />
+                        ) : (
+                          <Circle className="h-6 w-6" />
+                        )}
                       </button>
-                    </div>
-                  )}
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
                           {t('course.lesson', { number: index + 1 })}
                         </span>
                         <h3
-                          className={`mt-0.5 line-clamp-2 text-sm font-semibold ${
+                          className={`mt-0.5 line-clamp-2 text-sm font-semibold leading-snug ${
                             completed
                               ? 'text-gray-500 line-through dark:text-gray-500'
                               : 'text-gray-900 dark:text-white'
@@ -391,33 +394,33 @@ export default function PlaylistCoursePage() {
                         >
                           {video.title}
                         </h3>
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                          {video.duration && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {formatDuration(video.duration)}
+                            </span>
+                          )}
+                          {video.publishedDate && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {formatRelativeTime(video.publishedDate, t)}
+                            </span>
+                          )}
+                          {video.channelName && (
+                            <span className="truncate">{video.channelName}</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handlePlayVideo(video)}
+                          className="mt-2 flex items-center gap-1.5 text-xs font-medium text-brand-coral hover:text-brand-pink"
+                        >
+                          <Play className="h-3.5 w-3.5" />
+                          {t('course.playVideo')}
+                        </button>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                      {video.duration && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {formatDuration(video.duration)}
-                        </span>
-                      )}
-                      {video.publishedDate && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {formatRelativeTime(video.publishedDate, t)}
-                        </span>
-                      )}
-                      {video.channelName && (
-                        <span className="truncate">{video.channelName}</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handlePlayVideo(video)}
-                      className="mt-2 flex items-center gap-1.5 text-xs font-medium text-brand-coral hover:text-brand-pink"
-                    >
-                      <Play className="h-3.5 w-3.5" />
-                        {t('course.playVideo')}
-                      </button>
-                    </div>
+                  </div>
                 </div>
               );
             })}

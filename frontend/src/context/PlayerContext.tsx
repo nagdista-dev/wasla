@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import type { LatestVideo } from '../types';
+import { normalizeVideo } from '../utils/videoUtils';
 
 interface PlayerContextType {
   currentVideo: LatestVideo | null;
@@ -12,8 +13,22 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentVideo, setCurrentVideo] = useState<LatestVideo | null>(null);
 
-  const play = (video: LatestVideo) => setCurrentVideo(video);
-  const close = () => setCurrentVideo(null);
+  /**
+   * Unified playback entry point (Task 6).
+   * Normalizes every video to a consistent schema before storing it.
+   * Silently skips unresolvable videos instead of crashing.
+   */
+  const play = useCallback((video: LatestVideo) => {
+    const normalized = normalizeVideo(video);
+    if (!normalized) {
+      // Video ID could not be resolved — skip gracefully (Task 5)
+      console.warn('[Wasla Player] Skipping unplayable video:', video.title, video.link);
+      return;
+    }
+    setCurrentVideo(normalized);
+  }, []);
+
+  const close = useCallback(() => setCurrentVideo(null), []);
 
   return (
     <PlayerContext.Provider value={{ currentVideo, play, close }}>

@@ -115,8 +115,8 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
           </span>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute top-2 right-2 flex gap-2">
           <button
             className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
             onClick={handlePlay}
@@ -151,14 +151,17 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
       <div className="p-4 flex flex-col flex-1">
         <div className="flex items-center gap-2.5 mb-2.5">
-          <span className="flex justify-center items-center h-9 w-9 rounded-full bg-brand-pink text-base font-bold text-white shadow-sm leading-none flex-shrink-0" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
-            {initial}
-          </span>
           <button
             onClick={handleChannelClick}
-            className="text-sm font-semibold text-brand-coral dark:text-brand-coral hover:underline truncate text-left flex-1 min-w-0"
+            className="flex items-center gap-2 min-w-0 flex-1 group/ch"
+            aria-label={channelName}
           >
-            {channelName}
+            <span className="flex justify-center items-center h-9 w-9 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm leading-none" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
+              {initial}
+            </span>
+            <span className="text-sm font-semibold text-brand-coral dark:text-brand-coral group-hover/ch:underline truncate text-left">
+              {channelName}
+            </span>
           </button>
           {onEdit && (
             <button

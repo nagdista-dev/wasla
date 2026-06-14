@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { fetchChannelData, fetchChannelDetails, clearCache, getCacheStats, resolveChannelId, fetchPlaylistData } from '../services/rssService.js';
-import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse } from '../types/index.js';
+import { fetchChannelData, fetchChannelDetails, clearCache, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists } from '../services/rssService.js';
+import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse, ChannelPlaylistsResponse, PlaylistSummary } from '../types/index.js';
 
 const router = Router();
 
@@ -74,6 +74,57 @@ router.get('/channel/:identifier/videos', async (req: Request, res: Response) =>
     const id = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
     console.error(`Error fetching channel details ${id}:`, error);
     res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Failed to fetch channel details' });
+  }
+});
+
+router.get('/channel/:identifier/playlists', async (req: Request, res: Response) => {
+  try {
+    const identifier = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
+
+    if (!identifier) {
+      return res.status(400).json({ success: false, channelId: '', channelName: '', playlists: [] });
+    }
+
+    let channelId = identifier;
+
+    if (!identifier.startsWith('UC') || identifier.length !== 24) {
+      const resolved = await resolveChannelId(identifier);
+      if (!resolved) {
+        return res.status(404).json({ success: false, channelId: '', channelName: '', playlists: [] });
+      }
+      channelId = resolved;
+    }
+
+    let channelName = 'Unknown Channel';
+    try {
+      const details = await fetchChannelDetails(channelId);
+      channelName = details.channelName;
+    } catch {
+    }
+
+    try {
+      const playlists = await getChannelPlaylists(channelId);
+      const response: ChannelPlaylistsResponse = {
+        success: true,
+        channelId,
+        channelName,
+        playlists,
+      };
+      res.json(response);
+    } catch (error) {
+      console.error(`Error fetching playlists for channel ${channelId}:`, error);
+      const response: ChannelPlaylistsResponse = {
+        success: false,
+        channelId,
+        channelName,
+        playlists: [],
+      };
+      res.json(response);
+    }
+  } catch (error) {
+    const id = Array.isArray(req.params.identifier) ? req.params.identifier[0] : req.params.identifier;
+    console.error(`Error fetching channel playlists ${id}:`, error);
+    res.status(500).json({ success: false, channelId: '', channelName: '', playlists: [] });
   }
 });
 

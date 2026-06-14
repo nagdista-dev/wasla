@@ -416,7 +416,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                               </span>
                             );
                           })()}
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20">
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 z-20">
                             <button
                               onClick={(e) => { e.stopPropagation(); play(video); }}
                               className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm text-brand-coral flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
@@ -470,14 +470,16 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         <div className="flex-1 min-w-0 py-3 pr-4 flex flex-col justify-between gap-2">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="flex justify-center items-center h-7 w-7 rounded-full bg-brand-pink text-xs font-bold text-white shadow-sm leading-none flex-shrink-0" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
-                                {(video.channelName || channel.name).charAt(0).toUpperCase()}
-                              </span>
                               <button
                                 onClick={(e) => { e.stopPropagation(); navigate(`/channel/${channel.id}`); }}
-                                className="text-xs font-semibold text-brand-coral dark:text-brand-coral hover:underline truncate text-left"
+                                className="flex items-center gap-1.5 min-w-0 group/ch"
                               >
-                                {video.channelName || channel.name}
+                                <span className="flex justify-center items-center h-7 w-7 rounded-full flex-shrink-0 text-xs font-bold text-white shadow-sm leading-none" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
+                                  {(video.channelName || channel.name).charAt(0).toUpperCase()}
+                                </span>
+                                <span className="text-xs font-semibold text-brand-coral dark:text-brand-coral group-hover/ch:underline truncate">
+                                  {video.channelName || channel.name}
+                                </span>
                               </button>
                             </div>
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug">

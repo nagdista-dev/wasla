@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Search, Heart, Edit3, Trash2, X } from 'lucide-react';
+import { Search, Heart, Edit3, Trash2, X, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
@@ -37,6 +38,7 @@ function savePref(key: string, value: unknown) {
 
 export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFavorite }: ChannelsPageProps) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   useMeta({ title: t('channels.title'), description: `${channels.length} channel${channels.length !== 1 ? 's' : ''} in your collection.` });
   const [searchText, setSearchText] = useState(loadPref<string>('wasla_channels_search', ''));
   const debouncedSearch = useDebounce(searchText, 300);
@@ -220,6 +222,15 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                         </div>
                       )}
                       <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700/50">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/channel/${channel.id}`)}
+                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-coral bg-brand-coral/10 hover:bg-brand-coral/20 transition"
+                          aria-label={t('channels.openChannel')}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          {t('channels.openChannel')}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleEdit(channel)}

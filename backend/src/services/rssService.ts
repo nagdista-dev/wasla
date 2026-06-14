@@ -1,13 +1,18 @@
 import { parseStringPromise } from 'xml2js';
-import { ChannelFeedData, VideoData } from '../types/index.js';
+import { ChannelFeedData, VideoData, PlaylistSummary } from '../types/index.js';
 import { addRelativeTimeToVideos } from '../utils/dateUtils.js';
 
 const CACHE_DURATION = 12 * 60 * 1000;
-const VIDEO_LIMIT = 10;
+const VIDEO_LIMIT = 50;
 const MAX_CACHE_SIZE = 100;
 const FETCH_TIMEOUT = 10000;
 const cache = new Map<string, { id: string; data: ChannelFeedData; timestamp: number }>();
 const pendingRequests = new Map<string, Promise<ChannelFeedData>>();
+
+const PLAYLIST_CACHE_DURATION = 12 * 60 * 1000;
+const PLAYLIST_MAX_CACHE_SIZE = 100;
+const playlistCache = new Map<string, { id: string; data: PlaylistSummary[]; timestamp: number }>();
+const pendingPlaylistRequests = new Map<string, Promise<PlaylistSummary[]>>();
 
 function getString(value: unknown): string | undefined {
   if (typeof value === 'string') return value;
@@ -40,6 +45,45 @@ function getDuration(value: unknown): string | undefined {
   if (Array.isArray(value)) return getString(value[0]?.$?.duration);
   const obj = value as { $?: { duration?: string } } | undefined;
   return getString(obj?.$?.duration);
+}
+
+/**
+ * Extract YouTube video ID from an RSS entry.
+ * Priority: yt:videoId field (always reliable) → link href parsing.
+ * Returns undefined if genuinely not a video entry.
+ */
+function getVideoId(entry: Record<string, unknown>): string | undefined {
+  // 1. yt:videoId — the canonical, always-present field in YouTube RSS
+  const ytVideoId = getString(entry['yt:videoId']);
+  if (ytVideoId) return ytVideoId;
+
+  // 2. Fall back to parsing href from <link> element(s)
+  const linkVal = entry.link;
+  const hrefs: string[] = [];
+  if (Array.isArray(linkVal)) {
+    for (const l of linkVal) {
+      const h = getString((l as { $?: { href?: string } })?.$?.href);
+      if (h) hrefs.push(h);
+    }
+  } else {
+    const h = getString((linkVal as { $?: { href?: string } } | undefined)?.$?.href);
+    if (h) hrefs.push(h);
+  }
+  for (const href of hrefs) {
+    try {
+      const u = new URL(href);
+      const v = u.searchParams.get('v');
+      if (v) return v;
+    } catch { /* ignore */ }
+    const m = href.match(/youtu\.be\/([\w-]+)/);
+    if (m) return m[1];
+  }
+  return undefined;
+}
+
+/** Build a canonical YouTube watch URL from a video ID */
+function watchUrl(videoId: string): string {
+  return `https://www.youtube.com/watch?v=${videoId}`;
 }
 
 export async function fetchChannelData(channelId: string): Promise<ChannelFeedData> {
@@ -121,7 +165,9 @@ async function fetchAndParseRSS(channelId: string, limit = VIDEO_LIMIT): Promise
       const mediaGroup = (entry['media:group'] || {}) as Record<string, unknown>;
       const mediaCommunity = (mediaGroup['media:community'] || {}) as Record<string, unknown>;
       const title = getString(entry.title) || 'Untitled';
-      const link = getLink(entry.link, `https://www.youtube.com/channel/${channelId}`);
+      const videoId = getVideoId(entry);
+      // Always construct a valid watch URL; skip entries with no resolvable video ID
+      const link = videoId ? watchUrl(videoId) : getLink(entry.link, `https://www.youtube.com/channel/${channelId}`);
 
       return {
         title,
@@ -133,6 +179,7 @@ async function fetchAndParseRSS(channelId: string, limit = VIDEO_LIMIT): Promise
         duration: getDuration(mediaGroup['media:content']),
       };
     })
+    .filter((v) => v.link.includes('watch?v='))  // only keep real playable video links
     .sort((a: VideoData, b: VideoData) => Date.parse(b.publishedDate) - Date.parse(a.publishedDate))
     .slice(0, limit);
 
@@ -190,18 +237,21 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
       const mediaGroup = (entry['media:group'] || {}) as Record<string, unknown>;
       const mediaCommunity = (mediaGroup['media:community'] || {}) as Record<string, unknown>;
       const title = getString(entry.title) || 'Untitled';
-      const link = getLink(entry.link, `https://www.youtube.com/watch?v=${playlistId}`);
+      const videoId = getVideoId(entry);
+      // Always construct a valid watch URL from the video ID
+      const link = videoId ? watchUrl(videoId) : getLink(entry.link, '');
 
       return {
         title,
         link,
         thumbnail: getThumbnail(mediaGroup['media:thumbnail']),
         publishedDate: getString(entry.published) || getString(entry.updated) || new Date().toISOString(),
-        channelName: channelName || getString(entry['media:group']?.['media:credit']) || 'Unknown',
+        channelName: channelName || getString((entry['media:group'] as Record<string, unknown>)?.['media:credit'] as unknown) || 'Unknown',
         views: getViews(mediaCommunity['media:statistics']),
         duration: getDuration(mediaGroup['media:content']),
       };
-    });
+    })
+    .filter((v) => v.link.includes('watch?v='));  // only real playable videos
 
   const videosWithRelativeTime = addRelativeTimeToVideos(videos);
 
@@ -215,6 +265,7 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
 export function clearCache(): void {
   cache.clear();
   pendingRequests.clear();
+  DETAILS_CACHE.clear();
 }
 
 export function getCacheStats(): { size: number; entries: Array<{ id: string; data: ChannelFeedData }> } {
@@ -397,6 +448,7 @@ function extractChannelIdFromJsonLd(data: Record<string, unknown>): string | nul
 }
 
 const DETAILS_CACHE = new Map<string, { data: import('../types/index.js').ChannelDetails; timestamp: number }>();
+const DETAILS_MAX_CACHE_SIZE = 100;
 
 export async function fetchChannelDetails(channelId: string, handle?: string): Promise<import('../types/index.js').ChannelDetails> {
   const cached = DETAILS_CACHE.get(channelId);
@@ -405,7 +457,7 @@ export async function fetchChannelDetails(channelId: string, handle?: string): P
   }
 
   const [rssData, pageData] = await Promise.all([
-    fetchAndParseRSS(channelId, 15),
+    fetchAndParseRSS(channelId, 50),
     scrapeChannelPage(channelId, handle),
   ]);
 
@@ -417,6 +469,11 @@ export async function fetchChannelDetails(channelId: string, handle?: string): P
     videos: rssData.videos,
   };
 
+  // Evict oldest entry if cache is full
+  if (DETAILS_CACHE.size >= DETAILS_MAX_CACHE_SIZE) {
+    const firstKey = DETAILS_CACHE.keys().next().value;
+    if (firstKey) DETAILS_CACHE.delete(firstKey);
+  }
   DETAILS_CACHE.set(channelId, { data: result, timestamp: Date.now() });
   return result;
 }
@@ -480,4 +537,138 @@ async function scrapeChannelPage(channelId: string, handle?: string): Promise<{ 
   } catch {
     return {};
   }
+}
+
+export async function getChannelPlaylists(channelId: string): Promise<PlaylistSummary[]> {
+  const cached = playlistCache.get(channelId);
+  if (cached && Date.now() - cached.timestamp < PLAYLIST_CACHE_DURATION) {
+    return cached.data.map((p) => ({ ...p }));
+  }
+
+  const pending = pendingPlaylistRequests.get(channelId);
+  if (pending) {
+    return pending;
+  }
+
+  const promise = fetchChannelPlaylistsRSS(channelId);
+  pendingPlaylistRequests.set(channelId, promise);
+
+  try {
+    const data = await promise;
+    if (playlistCache.size >= PLAYLIST_MAX_CACHE_SIZE) {
+      const firstKey = playlistCache.keys().next().value;
+      if (firstKey) playlistCache.delete(firstKey);
+    }
+    playlistCache.set(channelId, {
+      id: channelId,
+      data: data.map((p) => ({ ...p })),
+      timestamp: Date.now(),
+    });
+    return data;
+  } finally {
+    pendingPlaylistRequests.delete(channelId);
+  }
+}
+
+async function fetchChannelPlaylistsRSS(channelId: string): Promise<PlaylistSummary[]> {
+  const playlistIds = new Set<string>();
+
+  // Strategy 1: RSS feed — link tags + yt:playlistId entries
+  try {
+    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    const c1 = new AbortController();
+    const t1 = setTimeout(() => c1.abort(), FETCH_TIMEOUT);
+    const rssResp = await fetch(rssUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)', Accept: 'application/xml, text/xml, */*' },
+      signal: c1.signal,
+    });
+    clearTimeout(t1);
+
+    if (rssResp.ok) {
+      const xml = await rssResp.text();
+
+      // Structured link parsing (original approach)
+      try {
+        const parsed = await parseStringPromise(xml, { explicitArray: false, ignoreAttrs: false, trim: true });
+        const links = parsed?.feed?.link;
+        if (links) {
+          const linkList = Array.isArray(links) ? links : [links];
+          for (const link of linkList) {
+            const href = (link as { $?: { href?: string } })?.$?.href;
+            if (href) {
+              const m = href.match(/[?&]playlist_id=([^&]+)/);
+              if (m) playlistIds.add(m[1]);
+            }
+          }
+        }
+        // yt:playlistId on individual entries
+        const entries = parsed?.feed?.entry;
+        if (entries) {
+          const entryList = Array.isArray(entries) ? entries : [entries];
+          for (const entry of entryList) {
+            const pid = getString((entry as Record<string, unknown>)['yt:playlistId']);
+            if (pid && pid.startsWith('PL')) playlistIds.add(pid);
+          }
+        }
+      } catch { /* ignore */ }
+
+      // Raw regex on XML text
+      for (const m of xml.matchAll(/[?&]list=(PL[\w-]{10,})/g)) playlistIds.add(m[1]);
+      for (const m of xml.matchAll(/<yt:playlistId>(PL[\w-]{10,})<\/yt:playlistId>/g)) playlistIds.add(m[1]);
+    }
+  } catch { /* ignore */ }
+
+  // Strategy 2: channel playlists page — lightweight HTML scan, no ytInitialData
+  try {
+    const pageUrl = `https://www.youtube.com/channel/${channelId}/playlists`;
+    const c2 = new AbortController();
+    const t2 = setTimeout(() => c2.abort(), FETCH_TIMEOUT);
+    const pageResp = await fetch(pageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: c2.signal,
+    });
+    clearTimeout(t2);
+
+    if (pageResp.ok) {
+      const html = await pageResp.text();
+      for (const m of html.matchAll(/[?&]list=(PL[\w-]{10,})/g)) playlistIds.add(m[1]);
+      for (const m of html.matchAll(/"playlistId":"(PL[\w-]{10,})"/g)) playlistIds.add(m[1]);
+    }
+  } catch { /* ignore */ }
+
+  if (playlistIds.size === 0) return [];
+
+  // Fetch each playlist RSS to get title + thumbnail
+  const settled = await Promise.allSettled(
+    Array.from(playlistIds).map(async (pid) => {
+      const pdata = await fetchPlaylistData(pid);
+      const summary: PlaylistSummary = {
+        id: pid,
+        title: pdata.playlistName,
+        thumbnail: pdata.videos[0]?.thumbnail || `https://img.youtube.com/vi/${pid}/maxresdefault.jpg`,
+        url: `https://www.youtube.com/playlist?list=${pid}`,
+        videoCount: pdata.videos.length,
+      };
+      return summary;
+    })
+  );
+
+  return settled
+    .filter((r): r is PromiseFulfilledResult<PlaylistSummary> => r.status === 'fulfilled')
+    .map((r) => r.value);
+}
+
+export function clearPlaylistCache(): void {
+  playlistCache.clear();
+  pendingPlaylistRequests.clear();
+}
+
+export function getPlaylistCacheStats(): { size: number; entries: Array<{ id: string; data: PlaylistSummary[] }> } {
+  return {
+    size: playlistCache.size,
+    entries: Array.from(playlistCache.values()),
+  };
 }

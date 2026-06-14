@@ -74,14 +74,19 @@ const ar: Record<string, string> = {
 
   // Channel Page
   'channel.failedToLoad': 'فشل في تحميل القناة',
-  'channel.notFound': 'القناة غير موجودة',
+  'channel.notFound': 'القاة غير موجودة',
   'channel.videos': 'الفيديوهات',
+  'channel.playlists': 'قوائم التشغيل',
   'channel.newest': 'الأحدث',
   'channel.oldest': 'الأقدم',
   'channel.mostViewed': 'الأكثر مشاهدة',
   'channel.leastViewed': 'الأقل مشاهدة',
   'channel.sort': 'الترتيب',
   'channel.videoCount': '{count} فيديو',
+  'channel.loadingPlaylists': 'جارٍ تحميل قوائم التشغيل...',
+  'channel.failedToLoadPlaylists': 'فشل في تحميل قوائم التشغيل',
+  'channel.noPlaylistsFound': 'لم يتم العثور على قوائم تشغيل',
+  'channel.noVideosFound': 'لم يتم العثور على فيديوهات',
 
   // Playlists Page
   'playlists.title': 'قوائم التشغيل',

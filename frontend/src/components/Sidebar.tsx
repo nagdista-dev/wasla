@@ -14,8 +14,8 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
   const { isRTL, t } = useLanguage();
   const navItems = [
     { path: '/', label: t('nav.home'), icon: Home },
-    { path: '/channels', label: t('nav.channels'), icon: Users },
     { path: '/playlists', label: t('nav.playlists'), icon: Heart },
+    { path: '/channels', label: t('nav.channels'), icon: Users },
     { path: '/watch-later', label: t('watchLater.title'), icon: BookmarkCheck },
     { path: '/how-to-use', label: t('nav.howToUse'), icon: BookOpen },
     { path: '/settings', label: t('nav.settings'), icon: Settings },
