@@ -21,7 +21,7 @@
     <meta property="og:site_name" content="Wasla" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Wasla</title>
-    <script>try{var l=localStorage.getItem('wasla_language');if(l==='ar'){document.documentElement.lang='ar';document.documentElement.dir='rtl'}else{document.documentElement.lang='en';document.documentElement.dir='ltr'}document.documentElement.classList.toggle('dark',localStorage.getItem('wasla_theme')!=='light')}catch(e){}</script>
+    <script>try{var l=localStorage.getItem('wasla_language');var isAr=l==='ar';var appName=isAr?'واصـلة':'Wasla';document.documentElement.lang=isAr?'ar':'en';document.documentElement.dir=isAr?'rtl':'ltr';document.title=appName;var meta=document.querySelector('meta[property="og:title"]');if(meta)meta.setAttribute('content',appName);meta=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(meta)meta.setAttribute('content',appName);meta=document.querySelector('meta[property="og:site_name"]');if(meta)meta.setAttribute('content',appName);document.documentElement.classList.toggle('dark',localStorage.getItem('wasla_theme')!=='light')}catch(e){}</script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { AlertCircle, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
+import { AlertCircle, Clock, ExternalLink, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import { useLanguage } from '../context/LanguageContext';
+import { usePlayer } from '../context/PlayerContext';
+import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
@@ -62,6 +64,7 @@ function savePref(key: string, value: unknown) {
 export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { play } = usePlayer();
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
@@ -366,16 +369,16 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 ))}
               </div>
 ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <div key={channel.id} className="min-w-0">
                     {loading ? (
                       <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700 animate-pulse">
-                        <div className="flex-0 w-64 aspect-video rounded-lg bg-gray-200 dark:bg-gray-700" />
-                        <div className="flex-1 min-w-0 space-y-3">
-                          <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                          <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
-                          <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
+                        <div className="flex-0 w-48 aspect-video rounded-lg bg-gray-200 dark:bg-gray-700" />
+                        <div className="flex-1 min-w-0 space-y-3 py-1">
+                          <div className="h-5 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                          <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+                          <div className="h-3 w-1/3 bg-gray-200 dark:bg-gray-700 rounded" />
                         </div>
                       </article>
                     ) : error ? (
@@ -387,15 +390,117 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         </div>
                       </article>
                     ) : video ? (
-                      <VideoCard channel={channel} video={video} onEdit={onUpdate ? setEditingChannel : undefined} />
+                      <div
+                        className="group relative flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700 cursor-pointer overflow-hidden"
+                        onClick={() => navigate(`/channel/${channel.id}`)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/channel/${channel.id}`); }}
+                      >
+                        <div className="relative w-44 flex-shrink-0">
+                          {video.thumbnail ? (
+                            <img
+                              src={video.thumbnail}
+                              alt={video.title}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow" />
+                          )}
+                          {video.duration && (
+                            <span className="absolute bottom-1.5 right-1.5 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-1.5 py-0.5 rounded flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {(() => {
+                                const total = parseInt(video.duration!, 10);
+                                if (isNaN(total)) return video.duration;
+                                const hrs = Math.floor(total / 3600);
+                                const mins = Math.floor((total % 3600) / 60);
+                                const secs = total % 60;
+                                if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                                return `${mins}:${secs.toString().padStart(2, '0')}`;
+                              })()}
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); play(video); }}
+                              className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm text-brand-coral flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
+                              aria-label={t('videoCard.playVideo')}
+                            >
+                              <Play className="h-5 w-5 pl-0.5" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); window.open(video.link, '_blank'); }}
+                              className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm text-red-600 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
+                              aria-label={t('videoCard.watchOnYoutube')}
+                            >
+                              <ExternalLink className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0 py-3 pr-4 flex flex-col justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="flex justify-center items-center h-7 w-7 rounded-full bg-brand-pink text-xs font-bold text-white shadow-sm leading-none flex-shrink-0" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
+                                {(video.channelName || channel.name).charAt(0).toUpperCase()}
+                              </span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); navigate(`/channel/${channel.id}`); }}
+                                className="text-xs font-semibold text-brand-coral dark:text-brand-coral hover:underline truncate text-left"
+                              >
+                                {video.channelName || channel.name}
+                              </button>
+                            </div>
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug">
+                              {video.title}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                              <span>{formatRelativeTime(video.publishedDate, t)}</span>
+                            </span>
+                            {video.views !== undefined && (
+                              <span className="flex items-center gap-1">
+                                <Eye className="h-3.5 w-3.5 flex-shrink-0" />
+                                <span>{(() => {
+                                  const num = typeof video.views === 'string' ? parseInt(video.views, 10) : video.views!;
+                                  if (isNaN(num)) return '—';
+                                  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+                                  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+                                  return num.toString();
+                                })()}</span>
+                              </span>
+                            )}
+                          </div>
+                          {channel.categories.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {channel.categories.slice(0, 3).map((cat) => (
+                                <span
+                                  key={cat}
+                                  className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 truncate max-w-[100px]"
+                                >
+                                  {cat}
+                                </span>
+                              ))}
+                              {channel.categories.length > 3 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/10">
+                                  +{channel.categories.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                 ))}
               </div>
-                  )}
-                </>
               )}
-            </div>
+            </>
+          )}
+        </div>
 
             {showSearch && (
               <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-20">

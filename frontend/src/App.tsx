@@ -53,6 +53,10 @@ function Navigation({ channels }: { channels: Channel[] }) {
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [language]);
   const navItems = [
     { path: "/", label: t('nav.home'), icon: Home },
     { path: "/channels", label: t('nav.channels'), icon: Users },
@@ -161,7 +165,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
                 {item.label}
 
                 {isActive && (
-                  <span className="ml-auto h-2 w-2 rounded-full bg-white" />
+                  <span className={`${isRTL ? 'mr-auto' : 'ml-auto'} h-2 w-2 rounded-full bg-white`} />
                 )}
               </Link>
             );

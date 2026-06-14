@@ -279,7 +279,7 @@ const ar: Record<string, string> = {
   'filterDropdown.select': 'اختيار...',
 
   // App
-  'app.name': 'وصـلة',
+  'app.name': 'واصـلة',
 
   // Relative Time
   'time.justNow': 'الآن',

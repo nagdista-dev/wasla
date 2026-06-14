@@ -38,7 +38,7 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
   return (
     <>
       <div
-        className="flex flex-col rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700 cursor-pointer"
+        className="flex flex-col h-full rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700 cursor-pointer min-w-0"
         onClick={handleCardClick}
       >
         <div className="aspect-video w-full overflow-hidden rounded-t-xl bg-gradient-to-br from-brand-orange to-brand-yellow relative">
@@ -72,7 +72,7 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
             </p>
           )}
           {playlist.description && (
-            <p className="mt-1.5 line-clamp-2 text-sm text-gray-600 dark:text-gray-400 leading-snug">
+            <p className="mt-1.5 line-clamp-2 text-sm text-gray-600 dark:text-gray-400 leading-snug min-h-0">
               {playlist.description}
             </p>
           )}

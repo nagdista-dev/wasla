@@ -24,7 +24,7 @@ export function useMeta(opts?: {
   url?: string;
 }) {
   useEffect(() => {
-    const appName = localStorage.getItem('wasla_language') === 'ar' ? 'وصـلة' : 'Wasla';
+    const appName = localStorage.getItem('wasla_language') === 'ar' ? 'واصـلة' : 'Wasla';
     const title = opts?.title ? `${opts.title} — ${appName}` : appName;
     const description = opts?.description || DEFAULT_DESCRIPTION;
     const image = opts?.image || DEFAULT_IMAGE;
