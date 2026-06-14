@@ -158,6 +158,8 @@ const en = {
   'settings.appPreferences': 'App Preferences',
   'settings.appPreferencesDesc': 'Export or import your language, theme, and startup settings.',
   'settings.resetDefaults': 'Reset All to Defaults',
+  'settings.confirmResetTitle': 'Reset All Settings',
+  'settings.confirmResetDesc': 'This will reset language, theme, and startup preferences to their defaults. Your channels and playlists will not be affected.',
   'settings.settingsExported': 'Settings exported successfully',
   'settings.settingsImported': 'Settings imported. Reloading...',
   'settings.invalidSettingsFile': 'Invalid settings file',

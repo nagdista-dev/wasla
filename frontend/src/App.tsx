@@ -90,7 +90,8 @@ function Navigation({ channels }: { channels: Channel[] }) {
   const closeMenu = () => setMenuOpen(false);
 
   return (
- <nav className="fixed top-0 left-0 right-0 min-h-fit z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90">
+<>
+<nav className="fixed top-0 left-0 right-0 min-h-fit z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90">
   <div className="mx-auto max-w-7xl px-4">
     <div className="flex items-center justify-between h-16">
       <Link to="/">
@@ -128,9 +129,10 @@ function Navigation({ channels }: { channels: Channel[] }) {
       </div>
     </div>
   </div>
+</nav>
 
   {menuOpen && (
-    <div className="fixed inset-0 z-50 md:hidden">
+    <div className="fixed inset-0 z-[80] md:hidden">
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         onClick={closeMenu}
@@ -241,7 +243,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
       </div>
     </div>
   )}
-</nav>
+</>
   );
 }
 

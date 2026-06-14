@@ -158,6 +158,8 @@ const ar: Record<string, string> = {
   'settings.appPreferences': 'تفضيلات التطبيق',
   'settings.appPreferencesDesc': 'تصدير أو استيراد إعدادات اللغة والسمة وبدء التشغيل.',
   'settings.resetDefaults': 'إعادة تعيين الكل',
+  'settings.confirmResetTitle': 'إعادة تعيين جميع الإعدادات',
+  'settings.confirmResetDesc': 'سيؤدي هذا إلى إعادة تعيين اللغة والسمة وإعدادات بدء التشغيل إلى الإعدادات الافتراضية. لن تتأثر قنواتك وقوائم التشغيل.',
   'settings.settingsExported': 'تم تصدير الإعدادات بنجاح',
   'settings.settingsImported': 'تم استيراد الإعدادات. جارٍ إعادة التحميل...',
   'settings.invalidSettingsFile': 'ملف إعدادات غير صالح',

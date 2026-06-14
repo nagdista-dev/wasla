@@ -3,6 +3,7 @@ import { Settings, Download, Upload, Sun, Moon, RotateCcw } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/Toast';
+import ConfirmActionModal from '../components/ConfirmActionModal';
 import type { Channel, Playlist } from '../types';
 
 interface SettingsPageProps {
@@ -52,6 +53,8 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
   const { showToast } = useToast();
   const [resolving, setResolving] = useState(false);
 
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
   const [startPage, setStartPage] = useState<string>(() => {
     return localStorage.getItem('wasla_start_page') || 'home';
   });
@@ -80,6 +83,8 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
     setStartPage('home');
     window.location.reload();
   };
+
+  const handleResetClick = () => setShowResetConfirm(true);
 
   const exportSettings = () => {
     const settings: Record<string, string | null> = {};
@@ -390,7 +395,7 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
               {/* Reset */}
               <div className="border-t border-gray-100 pt-4 dark:border-gray-700">
                 <button
-                  onClick={resetDefaults}
+                  onClick={handleResetClick}
                   className="flex items-center gap-2 rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -402,6 +407,15 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
           </div>
         </div>
       </div>
+
+      <ConfirmActionModal
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={resetDefaults}
+        title={t('settings.confirmResetTitle')}
+        description={t('settings.confirmResetDesc')}
+        confirmLabel={t('settings.resetDefaults')}
+      />
     </div>
   );
 }
