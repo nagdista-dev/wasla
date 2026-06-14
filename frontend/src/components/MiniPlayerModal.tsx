@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -65,7 +65,7 @@ function loadYouTubeAPI(): Promise<void> {
 
 loadYouTubeAPI();
 
-export default function MiniPlayerModal() {
+const MiniPlayerModal = memo(function MiniPlayerModal() {
   const { t, isRTL } = useLanguage();
   const { currentVideo, close } = usePlayer();
   const { theme } = useTheme();
@@ -204,4 +204,6 @@ export default function MiniPlayerModal() {
       </div>
     </div>
   );
-}
+});
+
+export default MiniPlayerModal;

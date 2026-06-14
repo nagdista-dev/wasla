@@ -6,6 +6,7 @@ import EditPlaylistModal from '../components/EditPlaylistModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
+import { useDebounce } from '../hooks/useDebounce';
 import type { Playlist } from '../types';
 
 interface PlaylistsPageProps {
@@ -33,6 +34,7 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
   const { t } = useLanguage();
   useMeta({ title: t('playlists.title'), description: `${playlists.length} playlist${playlists.length !== 1 ? 's' : ''} saved.` });
   const [searchText, setSearchText] = useState(loadPref<string>('wasla_playlists_search', ''));
+  const debouncedSearch = useDebounce(searchText, 300);
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_playlists_category', ''));
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Playlist | null>(null);
@@ -43,13 +45,13 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
   const allCategories = Array.from(new Set(playlists.flatMap((p) => p.categories))).sort((a, b) => a.localeCompare(b));
 
   const filtered = useMemo(() => {
-    const q = searchText.toLowerCase().trim();
+    const q = debouncedSearch.toLowerCase().trim();
     return playlists.filter((pl) => {
       if (selectedCategory && !pl.categories.includes(selectedCategory)) return false;
       if (q && !pl.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [playlists, searchText, selectedCategory]);
+  }, [playlists, debouncedSearch, selectedCategory]);
 
   return (
     <div className="min-h-screen p-6 dark:bg-dark-navy">

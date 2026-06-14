@@ -1,6 +1,6 @@
+import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck } from 'lucide-react';
-import { useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import type { Channel, Playlist } from '../types';
 
@@ -9,7 +9,7 @@ interface SidebarProps {
   playlists?: Playlist[];
 }
 
-export default function Sidebar({ channels, playlists = [] }: SidebarProps) {
+const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps) {
   const { pathname } = useLocation();
   const { isRTL, t } = useLanguage();
   const navItems = [
@@ -100,4 +100,6 @@ export default function Sidebar({ channels, playlists = [] }: SidebarProps) {
       </div>
     </aside>
   );
-}
+});
+
+export default Sidebar;

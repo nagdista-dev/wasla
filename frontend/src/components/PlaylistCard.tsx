@@ -1,8 +1,9 @@
+import { memo, useState } from 'react';
 import { ExternalLink, ListVideo, Edit3, Trash2, Film } from 'lucide-react';
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import ConfirmActionModal from './ConfirmActionModal';
+import ImageWithFallback from './ImageWithFallback';
 import type { Playlist } from '../types';
 
 interface PlaylistCardProps {
@@ -11,10 +12,9 @@ interface PlaylistCardProps {
   onDelete: (playlist: Playlist) => void;
 }
 
-export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCardProps) {
+const PlaylistCard = memo(function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCardProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [imgError, setImgError] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleCardClick = () => {
@@ -38,23 +38,20 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
   return (
     <>
       <div
-        className="flex flex-col h-full rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700 cursor-pointer min-w-0"
+        className="flex flex-col h-full rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md active:scale-[0.98] dark:bg-dark-navy dark:ring-gray-700 cursor-pointer min-w-0"
         onClick={handleCardClick}
       >
         <div className="aspect-video w-full overflow-hidden rounded-t-xl bg-gradient-to-br from-brand-orange to-brand-yellow relative">
-          {playlist.thumbnail && !imgError ? (
-            <img
-              src={playlist.thumbnail}
-              alt={playlist.name}
-              className="h-full w-full object-cover"
-              onError={() => setImgError(true)}
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-white">
-              <ListVideo className="h-10 w-10" />
-            </div>
-          )}
+          <ImageWithFallback
+            src={playlist.thumbnail}
+            alt={playlist.name}
+            className="h-full w-full object-cover"
+            fallback={
+              <div className="flex h-full items-center justify-center text-white">
+                <ListVideo className="h-10 w-10" />
+              </div>
+            }
+          />
           {playlist.videoCount !== undefined && (
             <span className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
               <Film className="h-3 w-3" />
@@ -131,4 +128,6 @@ export default function PlaylistCard({ playlist, onEdit, onDelete }: PlaylistCar
       )}
     </>
   );
-}
+});
+
+export default PlaylistCard;

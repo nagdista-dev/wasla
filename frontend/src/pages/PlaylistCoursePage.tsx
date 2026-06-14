@@ -184,8 +184,50 @@ export default function PlaylistCoursePage() {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
         <div className="mx-auto max-w-4xl px-6 py-6">
-          <div className="flex items-center justify-center py-32">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-brand-coral" />
+          <div className="mb-6 h-4 w-20 rounded skeleton-shimmer" />
+          <div className="mb-8 space-y-3">
+            <div className="h-9 w-72 rounded skeleton-shimmer" />
+            <div className="h-4 w-48 rounded skeleton-shimmer" />
+            <div className="h-4 w-96 rounded skeleton-shimmer" />
+          </div>
+          <div className="mb-8 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
+            <div className="flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full skeleton-shimmer" />
+                <div className="space-y-1">
+                  <div className="h-7 w-12 rounded skeleton-shimmer" />
+                  <div className="h-4 w-20 rounded skeleton-shimmer" />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full skeleton-shimmer" />
+                <div className="space-y-1">
+                  <div className="h-7 w-12 rounded skeleton-shimmer" />
+                  <div className="h-4 w-20 rounded skeleton-shimmer" />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full skeleton-shimmer" />
+                <div className="space-y-1">
+                  <div className="h-7 w-12 rounded skeleton-shimmer" />
+                  <div className="h-4 w-20 rounded skeleton-shimmer" />
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 h-2 w-full rounded-full skeleton-shimmer" />
+          </div>
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-start gap-4 rounded-xl p-4 bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
+                <div className="h-6 w-6 rounded-full skeleton-shimmer flex-shrink-0 mt-1" />
+                <div className="aspect-video w-40 rounded-lg skeleton-shimmer flex-shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="h-3 w-16 rounded skeleton-shimmer" />
+                  <div className="h-4 w-3/4 rounded skeleton-shimmer" />
+                  <div className="h-3 w-1/3 rounded skeleton-shimmer" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

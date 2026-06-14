@@ -34,8 +34,6 @@ export default function WatchLaterPage() {
     return items;
   }, [items, filter]);
 
-  const refresh = () => setItems(loadWatchLater());
-
   const handleRemove = (item: WatchLaterItem) => {
     const updated = items.filter((i) => i.id !== item.id);
     saveWatchLater(updated);

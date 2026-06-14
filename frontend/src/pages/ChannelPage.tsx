@@ -4,6 +4,7 @@ import { AlertCircle, ArrowUpDown, Play } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import VideoCardSkeleton from '../components/VideoCardSkeleton';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelDetailsData } from '../types';
@@ -108,8 +109,21 @@ export default function ChannelPage() {
   return (
     <div className="min-h-screen dark:bg-dark-navy">
       {loading ? (
-        <div className="flex items-center justify-center py-32">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-brand-coral" />
+        <div className="mx-auto max-w-6xl px-6 pb-6 pt-6">
+          <div className="relative h-48 sm:h-64 w-full overflow-hidden rounded-xl skeleton-shimmer mb-8" />
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
+            <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full skeleton-shimmer flex-shrink-0 border-4 border-white dark:border-gray-300" />
+            <div className="flex-1 min-w-0 space-y-3 pb-1">
+              <div className="h-8 w-64 rounded skeleton-shimmer" />
+              <div className="h-4 w-32 rounded skeleton-shimmer" />
+              <div className="h-4 w-48 rounded skeleton-shimmer" />
+            </div>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <VideoCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       ) : error || !data ? (
         <div className="mx-auto max-w-4xl p-6">

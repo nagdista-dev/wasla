@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Clock, ExternalLink, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import VideoCardSkeleton from '../components/VideoCardSkeleton';
+import VideoListSkeleton from '../components/VideoListSkeleton';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
+import { useDebounce } from '../hooks/useDebounce';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -71,6 +74,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const debouncedSearch = useDebounce(searchText, 300);
   const [sortBy, setSortBy] = useState<'newest' | 'views' | 'channel' | 'category'>(loadPref<'newest' | 'views' | 'channel' | 'category'>('wasla_sort', 'newest'));
   const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>(loadPref<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('wasla_time', 'all'));
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_selected_category', ''));
@@ -167,47 +171,50 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
     void loadVideos();
   }, [channels, fetchLatestVideos]);
 
-  const displayItems = channels.length === 0 ? [] : items
-    .filter((item) => !item.loading && item.video)
-    .filter((item) => {
-      if (selectedCategory) {
-        if (item.channel.categories.length === 0) return false;
-        if (!item.channel.categories.includes(selectedCategory)) return false;
-      }
-      return true;
-    })
-    .filter((item) => {
-      if (!item.video || timeRange === 'all') return true;
-      const now = Date.now();
-      const published = new Date(item.video.publishedDate).getTime();
-      const diff = now - published;
-      switch (timeRange) {
-        case 'hour': return diff < 3_600_000;
-        case 'today': return diff < 86_400_000;
-        case 'week': return diff < 604_800_000;
-        case 'month': return diff < 2_592_000_000;
-        case 'year': return diff < 31_536_000_000;
-        default: return true;
-      }
-    })
-    .sort((a, b) => {
-      if (!a.video || !b.video) return 0;
-      if (sortBy === 'newest') {
-        return new Date(b.video.publishedDate).getTime() - new Date(a.video.publishedDate).getTime();
-      }
-      if (sortBy === 'views') {
-        return (b.video.views ?? 0) - (a.video.views ?? 0);
-      }
-      if (sortBy === 'channel') {
-        return a.channel.name.localeCompare(b.channel.name);
-      }
-      if (sortBy === 'category') {
-        const catA = a.channel.categories[0] || '';
-        const catB = b.channel.categories[0] || '';
-        return catA.localeCompare(catB);
-      }
-      return 0;
-    });
+  const displayItems = useMemo(() => {
+    if (channels.length === 0) return [];
+    return items
+      .filter((item) => !item.loading && item.video)
+      .filter((item) => {
+        if (selectedCategory) {
+          if (item.channel.categories.length === 0) return false;
+          if (!item.channel.categories.includes(selectedCategory)) return false;
+        }
+        return true;
+      })
+      .filter((item) => {
+        if (!item.video || timeRange === 'all') return true;
+        const now = Date.now();
+        const published = new Date(item.video.publishedDate).getTime();
+        const diff = now - published;
+        switch (timeRange) {
+          case 'hour': return diff < 3_600_000;
+          case 'today': return diff < 86_400_000;
+          case 'week': return diff < 604_800_000;
+          case 'month': return diff < 2_592_000_000;
+          case 'year': return diff < 31_536_000_000;
+          default: return true;
+        }
+      })
+      .sort((a, b) => {
+        if (!a.video || !b.video) return 0;
+        if (sortBy === 'newest') {
+          return new Date(b.video.publishedDate).getTime() - new Date(a.video.publishedDate).getTime();
+        }
+        if (sortBy === 'views') {
+          return (b.video.views ?? 0) - (a.video.views ?? 0);
+        }
+        if (sortBy === 'channel') {
+          return a.channel.name.localeCompare(b.channel.name);
+        }
+        if (sortBy === 'category') {
+          const catA = a.channel.categories[0] || '';
+          const catB = b.channel.categories[0] || '';
+          return catA.localeCompare(catB);
+        }
+        return 0;
+      });
+  }, [items, selectedCategory, timeRange, sortBy, channels.length]);
 
   return (
     <div className="min-h-screen dark:bg-dark-navy overflow-visible">
@@ -348,14 +355,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <div key={channel.id} className="min-w-0 h-full">
                     {loading ? (
-                      <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy animate-pulse">
-                        <div className="aspect-video bg-gray-200 dark:bg-gray-700" />
-                        <div className="p-4 space-y-3">
-                          <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                          <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
-                          <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
-                        </div>
-                      </article>
+                      <VideoCardSkeleton />
                     ) : error ? (
                       <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy p-6 text-center min-h-[280px] flex flex-col items-center justify-center">
                         <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
@@ -373,14 +373,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <div key={channel.id} className="min-w-0">
                     {loading ? (
-                      <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700 animate-pulse">
-                        <div className="flex-0 w-48 aspect-video rounded-lg bg-gray-200 dark:bg-gray-700" />
-                        <div className="flex-1 min-w-0 space-y-3 py-1">
-                          <div className="h-5 w-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                          <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
-                          <div className="h-3 w-1/3 bg-gray-200 dark:bg-gray-700 rounded" />
-                        </div>
-                      </article>
+                      <VideoListSkeleton />
                     ) : error ? (
                       <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700">
                         <div className="flex-1 flex flex-col justify-center text-center">
@@ -391,7 +384,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                       </article>
                     ) : video ? (
                       <div
-                        className="group relative flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700 cursor-pointer overflow-hidden"
+                        className="group relative flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md active:scale-[0.99] dark:bg-dark-navy dark:ring-gray-700 cursor-pointer overflow-hidden"
                         onClick={() => navigate(`/channel/${channel.id}`)}
                         role="button"
                         tabIndex={0}
@@ -527,8 +520,8 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     {items
                       .filter((item) => !item.loading && item.video)
                       .filter((item) => {
-                  if (!searchText) return true;
-                  const q = searchText.toLowerCase();
+                  if (!debouncedSearch) return true;
+                  const q = debouncedSearch.toLowerCase();
                   const name = item.channel.name.toLowerCase();
                   const title = item.video!.title.toLowerCase();
                   return name.includes(q) || title.includes(q);
@@ -552,8 +545,8 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     </div>
                   </button>
                 ))}
-              {searchText && items.filter((i) => !i.loading && i.video).filter((item) => {
-                const q = searchText.toLowerCase();
+              {debouncedSearch && items.filter((i) => !i.loading && i.video).filter((item) => {
+                const q = debouncedSearch.toLowerCase();
                 const name = item.channel.name.toLowerCase();
                 const title = item.video!.title.toLowerCase();
                 return name.includes(q) || title.includes(q);

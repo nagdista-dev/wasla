@@ -21,7 +21,7 @@ import {
   BookOpen,
   BookmarkCheck,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
 import AddChannelModal from "./components/AddChannelModal";
 import AddPlaylistModal from "./components/AddPlaylistModal";
@@ -65,7 +65,7 @@ function StartupRedirect() {
   return null;
 }
 
-function Navigation({ channels }: { channels: Channel[] }) {
+const Navigation = memo(function Navigation({ channels }: { channels: Channel[] }) {
   const { pathname } = useLocation();
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -246,9 +246,9 @@ function Navigation({ channels }: { channels: Channel[] }) {
       </div>
     </div>
   )}
-</>
+  </>
   );
-}
+});
 
 function App() {
   const { isRTL } = useLanguage();
@@ -257,69 +257,89 @@ function App() {
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
 
-  const updateChannels = (nextChannels: Channel[]) => {
+  const updateChannels = useCallback((nextChannels: Channel[]) => {
     setChannels(nextChannels);
     saveChannels(nextChannels);
-  };
+  }, []);
 
-  const updatePlaylists = (nextPlaylists: Playlist[]) => {
+  const updatePlaylists = useCallback((nextPlaylists: Playlist[]) => {
     setPlaylists(nextPlaylists);
     savePlaylists(nextPlaylists);
-  };
+  }, []);
 
-  const handleAddChannel = (entry: Channel) => {
-    const withoutDuplicate = channels.filter(
-      (channel) => channel.id !== entry.id,
-    );
-    updateChannels([...withoutDuplicate, entry]);
-  };
+  const handleAddChannel = useCallback((entry: Channel) => {
+    setChannels(prev => {
+      const withoutDuplicate = prev.filter(
+        (channel) => channel.id !== entry.id,
+      );
+      const next = [...withoutDuplicate, entry];
+      saveChannels(next);
+      return next;
+    });
+  }, []);
 
-  const handleDeleteChannel = (id: string) => {
-    const nextChannels = channels.filter((channel) => channel.id !== id);
-    updateChannels(nextChannels);
-  };
+  const handleDeleteChannel = useCallback((id: string) => {
+    setChannels(prev => {
+      const next = prev.filter((channel) => channel.id !== id);
+      saveChannels(next);
+      return next;
+    });
+  }, []);
 
-  const handleUpdateChannel = (
-    id: string,
-    name: string,
-    categories: string[],
-  ) => {
-    const nextChannels = channels.map((channel) =>
-      channel.id === id ? { ...channel, name, categories } : channel,
-    );
-    updateChannels(nextChannels);
-  };
+  const handleUpdateChannel = useCallback(
+    (id: string, name: string, categories: string[]) => {
+      setChannels(prev => {
+        const next = prev.map((channel) =>
+          channel.id === id ? { ...channel, name, categories } : channel,
+        );
+        saveChannels(next);
+        return next;
+      });
+    },
+    [],
+  );
 
-  const handleToggleFavorite = (id: string) => {
-    const nextChannels = channels.map((channel) =>
-      channel.id === id ? { ...channel, favorite: !channel.favorite } : channel,
-    );
-    updateChannels(nextChannels);
-  };
+  const handleToggleFavorite = useCallback((id: string) => {
+    setChannels(prev => {
+      const next = prev.map((channel) =>
+        channel.id === id ? { ...channel, favorite: !channel.favorite } : channel,
+      );
+      saveChannels(next);
+      return next;
+    });
+  }, []);
 
-  const handleAddPlaylist = (entry: { id: string; name: string; url?: string; thumbnail?: string; channelName?: string; description?: string; categories: string[] }) => {
-    const withoutDuplicate = playlists.filter(
-      (pl) => pl.id !== entry.id && pl.url !== entry.url,
-    );
-    updatePlaylists([...withoutDuplicate, { ...entry, timestamp: Date.now() }]);
-  };
+  const handleAddPlaylist = useCallback((entry: { id: string; name: string; url?: string; thumbnail?: string; channelName?: string; description?: string; categories: string[] }) => {
+    setPlaylists(prev => {
+      const withoutDuplicate = prev.filter(
+        (pl) => pl.id !== entry.id && pl.url !== entry.url,
+      );
+      const next = [...withoutDuplicate, { ...entry, timestamp: Date.now() }];
+      savePlaylists(next);
+      return next;
+    });
+  }, []);
 
-  const handleDeletePlaylist = (id: string) => {
-    const nextPlaylists = playlists.filter((pl) => pl.id !== id);
-    updatePlaylists(nextPlaylists);
-  };
+  const handleDeletePlaylist = useCallback((id: string) => {
+    setPlaylists(prev => {
+      const next = prev.filter((pl) => pl.id !== id);
+      savePlaylists(next);
+      return next;
+    });
+  }, []);
 
-  const handleUpdatePlaylist = (
-    id: string,
-    name: string,
-    description: string | undefined,
-    categories: string[],
-  ) => {
-    const nextPlaylists = playlists.map((pl) =>
-      pl.id === id ? { ...pl, name, description, categories } : pl,
-    );
-    updatePlaylists(nextPlaylists);
-  };
+  const handleUpdatePlaylist = useCallback(
+    (id: string, name: string, description: string | undefined, categories: string[]) => {
+      setPlaylists(prev => {
+        const next = prev.map((pl) =>
+          pl.id === id ? { ...pl, name, description, categories } : pl,
+        );
+        savePlaylists(next);
+        return next;
+      });
+    },
+    [],
+  );
 
   const allCategories = useMemo(
     () => Array.from(new Set([

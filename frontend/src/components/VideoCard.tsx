@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Clock, Edit3, ExternalLink, Eye, Play, BookmarkPlus, BookmarkCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -33,7 +34,7 @@ function formatDuration(duration?: string): string | undefined {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
+const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardProps) {
   const { t } = useLanguage();
   const { play } = usePlayer();
   const navigate = useNavigate();
@@ -85,7 +86,7 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
 
   return (
     <article
-      className={`group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer flex flex-col h-full ${
+      className={`group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-pointer flex flex-col h-full ${
         isLive
           ? 'border-2 border-red-500 dark:border-red-400'
           : 'border border-gray-200 dark:border-gray-700'
@@ -210,4 +211,6 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
       </div>
     </article>
   );
-}
+});
+
+export default VideoCard;

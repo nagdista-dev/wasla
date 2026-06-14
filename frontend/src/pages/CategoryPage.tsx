@@ -4,6 +4,7 @@ import { AlertCircle, Play, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import VideoCardSkeleton from '../components/VideoCardSkeleton';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
@@ -101,7 +102,7 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
     }
   }, [categoryChannels, fetchVideos]);
 
-  const displayItems = items
+  const displayItems = useMemo(() => items
     .filter((item) => !item.loading && item.video)
     .filter((item) => {
       if (!item.video || timeRange === 'all') return true;
@@ -132,7 +133,7 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
         return (a.video.views ?? 0) - (b.video.views ?? 0);
       }
       return 0;
-    });
+    }), [items, timeRange, sortBy]);
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
@@ -205,11 +206,7 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
             {displayItems.map(({ channel, video, loading, error }) => (
               <div key={channel.id} className="h-full">
                 {loading ? (
-                  <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700 space-y-3 p-5">
-                    <div className="aspect-video rounded-lg bg-gray-200 dark:bg-gray-700" />
-                    <div className="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-                    <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
-                  </div>
+                  <VideoCardSkeleton />
                 ) : error ? (
                   <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700 flex h-full min-h-[220px] flex-col justify-center p-5 text-center">
                     <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />

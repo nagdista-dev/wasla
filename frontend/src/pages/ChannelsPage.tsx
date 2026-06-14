@@ -5,6 +5,7 @@ import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
+import { useDebounce } from '../hooks/useDebounce';
 import type { Channel } from '../types';
 
 interface ChannelsPageProps {
@@ -38,6 +39,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
   const { t } = useLanguage();
   useMeta({ title: t('channels.title'), description: `${channels.length} channel${channels.length !== 1 ? 's' : ''} in your collection.` });
   const [searchText, setSearchText] = useState(loadPref<string>('wasla_channels_search', ''));
+  const debouncedSearch = useDebounce(searchText, 300);
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_channels_category', ''));
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
@@ -53,7 +55,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
   const filtered = useMemo(() => {
-    const q = searchText.toLowerCase().trim();
+    const q = debouncedSearch.toLowerCase().trim();
     return channels.filter((ch) => {
       if (selectedCategory && !ch.categories.includes(selectedCategory)) return false;
       if (q) {
@@ -63,7 +65,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
       }
       return true;
     });
-  }, [channels, searchText, selectedCategory]);
+  }, [channels, debouncedSearch, selectedCategory]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, Channel[]>();
