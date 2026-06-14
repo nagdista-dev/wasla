@@ -123,9 +123,9 @@ function Navigation({ channels }: { channels: Channel[] }) {
 
       <div
         className={`fixed top-0 ${
-          isRTL ? "left-0" : "right-0"
+          isRTL ? "right-0" : "left-0"
         } h-dvh w-64 bg-white shadow-2xl dark:bg-dark-navy flex flex-col ${
-          isRTL ? "animate-slide-in-rtl" : "animate-slide-in"
+          isRTL ? "animate-slide-in" : "animate-slide-in-rtl"
         }`}
       >
         {/* Header */}
