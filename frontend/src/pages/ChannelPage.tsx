@@ -137,7 +137,7 @@ export default function ChannelPage() {
           {/* Banner */}
           <div className="relative h-48 sm:h-64 w-full overflow-hidden" style={{ background: bannerGradient }}>
             {data.banner && (
-              <img src={data.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={data.banner} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
             )}
           </div>
 
@@ -149,7 +149,7 @@ export default function ChannelPage() {
                 style={{ backgroundColor: `rgb(${rgb})` }}
               >
                 {data.avatar ? (
-                  <img src={data.avatar} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={data.avatar} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <span>{data.channelName.charAt(0).toUpperCase()}</span>
                 )}

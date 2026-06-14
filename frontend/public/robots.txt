@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /channels
+Allow: /playlists
+Allow: /category/
+Allow: /how-to-use
+Allow: /watch-later
+Disallow: /settings
+
+Sitemap: https://wasla-app.vercel.app/sitemap.xml

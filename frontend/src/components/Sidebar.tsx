@@ -32,7 +32,7 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
   const isAllActive = pathname === '/' || pathname === '/channels' || pathname === '/playlists';
 
   return (
-    <aside className={`fixed top-16 inset-y-0 hidden w-64 border-r border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90 md:flex md:flex-col ${
+    <aside className={`fixed top-16 inset-y-0 hidden w-64 border-r border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90 md:flex md:flex-col will-change-transform ${
       isRTL ? 'right-0 border-l border-r-0' : 'left-0'
     }`}>
       <div className="flex flex-col flex-1 min-h-0 pt-4">

@@ -21,19 +21,10 @@ import {
   BookOpen,
   BookmarkCheck,
 } from "lucide-react";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
 import AddChannelModal from "./components/AddChannelModal";
 import AddPlaylistModal from "./components/AddPlaylistModal";
-import ChannelsPage from "./pages/ChannelsPage";
-import HomePage from "./pages/HomePage";
-import ChannelPage from "./pages/ChannelPage";
-import CategoryPage from "./pages/CategoryPage";
-import SettingsPage from "./pages/SettingsPage";
-import PlaylistsPage from "./pages/PlaylistsPage";
-import PlaylistCoursePage from "./pages/PlaylistCoursePage";
-import HowToUsePage from "./pages/HowToUsePage";
-import WatchLaterPage from "./pages/WatchLaterPage";
 import MobileAppBanner from "./components/MobileAppBanner";
 import MiniPlayerModal from "./components/MiniPlayerModal";
 import type { Channel, Playlist } from "./types";
@@ -42,6 +33,16 @@ import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
 import Sidebar from "./components/Sidebar";
 import logo from "./assets/logo.png";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ChannelPage = lazy(() => import("./pages/ChannelPage"));
+const PlaylistCoursePage = lazy(() => import("./pages/PlaylistCoursePage"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const ChannelsPage = lazy(() => import("./pages/ChannelsPage"));
+const PlaylistsPage = lazy(() => import("./pages/PlaylistsPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const WatchLaterPage = lazy(() => import("./pages/WatchLaterPage"));
+const HowToUsePage = lazy(() => import("./pages/HowToUsePage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -144,7 +145,7 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
       <div
         className={`fixed top-0 ${
           isRTL ? "right-0" : "left-0"
-        } h-dvh w-64 bg-white shadow-2xl dark:bg-dark-navy flex flex-col ${
+        } h-dvh w-64 bg-white shadow-2xl dark:bg-dark-navy flex flex-col will-change-transform ${
           isRTL ? "animate-slide-in" : "animate-slide-in-rtl"
         }`}
       >
@@ -361,55 +362,57 @@ function App() {
         isRTL ? 'md:mr-64' : 'md:ml-64'
       }`}>
         <main className="flex-1 overflow-visible">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <HomePage channels={channels} onUpdate={handleUpdateChannel} />
-              }
-            />
-            <Route path="/channel/:channelId" element={<ChannelPage />} />
-            <Route path="/playlist/:playlistId" element={<PlaylistCoursePage />} />
-            <Route
-              path="/category/:categoryName"
-              element={<CategoryPage channels={channels} />}
-            />
-            <Route
-              path="/channels"
-              element={
-                <ChannelsPage
-                  channels={channels}
-                  onDelete={handleDeleteChannel}
-                  onUpdate={handleUpdateChannel}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              }
-            />
-            <Route
-              path="/playlists"
-              element={
-                <PlaylistsPage
-                  playlists={playlists}
-                  onDelete={handleDeletePlaylist}
-                  onUpdate={handleUpdatePlaylist}
-                />
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <SettingsPage channels={channels} playlists={playlists} onUpdate={updateChannels} onUpdatePlaylists={updatePlaylists} />
-              }
-            />
-            <Route
-              path="/watch-later"
-              element={<WatchLaterPage />}
-            />
-            <Route
-              path="/how-to-use"
-              element={<HowToUsePage />}
-            />
-          </Routes>
+          <Suspense fallback={<div className="min-h-screen dark:bg-dark-navy" />}>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <HomePage channels={channels} onUpdate={handleUpdateChannel} />
+                }
+              />
+              <Route path="/channel/:channelId" element={<ChannelPage />} />
+              <Route path="/playlist/:playlistId" element={<PlaylistCoursePage />} />
+              <Route
+                path="/category/:categoryName"
+                element={<CategoryPage channels={channels} />}
+              />
+              <Route
+                path="/channels"
+                element={
+                  <ChannelsPage
+                    channels={channels}
+                    onDelete={handleDeleteChannel}
+                    onUpdate={handleUpdateChannel}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                }
+              />
+              <Route
+                path="/playlists"
+                element={
+                  <PlaylistsPage
+                    playlists={playlists}
+                    onDelete={handleDeletePlaylist}
+                    onUpdate={handleUpdatePlaylist}
+                  />
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <SettingsPage channels={channels} playlists={playlists} onUpdate={updateChannels} onUpdatePlaylists={updatePlaylists} />
+                }
+              />
+              <Route
+                path="/watch-later"
+                element={<WatchLaterPage />}
+              />
+              <Route
+                path="/how-to-use"
+                element={<HowToUsePage />}
+              />
+            </Routes>
+          </Suspense>
         </main>
         <FloatingButton
           onAddChannel={() => setShowChannelModal(true)}

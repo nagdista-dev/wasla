@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 interface ImageWithFallbackProps {
   src?: string;
@@ -8,13 +8,13 @@ interface ImageWithFallbackProps {
   aspectRatio?: string;
 }
 
-export default function ImageWithFallback({ src, alt, className = '', fallback, aspectRatio }: ImageWithFallbackProps) {
+const ImageWithFallback = memo(function ImageWithFallback({ src, alt, className = '', fallback, aspectRatio = '16/9' }: ImageWithFallbackProps) {
   const [error, setError] = useState(false);
 
   if (!src || error) {
     if (fallback) return <>{fallback}</>;
     return (
-      <div className={`${className} bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center`}>
+      <div className={`${className} bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center`} style={{ aspectRatio }}>
         <span className="text-white/70 text-sm font-medium">{alt.charAt(0).toUpperCase()}</span>
       </div>
     );
@@ -27,7 +27,9 @@ export default function ImageWithFallback({ src, alt, className = '', fallback, 
       className={className}
       loading="lazy"
       onError={() => setError(true)}
-      style={aspectRatio ? { aspectRatio } : undefined}
+      style={{ aspectRatio }}
     />
   );
-}
+});
+
+export default ImageWithFallback;

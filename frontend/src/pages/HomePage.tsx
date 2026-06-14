@@ -472,13 +472,13 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                               {channel.categories.slice(0, 3).map((cat) => (
                                 <span
                                   key={cat}
-                                  className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 truncate max-w-[100px]"
-                                >
-                                  {cat}
-                                </span>
+                                className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[100px]"
+                              >
+                                {cat}
+                              </span>
                               ))}
                               {channel.categories.length > 3 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/10">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-white/20">
                                   +{channel.categories.length - 3}
                                 </span>
                               )}

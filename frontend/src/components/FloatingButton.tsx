@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Plus, ListVideo, Users } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -7,7 +7,7 @@ interface FloatingButtonProps {
   onAddPlaylist: () => void;
 }
 
-export default function FloatingButton({ onAddChannel, onAddPlaylist }: FloatingButtonProps) {
+const FloatingButton = memo(function FloatingButton({ onAddChannel, onAddPlaylist }: FloatingButtonProps) {
   const { isRTL, t } = useLanguage();
   const [open, setOpen] = useState(false);
 
@@ -116,4 +116,6 @@ export default function FloatingButton({ onAddChannel, onAddPlaylist }: Floating
       </div>
     </>
   );
-}
+});
+
+export default FloatingButton;

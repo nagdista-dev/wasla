@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, type ReactNode } from 'react';
+import { memo, useState, useEffect, createContext, useContext, type ReactNode } from 'react';
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -59,7 +59,7 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
   );
 }
 
-function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) => void }) {
+const ToastItem = memo(function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) => void }) {
   const { t, isRTL } = useLanguage();
   useEffect(() => {
     const timer = setTimeout(() => onRemove(toast.id), 5000);
@@ -98,4 +98,4 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) =
       </button>
     </div>
   );
-}
+});
