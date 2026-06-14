@@ -16,7 +16,7 @@ import {
   Moon,
   Tag,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
 import AddChannelModal from "./components/AddChannelModal";
 import ChannelsPage from "./pages/ChannelsPage";
@@ -26,11 +26,20 @@ import CategoryPage from "./pages/CategoryPage";
 import SettingsPage from "./pages/SettingsPage";
 import PlaylistsPage from "./pages/PlaylistsPage";
 import MobileAppBanner from "./components/MobileAppBanner";
+import MiniPlayerModal from "./components/MiniPlayerModal";
 import type { Channel } from "./types";
 import { loadChannels, saveChannels } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
 import Sidebar from "./components/Sidebar";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 function Navigation({ channels }: { channels: Channel[] }) {
   const { pathname } = useLocation();
@@ -54,40 +63,37 @@ function Navigation({ channels }: { channels: Channel[] }) {
   const closeMenu = () => setMenuOpen(false);
 
   return (
- <nav className="fixed top-0 left-0 right-0 min-h-fit z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90 md:hidden">
+ <nav className="fixed top-0 left-0 right-0 min-h-fit z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90">
   <div className="mx-auto max-w-7xl px-4">
-    <div className="flex h-16 justify-between">
-      <div className="flex items-center gap-8">
-        <Link
-          to="/"
-          className="bg-gradient-brand bg-clip-text text-xl font-bold text-transparent"
-        >
+    <div className="grid grid-cols-3 h-16 items-center">
+      <div className="flex items-center justify-start">
+        <Link to="/">
           <img src="./logo.png" alt="Wasla" className="h-18 w-18 object-contain" />
         </Link>
-
-        <div className="hidden items-center gap-1 md:flex">
-          {navItems.map((item) => {
-            const isActive = pathname === item.path;
-
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-brand-coral/10 text-brand-coral"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-brand-coral dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-brand-coral"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="hidden items-center justify-center gap-1 md:flex">
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-brand-coral/10 text-brand-coral"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-brand-coral dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-brand-coral"
+              }`}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-end gap-4">
         <button
           onClick={toggleTheme}
           className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
@@ -263,11 +269,12 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       {/* Mobile navigation */}
       <Navigation channels={channels} />
       {/* Desktop sidebar */}
       <Sidebar channels={channels} />
-      <div className="flex flex-col flex-1 min-h-screen md:ml-64 pt-4 md:pt-0">
+      <div className="flex flex-col flex-1 min-h-screen md:ml-64 pt-16">
         <main className="flex-1">
           <Routes>
             <Route
@@ -312,6 +319,7 @@ function App() {
           />
         )}
         <MobileAppBanner />
+        <MiniPlayerModal />
       </div>
     </BrowserRouter>
   );

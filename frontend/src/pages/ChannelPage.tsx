@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Clock, Eye, AlertCircle, ArrowUpDown, Play } from 'lucide-react';
+import { AlertCircle, ArrowUpDown, Play } from 'lucide-react';
 import { api } from '../api';
-import type { ChannelDetailsData } from '../types';
+import CustomFilterDropdown from '../components/CustomFilterDropdown';
+import VideoCard from '../components/VideoCard';
+import type { Channel, ChannelDetailsData } from '../types';
 
 function hashColor(str: string): string {
   let hash = 0;
@@ -17,9 +19,9 @@ function hashColor(str: string): string {
 function hexFromHsl(hsl: string): string {
   const m = hsl.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
   if (!m) return '#E2436A';
-  let h = parseInt(m[1]) / 360;
-  let s = parseInt(m[2]) / 100;
-  let l = parseInt(m[3]) / 100;
+  const h = parseInt(m[1]) / 360;
+  const s = parseInt(m[2]) / 100;
+  const l = parseInt(m[3]) / 100;
   let r: number, g: number, b: number;
   if (s === 0) {
     r = g = b = l;
@@ -43,24 +45,6 @@ function hexFromHsl(hsl: string): string {
 
 function rgba(color: string, alpha: number): string {
   return `rgba(${color}, ${alpha})`;
-}
-
-function formatViews(views?: number): string | undefined {
-  if (views === undefined) return undefined;
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`;
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}K`;
-  return views.toString();
-}
-
-function formatDuration(duration?: string): string | undefined {
-  if (!duration) return undefined;
-  const total = parseInt(duration, 10);
-  if (isNaN(total)) return undefined;
-  const hrs = Math.floor(total / 3600);
-  const mins = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 type SortMode = 'newest' | 'oldest' | 'most_viewed' | 'least_viewed';
@@ -98,7 +82,7 @@ export default function ChannelPage() {
 
   const sortedVideos = useMemo(() => {
     if (!data) return [];
-    const videos = [...data.videos];
+    const videos = [...data.videos].slice(0, 15);
     switch (sortBy) {
       case 'newest':
         return videos.sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime());
@@ -137,13 +121,13 @@ export default function ChannelPage() {
           <div className="mx-auto max-w-6xl px-6 pb-6">
             <div className="-mt-12 sm:-mt-16 flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
               <div
-                className="relative flex h-24 w-24 sm:h-32 sm:w-32 flex-0 items-center justify-center rounded-full border-4 border-white text-2xl sm:text-4xl font-bold text-white shadow-lg dark:border-dark-navy"
+                className="relative flex h-24 w-24 sm:h-32 sm:w-32 flex-shrink-0 items-center justify-center rounded-full border-4 border-white text-2xl sm:text-4xl font-bold text-white shadow-lg dark:border-gray-300 overflow-hidden"
                 style={{ backgroundColor: `rgb(${rgb})` }}
               >
                 {data.avatar ? (
-                  <img src={data.avatar} alt="" className="relative z-10 h-full w-full rounded-full object-cover" />
+                  <img src={data.avatar} alt="" className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
-                  data.channelName.charAt(0).toUpperCase()
+                  <span>{data.channelName.charAt(0).toUpperCase()}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0 pt-2 sm:pb-1">
@@ -167,56 +151,34 @@ export default function ChannelPage() {
               </h2>
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-gray-400" />
-                <select
+                <CustomFilterDropdown
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortMode)}
-                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
-                >
-                  <option value="newest">Newest</option>
-                  <option value="oldest">Oldest</option>
-                  <option value="most_viewed">Most viewed</option>
-                  <option value="least_viewed">Least viewed</option>
-                </select>
+                  onChange={(v) => setSortBy(v as SortMode)}
+                  options={[
+                    { value: 'newest', label: 'Newest' },
+                    { value: 'oldest', label: 'Oldest' },
+                    { value: 'most_viewed', label: 'Most viewed' },
+                    { value: 'least_viewed', label: 'Least viewed' },
+                  ]}
+                  className="min-w-[130px]"
+                  placeholder="Sort"
+                />
               </div>
             </div>
 
             {/* Video grid */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {sortedVideos.map((video) => (
-                <article key={video.link} className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700">
-                  <div className="w-full text-left relative">
-                    {video.thumbnail ? (
-                      <img src={video.thumbnail} alt="" className="aspect-video w-full object-cover" />
-                    ) : (
-                      <div className="aspect-video" style={{ background: bannerGradient }} />
-                    )}
-                    {formatDuration(video.duration) && (
-                      <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white">
-                        {formatDuration(video.duration)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-white">
-                      {video.title}
-                    </h3>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                      {formatViews(video.views) && (
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3.5 w-3.5" />
-                          {formatViews(video.views)}
-                        </span>
-                      )}
-                      {video.relativeTime && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {video.relativeTime}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+              {sortedVideos.map((video) => {
+                const channelForVideo: Channel = {
+                  id: channelId!,
+                  name: data.channelName,
+                  handle: data.handle,
+                  categories: [],
+                };
+                return (
+                  <VideoCard key={video.link} channel={channelForVideo} video={video} />
+                );
+              })}
             </div>
           </div>
         </>

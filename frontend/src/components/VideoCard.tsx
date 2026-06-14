@@ -1,5 +1,7 @@
-import { Clock, Edit3, Eye, Play } from 'lucide-react';
+import { Clock, Edit3, ExternalLink, Eye, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Channel, LatestVideo } from '../types';
+import { usePlayer } from '../context/PlayerContext';
 
 interface VideoCardProps {
   channel: Channel;
@@ -26,16 +28,33 @@ function formatDuration(duration?: string): string | undefined {
 }
 
 export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
+  const { play } = usePlayer();
+  const navigate = useNavigate();
   const channelName = video.channelName || channel.name;
   const initial = channelName.charAt(0).toUpperCase();
 
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    play(video);
+  };
+
+  const handleYoutube = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(video.link, '_blank');
+  };
+
+  const handleChannelClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/channel/${channel.id}`);
+  };
+
   return (
     <article
-      className="group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-700"
-      onClick={() => window.open(video.link, '_blank')}
+      className="group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-700 flex flex-col h-full"
+      onClick={handlePlay}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open(video.link, '_blank'); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') play(video); }}
     >
       <div className="relative aspect-video overflow-hidden">
         {video.thumbnail ? (
@@ -56,23 +75,35 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
         )}
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <button
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110 shadow-lg"
-          onClick={(e) => { e.stopPropagation(); onEdit?.(channel); }}
-          aria-label="Watch on YouTube"
-        >
-          <Play className="h-5 w-5 text-brand-coral" style={{ marginLeft: '1px' }} />
-        </button>
+        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <button
+            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
+            onClick={handlePlay}
+            aria-label="Play video"
+          >
+            <Play className="h-5 w-5 text-brand-coral" style={{ marginLeft: '1px' }} />
+          </button>
+          <button
+            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
+            onClick={handleYoutube}
+            aria-label="Watch on YouTube"
+          >
+            <ExternalLink className="h-5 w-5 text-red-600" />
+          </button>
+        </div>
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="p-4 flex flex-col flex-1 justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className=" flex justify-center items-center h-9 w-9 rounded-full bg-brand-pink text-base font-bold text-white shadow-sm leading-none " style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
+          <span className="flex justify-center items-center h-9 w-9 rounded-full bg-brand-pink text-base font-bold text-white shadow-sm leading-none" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
             {initial}
           </span>
-          <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+          <button
+            onClick={handleChannelClick}
+            className="text-sm font-semibold text-brand-coral dark:text-brand-coral hover:underline truncate text-left"
+          >
             {channelName}
-          </span>
+          </button>
           {onEdit && (
             <button
               type="button"
@@ -89,33 +120,36 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
           {video.title}
         </h3>
 
-        {(video.relativeTime || formatViews(video.views)) && (
-          <div className="flex items-center gap-2 text-xs">
-            {video.relativeTime && (
-              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                <Clock className="h-3.5 w-3.5 flex-0 text-current" />
-                <span>{video.relativeTime}</span>
-              </span>
-            )}
-            {formatViews(video.views) && (
-              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                <Eye className="h-3.5 w-3.5 flex-0 text-current" />
-                {formatViews(video.views)}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-xs">
+          {video.relativeTime && (
+            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+              <Clock className="h-3.5 w-3.5 flex-0 text-current" />
+              <span>{video.relativeTime}</span>
+            </span>
+          )}
+          {formatViews(video.views) && (
+            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+              <Eye className="h-3.5 w-3.5 flex-0 text-current" />
+              {formatViews(video.views)}
+            </span>
+          )}
+        </div>
 
         {channel.categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
-            {channel.categories.map((cat) => (
+            {channel.categories.slice(0, 4).map((cat) => (
               <span
                 key={cat}
-                className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10"
+                className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 truncate max-w-[120px]"
               >
                 {cat}
               </span>
             ))}
+            {channel.categories.length > 4 && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/10">
+                +{channel.categories.length - 4}
+              </span>
+            )}
           </div>
         )}
       </div>

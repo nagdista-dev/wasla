@@ -8,7 +8,13 @@ export function loadChannels(): Channel[] {
 
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    const seen = new Set<string>();
+    return parsed.filter((ch) => {
+      if (!ch || !ch.id || seen.has(ch.id)) return false;
+      seen.add(ch.id);
+      return true;
+    });
   } catch {
     return [];
   }

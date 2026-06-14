@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Search, Heart, Edit3, Trash2, X } from 'lucide-react';
+import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import type { Channel } from '../types';
@@ -45,7 +46,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
   useMemo(() => savePref('wasla_channels_category', selectedCategory), [selectedCategory]);
   useMemo(() => savePref('wasla_channels_search', searchText), [searchText]);
 
-  const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories)));
+  const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
   const filtered = useMemo(() => {
     const q = searchText.toLowerCase().trim();
@@ -137,16 +138,16 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
             )}
           </div>
           {allCategories.length > 0 && (
-            <select
+            <CustomFilterDropdown
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-300"
-            >
-              <option value="">All Categories</option>
-              {allCategories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+              onChange={setSelectedCategory}
+              options={[
+                { value: '', label: 'All Categories' },
+                ...allCategories.map((cat) => ({ value: cat, label: cat })),
+              ]}
+              className="min-w-[160px]"
+              placeholder="Category"
+            />
           )}
         </div>
 

@@ -1,8 +1,8 @@
-import { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
+import { useRef, useState, useEffect, useMemo, useLayoutEffect, useCallback } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-interface FilterOption {
+export interface FilterOption {
   value: string;
   label: string;
 }
@@ -24,29 +24,37 @@ export default function CustomFilterDropdown({ value, onChange, options, classNa
   const selectedOption = useMemo(() => options.find(opt => opt.value === value), [options, value]);
   const displayValue = selectedOption?.label || placeholder || 'Select...';
 
-  useLayoutEffect(() => {
-    if (!isOpen || !buttonRef.current) return;
+  const updatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
     setMenuStyle({
-      top: rect.bottom + window.scrollY,
-      left: rect.left + window.scrollX,
+      top: rect.bottom,
+      left: rect.left,
       width: rect.width,
     });
-  }, [isOpen]);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (isOpen) updatePosition();
+  }, [isOpen, updatePosition]);
 
   useEffect(() => {
+    if (!isOpen) return;
     function handleClickOutside(event: MouseEvent) {
       if (buttonRef.current && !buttonRef.current.contains(event.target as Node) &&
           menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [isOpen, updatePosition]);
 
   const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();

@@ -5,14 +5,17 @@ import App from './App.tsx'
 import { LanguageProvider } from './context/LanguageContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './components/Toast'
+import { PlayerProvider } from './context/PlayerContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
       <ThemeProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
+        <PlayerProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </PlayerProvider>
       </ThemeProvider>
     </LanguageProvider>
   </StrictMode>,

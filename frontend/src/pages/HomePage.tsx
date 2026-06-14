@@ -4,6 +4,7 @@ import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import { usePlayer } from '../context/PlayerContext';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -57,6 +58,7 @@ function savePref(key: string, value: unknown) {
 }
 
 export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
+  const { play } = usePlayer();
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
@@ -81,7 +83,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
     return () => observer.disconnect();
   }, []);
 
-  const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories)));
+  const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
   useEffect(() => { savePref('wasla_viewMode', viewMode); }, [viewMode]);
   useEffect(() => { savePref('wasla_selected_category', selectedCategory); }, [selectedCategory]);
@@ -202,7 +204,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
-      <div className="sticky top-16 md:top-0 p-1 z-10 mb-6 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 ">
+      <div className="sticky top-16 p-1 z-10 mb-6 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 ">
         <div className="flex items-center gap-2 px-4 md:px-6 py-3">
           <div className="flex items-center gap-1.5 flex-0">
             <button onClick={() => setShowSearch(true)}
@@ -336,7 +338,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             {viewMode === 'grid' ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-full">
                 {displayItems.map(({ channel, video, loading, error }) => (
-                  <div key={channel.id} className="min-w-0">
+                  <div key={channel.id} className="min-w-0 h-full">
                     {loading ? (
                       <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy animate-pulse">
                         <div className="aspect-video bg-gray-200 dark:bg-gray-700" />
@@ -428,7 +430,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                 .map(({ channel, video }) => (
                   <button
                     key={channel.id}
-                    onClick={() => { setShowSearch(false); setSearchText(''); }}
+                    onClick={() => { play(video!); setShowSearch(false); setSearchText(''); }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
                   >
                     {video!.thumbnail && (
