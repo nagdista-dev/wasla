@@ -1,9 +1,11 @@
-import { Clock, Edit3, ExternalLink, Eye, Play } from 'lucide-react';
+import { Clock, Edit3, ExternalLink, Eye, Play, BookmarkPlus, BookmarkCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import type { Channel, LatestVideo } from '../types';
 import { usePlayer } from '../context/PlayerContext';
+import { loadWatchLater, saveWatchLater } from '../storage';
+import { useToast } from './Toast';
 
 interface VideoCardProps {
   channel: Channel;
@@ -35,12 +37,38 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
   const { t } = useLanguage();
   const { play } = usePlayer();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const channelName = video.channelName || channel.name;
   const initial = channelName.charAt(0).toUpperCase();
+
+  const watchLaterItems = loadWatchLater();
+  const isInWatchLater = watchLaterItems.some((item) => item.video.link === video.link);
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     play(video);
+  };
+
+  const handleWatchLater = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const items = loadWatchLater();
+    const existing = items.find((item) => item.video.link === video.link);
+    if (existing) {
+      const filtered = items.filter((item) => item.video.link !== video.link);
+      saveWatchLater(filtered);
+      showToast(t('watchLater.removed'), 'info');
+    } else {
+      items.push({
+        id: `${channel.id}_${Date.now()}`,
+        video,
+        channelName,
+        channelId: channel.id,
+        savedAt: Date.now(),
+        watched: false,
+      });
+      saveWatchLater(items);
+      showToast(t('watchLater.saved'), 'success');
+    }
   };
 
   const handleYoutube = (e: React.MouseEvent) => {
@@ -98,6 +126,21 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
             aria-label={t('videoCard.playVideo')}
           >
             <Play className="h-5 w-5 text-brand-coral" style={{ marginLeft: '1px' }} />
+          </button>
+          <button
+            className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:scale-110 shadow-lg transition-all ${
+              isInWatchLater
+                ? 'bg-brand-coral text-white'
+                : 'bg-white/90 text-gray-700 hover:bg-white'
+            }`}
+            onClick={handleWatchLater}
+            aria-label={isInWatchLater ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
+          >
+            {isInWatchLater ? (
+              <BookmarkCheck className="h-5 w-5" />
+            ) : (
+              <BookmarkPlus className="h-5 w-5" />
+            )}
           </button>
           <button
             className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"

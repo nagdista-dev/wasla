@@ -19,6 +19,7 @@ import {
   LayoutDashboard,
   Languages,
   BookOpen,
+  BookmarkCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
@@ -32,6 +33,7 @@ import SettingsPage from "./pages/SettingsPage";
 import PlaylistsPage from "./pages/PlaylistsPage";
 import PlaylistCoursePage from "./pages/PlaylistCoursePage";
 import HowToUsePage from "./pages/HowToUsePage";
+import WatchLaterPage from "./pages/WatchLaterPage";
 import MobileAppBanner from "./components/MobileAppBanner";
 import MiniPlayerModal from "./components/MiniPlayerModal";
 import type { Channel, Playlist } from "./types";
@@ -76,6 +78,7 @@ function Navigation({ channels }: { channels: Channel[] }) {
     { path: "/", label: t('nav.home'), icon: Home },
     { path: "/channels", label: t('nav.channels'), icon: Users },
     { path: "/playlists", label: t('nav.playlists'), icon: Heart },
+    { path: "/watch-later", label: t('watchLater.title'), icon: BookmarkCheck },
     { path: "/how-to-use", label: t('nav.howToUse'), icon: BookOpen },
     { path: "/settings", label: t('nav.settings'), icon: Settings },
   ];
@@ -377,6 +380,10 @@ function App() {
               element={
                 <SettingsPage channels={channels} playlists={playlists} onUpdate={updateChannels} onUpdatePlaylists={updatePlaylists} />
               }
+            />
+            <Route
+              path="/watch-later"
+              element={<WatchLaterPage />}
             />
             <Route
               path="/how-to-use"

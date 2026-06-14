@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen } from 'lucide-react';
+import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck } from 'lucide-react';
 import { useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import type { Channel, Playlist } from '../types';
@@ -16,6 +16,7 @@ export default function Sidebar({ channels, playlists = [] }: SidebarProps) {
     { path: '/', label: t('nav.home'), icon: Home },
     { path: '/channels', label: t('nav.channels'), icon: Users },
     { path: '/playlists', label: t('nav.playlists'), icon: Heart },
+    { path: '/watch-later', label: t('watchLater.title'), icon: BookmarkCheck },
     { path: '/how-to-use', label: t('nav.howToUse'), icon: BookOpen },
     { path: '/settings', label: t('nav.settings'), icon: Settings },
   ];

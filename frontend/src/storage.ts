@@ -1,7 +1,8 @@
-import type { Channel, Playlist } from './types';
+import type { Channel, Playlist, WatchLaterItem } from './types';
 
 export const CHANNELS_STORAGE_KEY = 'wasla_channels';
 export const PLAYLISTS_STORAGE_KEY = 'wasla_playlists';
+export const WATCH_LATER_KEY = 'wasla_watch_later';
 
 export function loadChannels(): Channel[] {
   const stored = localStorage.getItem(CHANNELS_STORAGE_KEY);
@@ -48,4 +49,20 @@ export function loadPlaylists(): Playlist[] {
 
 export function savePlaylists(playlists: Playlist[]): void {
   localStorage.setItem(PLAYLISTS_STORAGE_KEY, JSON.stringify(playlists));
+}
+
+export function loadWatchLater(): WatchLaterItem[] {
+  try {
+    const stored = localStorage.getItem(WATCH_LATER_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item) => item && item.id && item.video);
+  } catch {
+    return [];
+  }
+}
+
+export function saveWatchLater(items: WatchLaterItem[]): void {
+  localStorage.setItem(WATCH_LATER_KEY, JSON.stringify(items));
 }

@@ -113,6 +113,14 @@ const ar: Record<string, string> = {
   'course.markIncomplete': 'تحديد كغير مكتمل',
   'course.failedToLoad': 'فشل في تحميل قائمة التشغيل',
   'course.videosCount': '{count} فيديو',
+  'course.completionTitle': 'اكتملت الدورة',
+  'course.completionDesc': 'لقد أكملت مسار التعلم هذا',
+  'course.completionStartDate': 'تاريخ البدء',
+  'course.completionEndDate': 'تاريخ الإكمال',
+  'course.completionTotalTime': 'الوقت الإجمالي',
+  'course.replayCourse': 'إعادة الدورة',
+  'course.nextPlaylist': 'قائمة التشغيل التالية المقترحة',
+  'course.backToHome': 'العودة إلى الرئيسية',
 
   // Category Page
   'category.channels': '{count} قنوات',
@@ -255,11 +263,26 @@ const ar: Record<string, string> = {
   'floatingButton.channelDesc': 'أضف قناة يوتيوب إلى خلاصتك',
   'floatingButton.playlistDesc': 'أضف قائمة تشغيل يوتيوب لتتبع التقدم',
 
+  // Watch Later
+  'watchLater.title': 'مشاهدة لاحقاً',
+  'watchLater.empty': 'لا توجد فيديوهات محفوظة',
+  'watchLater.emptyHint': 'استخدم أيقونة الإشارة المرجعية على أي فيديو لحفظه هنا.',
+  'watchLater.remove': 'إزالة',
+  'watchLater.markWatched': 'تحديد كمشاهَد',
+  'watchLater.markUnwatched': 'تحديد كغير مشاهد',
+  'watchLater.saved': 'تم الحفظ للمشاهدة لاحقاً',
+  'watchLater.removed': 'تمت الإزالة من المشاهدة لاحقاً',
+  'watchLater.savedAt': 'تم الحفظ {time}',
+  'watchLater.watched': 'تمت المشاهدة',
+  'watchLater.unwatched': 'غير مشاهد',
+
   // Video Card
   'videoCard.playVideo': 'تشغيل الفيديو',
   'videoCard.watchOnYoutube': 'مشاهدة على يوتيوب',
   'videoCard.live': 'مباشر',
   'videoCard.editChannel': 'تعديل القناة',
+  'videoCard.watchLater': 'مشاهدة لاحقاً',
+  'videoCard.removeWatchLater': 'إزالة من المشاهدة لاحقاً',
 
   // Playlist Card
   'playlistCard.youtube': 'يوتيوب',

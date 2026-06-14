@@ -113,6 +113,14 @@ const en = {
   'course.markIncomplete': 'Mark as incomplete',
   'course.failedToLoad': 'Failed to load playlist',
   'course.videosCount': '{count} videos',
+  'course.completionTitle': 'Course Completed',
+  'course.completionDesc': 'You finished this learning path',
+  'course.completionStartDate': 'Started',
+  'course.completionEndDate': 'Completed',
+  'course.completionTotalTime': 'Total time',
+  'course.replayCourse': 'Replay Course',
+  'course.nextPlaylist': 'Next Suggested Playlist',
+  'course.backToHome': 'Back to Home',
 
   // Category Page
   'category.channels': '{count} channels',
@@ -255,11 +263,26 @@ const en = {
   'floatingButton.channelDesc': 'Add a YouTube channel to your feed',
   'floatingButton.playlistDesc': 'Add a YouTube playlist to track progress',
 
+  // Watch Later
+  'watchLater.title': 'Watch Later',
+  'watchLater.empty': 'No videos saved',
+  'watchLater.emptyHint': 'Use the bookmark icon on any video to save it here.',
+  'watchLater.remove': 'Remove',
+  'watchLater.markWatched': 'Mark as watched',
+  'watchLater.markUnwatched': 'Mark as unwatched',
+  'watchLater.saved': 'Saved to Watch Later',
+  'watchLater.removed': 'Removed from Watch Later',
+  'watchLater.savedAt': 'Saved {time}',
+  'watchLater.watched': 'Watched',
+  'watchLater.unwatched': 'Unwatched',
+
   // Video Card
   'videoCard.playVideo': 'Play video',
   'videoCard.watchOnYoutube': 'Watch on YouTube',
   'videoCard.live': 'LIVE',
   'videoCard.editChannel': 'Edit channel',
+  'videoCard.watchLater': 'Watch Later',
+  'videoCard.removeWatchLater': 'Remove from Watch Later',
 
   // Playlist Card
   'playlistCard.youtube': 'YouTube',

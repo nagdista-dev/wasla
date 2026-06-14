@@ -1,30 +1,39 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Circle, Clock, Film, Play } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Clock, Film, Play, Trophy, Home, RotateCcw, ArrowRight } from 'lucide-react';
 import { api } from '../api';
 import { usePlayer } from '../context/PlayerContext';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
-import type { LatestVideo, Playlist } from '../types';
+import type { LatestVideo, Playlist, CourseProgress } from '../types';
 
 const PROGRESS_KEY = 'wasla_playlist_progress';
 
-type PlaylistProgress = Record<string, string[]>;
-
-function loadProgress(): PlaylistProgress {
+function loadProgress(): Record<string, CourseProgress> {
   try {
     const stored = localStorage.getItem(PROGRESS_KEY);
     if (!stored) return {};
     const parsed = JSON.parse(stored);
-    if (typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
-    return {};
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    // migrate old format (string[]) to new format (CourseProgress)
+    const migrated: Record<string, CourseProgress> = {};
+    for (const [key, val] of Object.entries(parsed)) {
+      if (Array.isArray(val)) {
+        migrated[key] = { completedIds: val as string[] };
+      } else if (val && typeof val === 'object' && 'completedIds' in (val as any)) {
+        migrated[key] = val as CourseProgress;
+      } else {
+        migrated[key] = { completedIds: [] };
+      }
+    }
+    return migrated;
   } catch {
     return {};
   }
 }
 
-function saveProgress(progress: PlaylistProgress): void {
+function saveProgress(progress: Record<string, CourseProgress>): void {
   try {
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
   } catch { /* noop */ }
@@ -62,11 +71,12 @@ export default function PlaylistCoursePage() {
   const [channelName, setChannelName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [progress, setProgress] = useState<PlaylistProgress>(loadProgress);
+  const [progress, setProgress] = useState<Record<string, CourseProgress>>(loadProgress);
+  const [showCompletion, setShowCompletion] = useState(false);
 
   const playlistProgress = useMemo(() => {
-    if (!playlistId) return [];
-    return progress[playlistId] || [];
+    if (!playlistId) return { completedIds: [] as string[], startDate: undefined, completedDate: undefined };
+    return progress[playlistId] || { completedIds: [] };
   }, [progress, playlistId]);
 
   useMeta(playlistName ? {
@@ -75,9 +85,25 @@ export default function PlaylistCoursePage() {
     url: window.location.href,
   } : undefined);
 
-  const completedCount = playlistProgress.length;
+  const completedCount = playlistProgress.completedIds.length;
   const totalCount = videos.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const isAllComplete = totalCount > 0 && completedCount === totalCount;
+
+  useEffect(() => {
+    if (isAllComplete && !playlistProgress.completedDate && totalCount > 0) {
+      const updated = {
+        ...progress,
+        [playlistId!]: {
+          ...playlistProgress,
+          completedDate: new Date().toISOString(),
+        },
+      };
+      setProgress(updated);
+      saveProgress(updated);
+      setTimeout(() => setShowCompletion(true), 600);
+    }
+  }, [isAllComplete]);
 
   const fetchPlaylist = useCallback(async () => {
     if (!playlistId) return;
@@ -116,23 +142,42 @@ export default function PlaylistCoursePage() {
   const toggleComplete = (videoLink: string) => {
     if (!playlistId) return;
     const videoId = getVideoId(videoLink);
-    const current = progress[playlistId] || [];
-    const updated = current.includes(videoId)
+    const current = playlistProgress.completedIds;
+    const wasComplete = current.includes(videoId);
+    const updated = wasComplete
       ? current.filter((id) => id !== videoId)
       : [...current, videoId];
 
-    const newProgress = { ...progress, [playlistId]: updated };
-    setProgress(newProgress);
-    saveProgress(newProgress);
+    const now = new Date().toISOString();
+    const newProgress: CourseProgress = {
+      completedIds: updated,
+      startDate: playlistProgress.startDate || (updated.length > 0 ? now : undefined),
+      completedDate: updated.length === totalCount ? now : undefined,
+    };
+
+    const next = { ...progress, [playlistId]: newProgress };
+    setProgress(next);
+    saveProgress(next);
   };
 
   const isCompleted = (videoLink: string) => {
     const videoId = getVideoId(videoLink);
-    return playlistProgress.includes(videoId);
+    return playlistProgress.completedIds.includes(videoId);
   };
 
   const handlePlayVideo = (video: LatestVideo) => {
     play(video);
+  };
+
+  const handleReplay = () => {
+    if (!playlistId) return;
+    const next = {
+      ...progress,
+      [playlistId]: { completedIds: [], startDate: undefined, completedDate: undefined },
+    };
+    setProgress(next);
+    saveProgress(next);
+    setShowCompletion(false);
   };
 
   if (loading) {
@@ -202,7 +247,11 @@ export default function PlaylistCoursePage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+              <span className={`flex h-12 w-12 items-center justify-center rounded-full ${
+                completedCount === totalCount && totalCount > 0
+                  ? 'bg-yellow-500/10 text-yellow-500'
+                  : 'bg-green-500/10 text-green-500'
+              }`}>
                 <CheckCircle2 className="h-6 w-6" />
               </span>
               <div>
@@ -222,7 +271,11 @@ export default function PlaylistCoursePage() {
           </div>
           <div className="mt-4 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-brand-pink to-brand-coral transition-all duration-500"
+              className={`h-full rounded-full transition-all duration-500 ${
+                completedCount === totalCount && totalCount > 0
+                  ? 'bg-gradient-to-r from-yellow-400 to-green-400'
+                  : 'bg-gradient-to-r from-brand-pink to-brand-coral'
+              }`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -330,6 +383,104 @@ export default function PlaylistCoursePage() {
           </div>
         )}
       </div>
+
+      {/* Course Completion Modal */}
+      {showCompletion && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-lg animate-[fadeIn_0.5s_ease-out]">
+            {/* Celebration particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute h-2 w-2 rounded-full animate-[confetti_3s_ease-in-out_infinite]"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    background: ['#b51762', '#e2436a', '#f37345', '#feb144', '#22c55e', '#3b82f6'][i % 6],
+                    animationDelay: `${i * 0.15}s`,
+                    animationDuration: `${2 + Math.random() * 2}s`,
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="rounded-2xl bg-white p-8 shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700 text-center relative">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-green-400 shadow-lg animate-[bounceIn_0.6s_ease-out]">
+                <Trophy className="h-10 w-10 text-white" />
+              </div>
+
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                {t('course.completionTitle')}
+              </h2>
+              <p className="mt-2 text-lg text-brand-coral font-medium">
+                {t('course.completionDesc')}
+              </p>
+
+              <div className="mt-6 grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-4 dark:bg-white/5">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalCount}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('course.totalVideos')}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-green-500">{completedCount}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('course.completed')}</p>
+                </div>
+                {playlistProgress.startDate && (
+                  <div className="text-center">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {formatRelativeTime(playlistProgress.startDate, t)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('course.completionStartDate')}</p>
+                  </div>
+                )}
+                {playlistProgress.completedDate && (
+                  <div className="text-center">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {formatRelativeTime(playlistProgress.completedDate, t)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('course.completionEndDate')}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3">
+                <button
+                  onClick={handleReplay}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-pink to-brand-coral px-6 py-3 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  {t('course.replayCourse')}
+                </button>
+                <button
+                  onClick={() => navigate('/playlists')}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-brand-coral px-6 py-3 text-sm font-semibold text-brand-coral hover:bg-brand-coral/5 transition-all"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                  {t('course.nextPlaylist')}
+                </button>
+                <button
+                  onClick={() => { setShowCompletion(false); navigate('/'); }}
+                  className="flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 transition-all"
+                >
+                  <Home className="h-4 w-4" />
+                  {t('course.backToHome')}
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowCompletion(false)}
+                className="absolute top-4 right-4 rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+                aria-label="Close"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

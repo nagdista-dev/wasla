@@ -50,3 +50,18 @@ export interface Playlist {
   categories: string[];
   timestamp: number;
 }
+
+export interface WatchLaterItem {
+  id: string;
+  video: LatestVideo;
+  channelName: string;
+  channelId: string;
+  savedAt: number;
+  watched: boolean;
+}
+
+export interface CourseProgress {
+  completedIds: string[];
+  startDate?: string;
+  completedDate?: string;
+}
