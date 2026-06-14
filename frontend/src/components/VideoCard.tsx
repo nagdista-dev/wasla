@@ -116,7 +116,7 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
           </span>
           <button
             onClick={handleChannelClick}
-            className="text-sm font-semibold text-brand-coral dark:text-brand-coral hover:underline truncate text-left"
+            className="text-sm font-semibold text-brand-coral dark:text-brand-coral hover:underline truncate text-left flex-1 min-w-0"
           >
             {channelName}
           </button>

@@ -1,73 +1,144 @@
 # Wasla
 
-A full-stack YouTube channel feed aggregator built with React, Express, and TypeScript. Track latest videos from your favorite YouTube channels in one place.
+A video platform that turns YouTube playlists into structured learning courses. Aggregate channels, track progress, and build your personal video curriculum.
+
+> **واصـلة** — Your curated collection of YouTube channels, playlists, and video courses.
 
 ## Features
 
-- **Multi-channel feed**: Add multiple YouTube channels and view their latest videos
-- **Flexible channel input**: Add channels by ID (`UC...`), handle (`@channelname`), or full YouTube URL
-- **Real-time data**: Fetches latest videos via YouTube RSS feeds with 12-minute caching
-- **Bilingual support**: English and Arabic with RTL layout support
-- **Responsive UI**: Grid and list view modes, dark/light theme ready
-- **Local storage**: Channels persist in browser localStorage
+- **Channels system** — Add YouTube channels by ID (`UC...`), handle (`@channelname`), or full URL. Organize them with custom categories.
+- **Playlists as courses** — Save YouTube playlists and treat them as learning courses with structured content.
+- **Video player system** — Built-in mini player overlay + internal playback with course-style progression.
+- **Progress tracking** — Resume videos where you left off, mark content as watched.
+- **Search and filters** — Filter by category, time range, sort by newest/views/channel/category. Full-text search across titles and channel names.
+- **Multilingual support** — Arabic (default) with full RTL layout and English. One-click language switching.
+- **Responsive grid/list views** — Toggle between compact grid and detailed list layout.
+- **PWA ready** — Installable as a standalone app on mobile and desktop.
 
 ## Tech Stack
 
 ### Frontend
-- React 19 + TypeScript
-- Vite for fast development and building
-- Tailwind CSS v4 for styling
-- React Router v7 for navigation
-- Lucide React for icons
-- Axios for API requests
+
+| Layer | Technology |
+|---|---|
+| Framework | React 19 + TypeScript 6 |
+| Build tool | Vite 8 |
+| Styling | Tailwind CSS v4 |
+| Routing | React Router v7 |
+| Icons | Lucide React |
+| HTTP | Axios |
+
+### State & Persistence
+
+- **React Context** for global state: language (Arabic/English), theme (dark/light), and video player.
+- **localStorage** (`wasla_*` prefix) for channels, playlists, view preferences, and progress tracking.
+- No external database — all user data lives in the browser.
 
 ### Backend
+
 - Express 5 + TypeScript
-- xml2js for RSS feed parsing
-- Native fetch for HTTP requests
-- In-memory caching with deduplication
+- YouTube RSS feed parsing via `xml2js`
+- In-memory caching with request deduplication (12-minute TTL)
+- Channel handle/URL resolution
+
+## Key Concepts
+
+### Playlist → Course system
+Playlists are treated as mini-courses. Each playlist can have categories, a description, and tracked video progress — turning a simple YouTube playlist into a structured learning path.
+
+### Video tracking
+The mini player remembers your session. When you re-open a video, playback resumes from where you left off. Combined with playlist-based organization, this enables course-style consumption.
+
+### RTL/LTR layout
+Arabic is the default language. The entire UI flips seamlessly between RTL and LTR based on the selected language, including navigation, text alignment, and spacing.
+
+### Theme system
+Dark mode is the default theme. Light mode is available via the settings panel. Theme preference is persisted across sessions.
 
 ## Project Structure
 
 ```
 wasla/
-├── frontend/                 # React frontend application
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   ├── pages/           # Page components (Home, Channels, Playlists, Settings)
-│   │   ├── context/         # React context (LanguageContext)
-│   │   ├── api.ts           # Axios API client
-│   │   ├── storage.ts       # LocalStorage utilities
-│   │   └── types.ts         # TypeScript types
-│   └── package.json
-├── backend/                  # Express backend API
-│   ├── src/
-│   │   ├── routes/          # API routes (channel.ts)
-│   │   ├── services/        # Business logic (rssService.ts)
-│   │   ├── utils/           # Utilities (dateUtils.ts)
-│   │   ├── types/           # TypeScript types
-│   │   └── index.ts         # Entry point
-│   └── package.json
-└── package.json             # Root workspace scripts
+├── frontend/
+│   ├── public/
+│   │   ├── favicon.png
+│   │   ├── logo.png
+│   │   └── manifest.json          # PWA manifest
+│   └── src/
+│       ├── components/            # Reusable UI components
+│       │   ├── VideoCard.tsx      # Video thumbnail, metadata, channel badge
+│       │   ├── PlaylistCard.tsx   # Playlist/course card
+│       │   ├── Sidebar.tsx        # Navigation sidebar
+│       │   ├── MiniPlayerModal.tsx # Floating video overlay
+│       │   ├── AddChannelModal.tsx
+│       │   ├── EditChannelModal.tsx
+│       │   ├── AddPlaylistModal.tsx
+│       │   ├── EditPlaylistModal.tsx
+│       │   ├── ConfirmActionModal.tsx
+│       │   ├── ConfirmDeleteModal.tsx
+│       │   ├── CustomFilterDropdown.tsx
+│       │   ├── FilterDropdown.tsx
+│       │   ├── FloatingButton.tsx
+│       │   ├── FeatureCard.tsx
+│       │   ├── MobileAppBanner.tsx
+│       │   └── Toast.tsx
+│       ├── pages/                 # Route-level page components
+│       │   ├── HomePage.tsx       # Latest videos feed
+│       │   ├── ChannelsPage.tsx   # Channel management
+│       │   ├── ChannelPage.tsx    # Single channel detail
+│       │   ├── PlaylistsPage.tsx  # Playlist/course management
+│       │   ├── PlaylistCoursePage.tsx # Course view with progress
+│       │   ├── CategoryPage.tsx   # Filter by category
+│       │   ├── SettingsPage.tsx   # Theme, language, data management
+│       │   └── HowToUsePage.tsx   # Usage guide
+│       ├── context/               # React context providers
+│       │   ├── LanguageContext.tsx # i18n + RTL/LTR switching
+│       │   ├── ThemeContext.tsx    # Dark/light theme
+│       │   └── PlayerContext.tsx   # Video player state
+│       ├── hooks/
+│       │   └── useMeta.ts         # Document meta tags
+│       ├── locales/               # Translation dictionaries
+│       │   ├── ar.ts              # Arabic (default)
+│       │   └── en.ts              # English
+│       ├── utils/
+│       │   ├── formatRelativeTime.ts
+│       │   └── storageMigration.ts
+│       ├── api.ts                 # Axios client
+│       ├── storage.ts             # localStorage load/save (wasla_* keys)
+│       ├── types.ts               # Shared TypeScript types
+│       ├── index.css              # Tailwind v4 config + global styles
+│       ├── App.tsx                # Router + layout
+│       └── main.tsx               # Entry point
+├── backend/
+│   └── src/
+│       ├── index.ts               # Express server entry
+│       ├── routes/
+│       │   └── channel.ts         # API endpoints
+│       ├── services/
+│       │   └── rssService.ts      # YouTube RSS parsing
+│       ├── utils/
+│       │   └── dateUtils.ts
+│       └── types/
+├── package.json                   # Root orchestration scripts
+└── vercel.json
 ```
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm
 
-### Installation
+### Install
 
 ```bash
-# Install all dependencies
 npm run install:all
 ```
 
 ### Development
 
 ```bash
-# Run both frontend and backend concurrently
 npm run dev
 ```
 
@@ -76,44 +147,12 @@ Frontend runs on `http://localhost:5173`, backend on `http://localhost:3001`.
 ### Build
 
 ```bash
-# Build both frontend and backend
 npm run build
 ```
 
-### Production
+## Important Notes
 
-```bash
-# Start production backend server
-npm run start
-```
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/hello` | Health check |
-| GET | `/api/health` | Backend status |
-| GET | `/api/channel/:identifier` | Fetch channel data (ID, @handle, or URL) |
-| GET | `/api/resolve/:identifier` | Resolve channel identifier to UC ID |
-| PATCH | `/api/channel/:id` | Update channel name and categories |
-| DELETE | `/api/cache` | Clear server cache |
-| GET | `/api/cache/stats` | View cache statistics |
-
-## Usage
-
-1. **Add a channel**: Click the floating `+` button or "Add Channel" on the Channels page
-2. **Enter channel info**: Provide a YouTube channel ID (`UC...`), handle (`@channelname`), or full URL
-3. **View latest videos**: Home page shows latest video from each channel
-4. **Manage channels**: Channels page lets you view/delete added channels
-5. **Switch language**: Use the language selector in the navigation bar (English/Arabic)
-
-## Environment Variables
-
-### Backend (.env)
-```env
-PORT=3001
-```
-
-## License
-
-ISC
+- **Arabic is the default language** — The UI ships in Arabic out of the box. Switch to English from the navigation bar.
+- **Dark mode is the default theme** — Toggle to light mode in Settings. Preference is saved automatically.
+- **PWA install support** — Supported browsers will prompt install. On mobile, add to home screen for an app-like experience.
+- **No external database** — All data is stored in your browser's localStorage under the `wasla_*` prefix. Clearing browser data will remove your channels and playlists.
