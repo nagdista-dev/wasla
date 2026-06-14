@@ -3,6 +3,7 @@ import { Search, Heart, Edit3, Trash2, X } from 'lucide-react';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import { useMeta } from '../hooks/useMeta';
 import type { Channel } from '../types';
 
 interface ChannelsPageProps {
@@ -33,6 +34,7 @@ function savePref(key: string, value: unknown) {
 }
 
 export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFavorite }: ChannelsPageProps) {
+  useMeta({ title: 'Channels', description: `${channels.length} channel${channels.length !== 1 ? 's' : ''} in your collection.` });
   const [searchText, setSearchText] = useState(loadPref<string>('wasla_channels_search', ''));
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_channels_category', ''));
   const [showEditModal, setShowEditModal] = useState(false);

@@ -1,8 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Tag, Sun, Moon, LayoutDashboard } from 'lucide-react';
+import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Channel, Playlist } from '../types';
-import { useTheme } from '../context/ThemeContext';
+
+const navItems = [
+  { path: '/', label: 'Home', icon: Home },
+  { path: '/channels', label: 'Channels', icon: Users },
+  { path: '/playlists', label: 'Playlists', icon: Heart },
+  { path: '/how-to-use', label: 'How to Use', icon: BookOpen },
+  { path: '/settings', label: 'Settings', icon: Settings },
+];
 
 interface SidebarProps {
   channels: Channel[];
@@ -11,7 +18,6 @@ interface SidebarProps {
 
 export default function Sidebar({ channels, playlists = [] }: SidebarProps) {
   const { pathname } = useLocation();
-  const { theme, toggleTheme } = useTheme();
 
   const categories = useMemo(
     () => Array.from(new Set([
@@ -24,23 +30,33 @@ export default function Sidebar({ channels, playlists = [] }: SidebarProps) {
   const isAllActive = pathname === '/' || pathname === '/channels' || pathname === '/playlists';
 
   return (
-    <nav className="fixed top-16 inset-y-0 left-0 hidden w-64 border-r border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90 md:flex md:flex-col">
-      <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700">
-        <button
-          onClick={toggleTheme}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition dark:text-gray-300 dark:hover:bg-white/10"
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-          {theme === "dark" ? "Light Mode" : "Dark Mode"}
-        </button>
-      </div>
-      <div className="flex-1 min-h-0 overflow-y-auto categories-scroll">
-        <div className="px-4 py-2">
+    <aside className="fixed top-16 inset-y-0 left-0 hidden w-64 border-r border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90 md:flex md:flex-col">
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto categories-scroll pt-4">
+        <div className="px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-700/50">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            Navigation
+          </p>
+        </div>
+        <nav className="px-4 py-2 space-y-1 flex-shrink-0">
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                  isActive
+                    ? 'bg-brand-coral text-white shadow-md'
+                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'
+                }`}
+              >
+                <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="px-4 pt-2 pb-2 border-t border-gray-100 dark:border-gray-700/50">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
             Categories
           </p>
@@ -76,6 +92,6 @@ export default function Sidebar({ channels, playlists = [] }: SidebarProps) {
           })}
         </div>
       </div>
-    </nav>
+    </aside>
   );
 }

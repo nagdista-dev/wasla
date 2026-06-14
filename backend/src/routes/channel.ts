@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { fetchChannelData, fetchChannelDetails, clearCache, getCacheStats, resolveChannelId } from '../services/rssService.js';
-import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse } from '../types/index.js';
+import { fetchChannelData, fetchChannelDetails, clearCache, getCacheStats, resolveChannelId, fetchPlaylistData } from '../services/rssService.js';
+import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse } from '../types/index.js';
 
 const router = Router();
 
@@ -90,6 +90,39 @@ router.get('/resolve/:identifier', async (req: Request, res: Response) => {
   } catch (error) {
     console.error(`Error resolving channel ${req.params.identifier}:`, error);
     res.status(500).json({ success: false, error: 'Failed to resolve channel' });
+  }
+});
+
+router.get('/playlist/:id', async (req: Request, res: Response) => {
+  const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+  try {
+    if (!idParam) {
+      const response: PlaylistResponse = {
+        success: false,
+        error: 'Playlist ID is required',
+      };
+      return res.status(400).json(response);
+    }
+
+    const data = await fetchPlaylistData(idParam);
+    const response: PlaylistResponse = {
+      success: true,
+      data: {
+        playlistId: idParam,
+        playlistName: data.playlistName,
+        channelName: data.channelName,
+        videos: data.videos,
+      },
+    };
+    res.json(response);
+  } catch (error) {
+    console.error(`Error fetching playlist ${idParam}:`, error);
+    const response: PlaylistResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch playlist data',
+    };
+    res.status(500).json(response);
   }
 });
 

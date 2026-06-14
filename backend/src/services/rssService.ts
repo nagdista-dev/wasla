@@ -149,6 +149,69 @@ async function fetchAndParseRSS(channelId: string, limit = VIDEO_LIMIT): Promise
   };
 }
 
+export async function fetchPlaylistData(playlistId: string): Promise<{ playlistName: string; channelName?: string; videos: VideoData[] }> {
+  const url = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
+      Accept: 'application/xml, text/xml, */*',
+    },
+    signal: controller.signal,
+  });
+
+  clearTimeout(timeoutId);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch playlist RSS feed: ${response.status} ${response.statusText}`);
+  }
+
+  const xmlText = await response.text();
+  const parsed = await parseStringPromise(xmlText, {
+    explicitArray: false,
+    ignoreAttrs: false,
+    trim: true,
+  });
+
+  const entries = parsed?.feed?.entry;
+  if (!entries) {
+    throw new Error('No videos found in playlist feed');
+  }
+
+  const entryList = Array.isArray(entries) ? entries : [entries];
+  const playlistName = getString(parsed?.feed?.title) || 'Untitled Playlist';
+  const channelName = getString(parsed?.feed?.author?.name) || getString(parsed?.feed?.author?.[0]?.name);
+
+  const videos = entryList
+    .map((entry: Record<string, unknown>) => {
+      const mediaGroup = (entry['media:group'] || {}) as Record<string, unknown>;
+      const mediaCommunity = (mediaGroup['media:community'] || {}) as Record<string, unknown>;
+      const title = getString(entry.title) || 'Untitled';
+      const link = getLink(entry.link, `https://www.youtube.com/watch?v=${playlistId}`);
+
+      return {
+        title,
+        link,
+        thumbnail: getThumbnail(mediaGroup['media:thumbnail']),
+        publishedDate: getString(entry.published) || getString(entry.updated) || new Date().toISOString(),
+        channelName: channelName || getString(entry['media:group']?.['media:credit']) || 'Unknown',
+        views: getViews(mediaCommunity['media:statistics']),
+        duration: getDuration(mediaGroup['media:content']),
+      };
+    });
+
+  const videosWithRelativeTime = addRelativeTimeToVideos(videos);
+
+  return {
+    playlistName,
+    channelName,
+    videos: videosWithRelativeTime,
+  };
+}
+
 export function clearCache(): void {
   cache.clear();
   pendingRequests.clear();

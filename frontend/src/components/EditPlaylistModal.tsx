@@ -5,12 +5,13 @@ import type { Playlist } from '../types';
 interface EditPlaylistModalProps {
   playlist: Playlist;
   onClose: () => void;
-  onUpdate: (name: string, categories: string[]) => void;
+  onUpdate: (name: string, description: string | undefined, categories: string[]) => void;
   existingCategories?: string[];
 }
 
 export default function EditPlaylistModal({ playlist, onClose, onUpdate, existingCategories = [] }: EditPlaylistModalProps) {
   const [name, setName] = useState(playlist.name);
+  const [description, setDescription] = useState(playlist.description || '');
   const [categories, setCategories] = useState<string[]>(playlist.categories);
   const [categoryInput, setCategoryInput] = useState('');
 
@@ -28,7 +29,7 @@ export default function EditPlaylistModal({ playlist, onClose, onUpdate, existin
 
   const handleUpdate = () => {
     if (!name.trim()) return;
-    onUpdate(name.trim(), categories);
+    onUpdate(name.trim(), description.trim() || undefined, categories);
   };
 
   return (
@@ -52,6 +53,16 @@ export default function EditPlaylistModal({ playlist, onClose, onUpdate, existin
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100"
             placeholder="Playlist Name"
             maxLength={100}
+          />
+        </div>
+        <div className="mb-4">
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400 resize-none"
+            placeholder="Description (optional)"
           />
         </div>
         <div className="mb-4">

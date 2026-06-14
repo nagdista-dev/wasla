@@ -4,6 +4,7 @@ import { AlertCircle, ArrowUpDown, Play } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelDetailsData } from '../types';
 
 function hashColor(str: string): string {
@@ -75,6 +76,13 @@ export default function ChannelPage() {
       .catch(() => setError('Failed to load channel'))
       .finally(() => setLoading(false));
   }, [channelId]);
+
+  useMeta(data ? {
+    title: data.channelName,
+    description: `${data.videos.length} videos`,
+    image: data.avatar || data.banner || undefined,
+    url: window.location.href,
+  } : undefined);
 
   const mainColor = useMemo(() => data ? hashColor(data.channelName) : 'hsl(340, 72%, 55%)', [data]);
   const rgb = useMemo(() => hexFromHsl(mainColor), [mainColor]);

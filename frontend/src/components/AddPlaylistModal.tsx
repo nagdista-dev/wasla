@@ -8,6 +8,7 @@ interface PlaylistEntry {
   url?: string;
   thumbnail?: string;
   channelName?: string;
+  description?: string;
   categories: string[];
   timestamp?: number;
 }
@@ -68,6 +69,7 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
   const { showToast } = useToast();
   const [input, setInput] = useState('');
   const [customName, setCustomName] = useState('');
+  const [description, setDescription] = useState('');
   const [categoryInput, setCategoryInput] = useState('');
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [isResolving, setIsResolving] = useState(false);
@@ -106,6 +108,7 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
       url: input.includes('youtube.com') || input.includes('youtu.be') ? input : `https://www.youtube.com/playlist?list=${id}`,
       thumbnail: thumbnail || undefined,
       channelName: channelName || undefined,
+      description: description.trim() || undefined,
       categories: categoryInput ? categoryInput.split(',').map((c) => c.trim()).filter(Boolean) : [],
     };
 
@@ -141,6 +144,13 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
           value={customName}
           onChange={(e) => setCustomName(e.target.value)}
           className="mb-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400"
+        />
+        <textarea
+          placeholder="Description (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+          className="mb-2 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-brand-coral focus:ring-brand-coral dark:border-gray-600 dark:bg-dark-navy dark:text-gray-100 dark:placeholder-gray-400 resize-none"
         />
         {resolvedId && (
           <p className="mb-2 text-xs text-green-600">Detected playlist ID: {resolvedId}</p>

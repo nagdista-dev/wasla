@@ -4,6 +4,7 @@ import { AlertCircle, Play, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -50,6 +51,12 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
     () => channels.filter((ch) => ch.categories.includes(decoded)),
     [channels, decoded],
   );
+
+  useMeta(decoded ? {
+    title: decoded,
+    description: `${categoryChannels.length} channel${categoryChannels.length !== 1 ? 's' : ''}`,
+    url: window.location.href,
+  } : undefined);
 
   const fetchVideos = useCallback(async (force = false) => {
     if (categoryChannels.length === 0) return;

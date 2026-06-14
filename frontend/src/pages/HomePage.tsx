@@ -5,6 +5,7 @@ import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
+import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -60,6 +61,7 @@ function savePref(key: string, value: unknown) {
 export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
   const navigate = useNavigate();
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
+  useMeta({ title: 'Home', description: `${channels.length} channels in your feed.` });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [showSearch, setShowSearch] = useState(false);
@@ -203,8 +205,8 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
     });
 
   return (
-    <div className="min-h-screen dark:bg-dark-navy">
-      <div className="sticky top-16 p-1 z-10 mb-6 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 ">
+    <div className="min-h-screen dark:bg-dark-navy overflow-visible">
+      <div className="sticky top-16 z-20 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 shadow-sm">
         <div className="flex items-center gap-2 px-4 md:px-6 py-3">
           <div className="flex items-center gap-1.5 flex-0">
             <button onClick={() => setShowSearch(true)}
@@ -241,7 +243,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         </div>
       </div>
 
-        <div className="px-6 overflow-x-hidden">
+        <div className="px-6 pt-4">
           {showAllFilters && (
           <div className="fixed inset-0 z-[55] flex items-start justify-center p-4 pt-20">
             <div className="fixed inset-0 bg-black/50" onClick={() => setShowAllFilters(false)} />

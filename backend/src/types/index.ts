@@ -48,5 +48,16 @@ export interface UpdateChannelRequest {
   categories?: string[];
 }
 
+export interface PlaylistResponse {
+  success: boolean;
+  data?: {
+    playlistId: string;
+    playlistName: string;
+    channelName?: string;
+    videos: VideoData[];
+  };
+  error?: string;
+}
+
 // Force emission of JS file
 export const __typesOnly = true;

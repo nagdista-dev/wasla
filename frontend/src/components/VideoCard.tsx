@@ -9,11 +9,13 @@ interface VideoCardProps {
   onEdit?: (channel: Channel) => void;
 }
 
-function formatViews(views?: number): string | undefined {
-  if (views === undefined) return undefined;
-  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`;
-  if (views >= 1_000) return `${(views / 1_000).toFixed(1)}K`;
-  return views.toString();
+function formatViews(views?: number | string): string | undefined {
+  if (views === undefined || views === null) return undefined;
+  const num = typeof views === 'string' ? parseInt(views, 10) : views;
+  if (isNaN(num)) return undefined;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+  return num.toString();
 }
 
 function formatDuration(duration?: string): string | undefined {
@@ -48,9 +50,15 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
     navigate(`/channel/${channel.id}`);
   };
 
+  const isLive = video.isLive ?? false;
+
   return (
     <article
-      className="group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-700 flex flex-col h-full"
+      className={`group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer flex flex-col h-full ${
+        isLive
+          ? 'border-2 border-red-500 dark:border-red-400'
+          : 'border border-gray-200 dark:border-gray-700'
+      }`}
       onClick={handlePlay}
       role="button"
       tabIndex={0}
@@ -67,10 +75,15 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow" />
         )}
-        {formatDuration(video.duration) && (
-          <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
+        {isLive ? (
+          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 animate-pulse">
+            <span className="h-2 w-2 rounded-full bg-white" />
+            LIVE
+          </span>
+        ) : (
+          <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1 min-w-[48px] justify-center">
             <Clock className="h-3 w-3" />
-            {formatDuration(video.duration)}
+            {formatDuration(video.duration) || '—'}
           </span>
         )}
 
@@ -120,19 +133,15 @@ export default function VideoCard({ channel, video, onEdit }: VideoCardProps) {
           {video.title}
         </h3>
 
-        <div className="flex items-center gap-2 text-xs">
-          {video.relativeTime && (
-            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-              <Clock className="h-3.5 w-3.5 flex-0 text-current" />
-              <span>{video.relativeTime}</span>
-            </span>
-          )}
-          {formatViews(video.views) && (
-            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-              <Eye className="h-3.5 w-3.5 flex-0 text-current" />
-              {formatViews(video.views)}
-            </span>
-          )}
+        <div className="flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 min-w-0">
+            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">{video.relativeTime || '—'}</span>
+          </span>
+          <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 min-w-0">
+            <Eye className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">{formatViews(video.views) || '—'}</span>
+          </span>
         </div>
 
         {channel.categories.length > 0 && (

@@ -4,12 +4,13 @@ import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import PlaylistCard from '../components/PlaylistCard';
 import EditPlaylistModal from '../components/EditPlaylistModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import { useMeta } from '../hooks/useMeta';
 import type { Playlist } from '../types';
 
 interface PlaylistsPageProps {
   playlists: Playlist[];
   onDelete: (id: string) => void;
-  onUpdate: (id: string, name: string, categories: string[]) => void;
+  onUpdate: (id: string, name: string, description: string | undefined, categories: string[]) => void;
 }
 
 function loadPref<T>(key: string, fallback: T): T {
@@ -28,6 +29,7 @@ function savePref(key: string, value: unknown) {
 }
 
 export default function PlaylistsPage({ playlists, onDelete, onUpdate }: PlaylistsPageProps) {
+  useMeta({ title: 'Playlists', description: `${playlists.length} playlist${playlists.length !== 1 ? 's' : ''} saved.` });
   const [searchText, setSearchText] = useState(loadPref<string>('wasla_playlists_search', ''));
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_playlists_category', ''));
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
@@ -118,8 +120,8 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
         <EditPlaylistModal
           playlist={editingPlaylist}
           onClose={() => setEditingPlaylist(null)}
-          onUpdate={(name, categories) => {
-            onUpdate(editingPlaylist.id, name, categories);
+          onUpdate={(name, description, categories) => {
+            onUpdate(editingPlaylist.id, name, description, categories);
             setEditingPlaylist(null);
           }}
           existingCategories={allCategories}

@@ -15,6 +15,7 @@ export interface LatestVideo {
   relativeTime?: string;
   views?: number;
   duration?: string;
+  isLive?: boolean;
 }
 
 export interface ChannelLatestVideo {
@@ -44,6 +45,8 @@ export interface Playlist {
   url?: string;
   thumbnail?: string;
   channelName?: string;
+  description?: string;
+  videoCount?: number;
   categories: string[];
   timestamp: number;
 }
