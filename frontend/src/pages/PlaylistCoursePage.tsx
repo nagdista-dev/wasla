@@ -6,6 +6,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
+import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import type { LatestVideo, Playlist, CourseProgress } from '../types';
 
 const PROGRESS_KEY = 'wasla_playlist_progress';
@@ -358,16 +359,14 @@ export default function PlaylistCoursePage() {
                   </button>
 
                   {video.thumbnail && (
-                    <div className="relative aspect-video w-40 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-700">
-                      <img
+                    <div className="relative aspect-video w-40 flex-shrink-0 overflow-hidden rounded-lg">
+                      <ThumbnailWithPlaceholder
                         src={video.thumbnail}
                         alt={video.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
                       />
                       <button
                         onClick={() => handlePlayVideo(video)}
-                        className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
+                        className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
                         aria-label={t('course.playVideo')}
                       >
                         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">

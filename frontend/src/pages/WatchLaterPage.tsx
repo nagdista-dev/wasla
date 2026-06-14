@@ -7,6 +7,7 @@ import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from '../components/Toast';
 import { useMeta } from '../hooks/useMeta';
+import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import type { WatchLaterItem } from '../types';
 
 function formatViews(views?: number | string): string | undefined {
@@ -114,16 +115,14 @@ export default function WatchLaterPage() {
                 }`}
               >
                 {item.video.thumbnail && (
-                  <div className="relative aspect-video w-40 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-700">
-                    <img
+                  <div className="relative aspect-video w-40 flex-shrink-0 overflow-hidden rounded-lg">
+                    <ThumbnailWithPlaceholder
                       src={item.video.thumbnail}
                       alt={item.video.title}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
                     />
                     <button
                       onClick={() => handlePlay(item)}
-                      className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
+                      className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
                       aria-label={t('course.playVideo')}
                     >
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">

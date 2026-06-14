@@ -7,6 +7,7 @@ import type { Channel, LatestVideo } from '../types';
 import { usePlayer } from '../context/PlayerContext';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from './Toast';
+import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
 
 interface VideoCardProps {
   channel: Channel;
@@ -97,16 +98,11 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') play(video); }}
     >
       <div className="relative aspect-video overflow-hidden">
-        {video.thumbnail ? (
-          <img
-            src={video.thumbnail}
-            alt={video.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow" />
-        )}
+        <ThumbnailWithPlaceholder
+          src={video.thumbnail}
+          alt={video.title}
+          className="group-hover:scale-105"
+        />
         {isLive ? (
           <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 animate-pulse">
             <span className="h-2 w-2 rounded-full bg-white" />
@@ -153,9 +149,9 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
         </div>
       </div>
 
-      <div className="p-4 flex flex-col flex-1 justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="flex justify-center items-center h-9 w-9 rounded-full bg-brand-pink text-base font-bold text-white shadow-sm leading-none" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
+      <div className="p-4 flex flex-col flex-1">
+        <div className="flex items-center gap-2.5 mb-2.5">
+          <span className="flex justify-center items-center h-9 w-9 rounded-full bg-brand-pink text-base font-bold text-white shadow-sm leading-none flex-shrink-0" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
             {initial}
           </span>
           <button
@@ -168,7 +164,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onEdit(channel); }}
-              className="flex-0 ml-auto p-1.5 rounded-lg text-gray-400 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               aria-label={t('videoCard.editChannel')}
             >
               <Edit3 className="h-4 w-4" />
@@ -176,23 +172,23 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
           )}
         </div>
 
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug mb-2">
           {video.title}
         </h3>
 
-        <div className="flex items-center gap-3 text-xs">
-          <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 min-w-0">
+        <div className="flex items-center gap-3 text-xs mb-2.5">
+          <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
             <Clock className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="truncate">{formatRelativeTime(video.publishedDate, t)}</span>
           </span>
-          <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 min-w-0">
+          <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
             <Eye className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="truncate">{formatViews(video.views) || '—'}</span>
           </span>
         </div>
 
         {channel.categories.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
             {channel.categories.slice(0, 4).map((cat) => (
               <span
                 key={cat}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Clock, ExternalLink, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
+import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, ExternalLink, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
@@ -12,6 +12,9 @@ import { usePlayer } from '../context/PlayerContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
+import { loadWatchLater, saveWatchLater } from '../storage';
+import { useToast } from '../components/Toast';
+import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -68,6 +71,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { play } = usePlayer();
+  const { showToast } = useToast();
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
@@ -391,37 +395,68 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/channel/${channel.id}`); }}
                       >
                         <div className="relative w-44 flex-shrink-0">
-                          {video.thumbnail ? (
-                            <img
-                              src={video.thumbnail}
-                              alt={video.title}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="h-full w-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow" />
-                          )}
-                          {video.duration && (
-                            <span className="absolute bottom-1.5 right-1.5 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-1.5 py-0.5 rounded flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {(() => {
-                                const total = parseInt(video.duration!, 10);
-                                if (isNaN(total)) return video.duration;
-                                const hrs = Math.floor(total / 3600);
-                                const mins = Math.floor((total % 3600) / 60);
-                                const secs = total % 60;
-                                if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                                return `${mins}:${secs.toString().padStart(2, '0')}`;
-                              })()}
-                            </span>
-                          )}
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <ThumbnailWithPlaceholder
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="h-full w-full"
+                          />
+                          {video.duration && (() => {
+                            const total = parseInt(video.duration, 10);
+                            const formatted = isNaN(total) ? video.duration : (() => {
+                              const hrs = Math.floor(total / 3600);
+                              const mins = Math.floor((total % 3600) / 60);
+                              const secs = total % 60;
+                              if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                              return `${mins}:${secs.toString().padStart(2, '0')}`;
+                            })();
+                            return (
+                              <span className="absolute bottom-1.5 right-1.5 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-1.5 py-0.5 rounded flex items-center gap-1 z-10">
+                                <Clock className="h-3 w-3" />
+                                {formatted}
+                              </span>
+                            );
+                          })()}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20">
                             <button
                               onClick={(e) => { e.stopPropagation(); play(video); }}
                               className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm text-brand-coral flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
                               aria-label={t('videoCard.playVideo')}
                             >
                               <Play className="h-5 w-5 pl-0.5" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const items = loadWatchLater();
+                                const existing = items.find((item) => item.video.link === video.link);
+                                if (existing) {
+                                  saveWatchLater(items.filter((item) => item.video.link !== video.link));
+                                  showToast(t('watchLater.removed'), 'info');
+                                } else {
+                                  items.push({
+                                    id: `${channel.id}_${Date.now()}`,
+                                    video,
+                                    channelName: video.channelName || channel.name,
+                                    channelId: channel.id,
+                                    savedAt: Date.now(),
+                                    watched: false,
+                                  });
+                                  saveWatchLater(items);
+                                  showToast(t('watchLater.saved'), 'success');
+                                }
+                              }}
+                              className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center hover:scale-110 shadow-lg transition-all ${
+                                loadWatchLater().some((item) => item.video.link === video.link)
+                                  ? 'bg-brand-coral text-white'
+                                  : 'bg-white/90 text-gray-700 hover:bg-white'
+                              }`}
+                              aria-label={t('videoCard.watchLater')}
+                            >
+                              {loadWatchLater().some((item) => item.video.link === video.link) ? (
+                                <BookmarkCheck className="h-5 w-5" />
+                              ) : (
+                                <BookmarkPlus className="h-5 w-5" />
+                              )}
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); window.open(video.link, '_blank'); }}
@@ -536,9 +571,12 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     onClick={() => { navigate(`/channel/${channel.id}`); setShowSearch(false); setSearchText(''); }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
                   >
-                    {video!.thumbnail && (
-                      <img src={video!.thumbnail} alt="" className="h-12 w-20 flex-0 rounded object-cover" />
-                    )}
+                    <div className="h-12 w-20 flex-shrink-0 overflow-hidden rounded">
+                      <ThumbnailWithPlaceholder
+                        src={video!.thumbnail}
+                        alt=""
+                      />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-gray-900 dark:text-white">{video!.title}</p>
                       <p className="truncate text-xs text-gray-500 dark:text-gray-400">{video!.channelName || channel.name}</p>
