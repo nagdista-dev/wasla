@@ -402,6 +402,15 @@ const en = {
   'courses.openYoutube': 'Open in YouTube',
   'courses.videoAdded': 'Video added to course',
   'courses.videoRemoved': 'Video removed from course',
+  'courses.dashboard': 'Dashboard',
+  'courses.dashboardTitle': 'Course Dashboard',
+  'courses.totalVideos': 'Total videos',
+  'courses.completed': 'Completed',
+  'courses.progress': 'Progress',
+  'courses.resumeCourse': 'Resume Course',
+  'courses.markComplete': 'Mark as complete',
+  'courses.markIncomplete': 'Mark as incomplete',
+  'courses.noProgress': 'No videos completed yet',
 
   // Contact
   'contact.title': 'Contact Developer',

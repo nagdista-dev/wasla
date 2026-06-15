@@ -402,6 +402,15 @@ const ar: Record<string, string> = {
   'courses.openYoutube': 'فتح في يوتيوب',
   'courses.videoAdded': 'تمت إضافة الفيديو إلى الدورة',
   'courses.videoRemoved': 'تمت إزالة الفيديو من الدورة',
+  'courses.dashboard': 'لوحة التحكم',
+  'courses.dashboardTitle': 'لوحة تحكم الدورة',
+  'courses.totalVideos': 'إجمالي الفيديوهات',
+  'courses.completed': 'المكتمل',
+  'courses.progress': 'التقدم',
+  'courses.resumeCourse': 'استئناف الدورة',
+  'courses.markComplete': 'تحديد كمكتمل',
+  'courses.markIncomplete': 'تحديد كغير مكتمل',
+  'courses.noProgress': 'لم يتم إكمال أي فيديو بعد',
 
   // Contact
   'contact.title': 'تواصل مع المطور',

@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { BookOpen, ListVideo, Edit3, Trash2 } from 'lucide-react';
+import { BookOpen, ListVideo, Edit3, Trash2, BarChart3 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import type { Course } from '../types';
 
@@ -12,6 +13,7 @@ interface CourseCardProps {
 
 const CourseCard = memo(function CourseCard({ course, onOpen, onEdit, onDelete }: CourseCardProps) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   return (
     <article
@@ -44,15 +46,41 @@ const CourseCard = memo(function CourseCard({ course, onOpen, onEdit, onDelete }
           </p>
         )}
 
-        <div className="mt-auto flex items-center justify-between pt-4">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-            <ListVideo className="h-3.5 w-3.5" />
-            <span>
-              {course.videos.length} {course.videos.length === 1 ? t('courses.video') : t('courses.videos')}
-            </span>
+        <div className="mt-auto pt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <ListVideo className="h-3.5 w-3.5" />
+              <span>
+                {course.videos.length} {course.videos.length === 1 ? t('courses.video') : t('courses.videos')}
+              </span>
+            </div>
           </div>
+          {course.videos.length > 0 && (() => {
+            const completed = course.videos.filter(v => v.completed).length;
+            const pct = Math.round((completed / course.videos.length) * 100);
+            return (
+              <div className="mt-2 flex items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-brand-pink via-brand-coral to-brand-yellow transition-all"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{pct}%</span>
+              </div>
+            );
+          })()}
+
 
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => navigate(`/courses/${course.id}/dashboard`)}
+              className="rounded-lg p-1.5 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+              aria-label={t('courses.dashboard')}
+            >
+              <BarChart3 className="h-4 w-4" />
+            </button>
             <button
               type="button"
               onClick={() => onEdit(course)}

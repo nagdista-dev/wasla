@@ -49,6 +49,7 @@ const HowToUsePage = lazy(() => import("./pages/HowToUsePage"));
 const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
+const CourseDashboardPage = lazy(() => import("./pages/CourseDashboardPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 
 function ScrollToTop() {
@@ -432,6 +433,10 @@ function App() {
               <Route
                 path="/courses/:id"
                 element={<CourseDetailPage />}
+              />
+              <Route
+                path="/courses/:id/dashboard"
+                element={<CourseDashboardPage />}
               />
               <Route
                 path="/contact"

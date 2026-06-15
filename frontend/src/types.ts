@@ -82,6 +82,7 @@ export interface CourseVideo {
   title: string;
   thumbnail?: string;
   notes?: string;
+  completed?: boolean;
 }
 
 export interface Course {

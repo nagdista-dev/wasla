@@ -12,6 +12,7 @@ interface CoursesContextValue {
   removeVideo: (courseId: string, videoId: string) => void;
   reorderVideos: (courseId: string, videos: CourseVideo[]) => void;
   updateVideo: (courseId: string, videoId: string, data: { title?: string; notes?: string }) => void;
+  toggleVideoComplete: (courseId: string, videoId: string) => void;
 }
 
 const CoursesContext = createContext<CoursesContextValue | null>(null);
@@ -121,9 +122,28 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
     [courses, persist],
   );
 
+  const toggleVideoComplete = useCallback(
+    (courseId: string, videoId: string) => {
+      persist(
+        courses.map((c) =>
+          c.id === courseId
+            ? {
+                ...c,
+                videos: c.videos.map((v) =>
+                  v.id === videoId ? { ...v, completed: !v.completed } : v,
+                ),
+                updatedAt: Date.now(),
+              }
+            : c,
+        ),
+      );
+    },
+    [courses, persist],
+  );
+
   return (
     <CoursesContext.Provider
-      value={{ courses, getCourse, createCourse, updateCourse, deleteCourse, addVideo, removeVideo, reorderVideos, updateVideo }}
+      value={{ courses, getCourse, createCourse, updateCourse, deleteCourse, addVideo, removeVideo, reorderVideos, updateVideo, toggleVideoComplete }}
     >
       {children}
     </CoursesContext.Provider>

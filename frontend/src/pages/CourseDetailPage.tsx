@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Plus, Trash2, Edit3, GripVertical, BookOpen, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Play, Plus, Trash2, Edit3, GripVertical, BookOpen, ExternalLink, CheckCircle2, Circle, BarChart3 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useCourses } from '../context/CoursesContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -34,12 +34,14 @@ function SortableVideoItem({
   onPlay,
   onRemove,
   onOpenYoutube,
+  onToggleComplete,
 }: {
-  video: { id: string; title: string; videoUrl: string; thumbnail?: string; notes?: string };
+  video: { id: string; title: string; videoUrl: string; thumbnail?: string; notes?: string; completed?: boolean };
   index: number;
   onPlay: () => void;
   onRemove: () => void;
   onOpenYoutube: () => void;
+  onToggleComplete: () => void;
 }) {
   const { t } = useLanguage();
   const {
@@ -71,6 +73,18 @@ function SortableVideoItem({
       >
         <GripVertical className="h-5 w-5" />
       </div>
+
+      <button
+        onClick={onToggleComplete}
+        className="mt-1.5 flex-shrink-0 text-gray-400 hover:text-green-500 transition-colors"
+        aria-label={video.completed ? t('course.markIncomplete') : t('course.markComplete')}
+      >
+        {video.completed ? (
+          <CheckCircle2 className="h-5 w-5 text-green-500" />
+        ) : (
+          <Circle className="h-5 w-5" />
+        )}
+      </button>
 
       <span className="mt-2 flex-shrink-0 text-xs font-bold text-gray-400 w-5 text-center">
         {index + 1}
@@ -129,7 +143,7 @@ export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { getCourse, addVideo, removeVideo, reorderVideos } = useCourses();
+  const { getCourse, addVideo, removeVideo, reorderVideos, toggleVideoComplete } = useCourses();
   const { play } = usePlayer();
   const { showToast } = useToast();
 
@@ -247,6 +261,13 @@ export default function CourseDetailPage() {
           </div>
           <div className="flex gap-2">
             <button
+              onClick={() => navigate(`/courses/${course.id}/dashboard`)}
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-600"
+            >
+              <BarChart3 className="h-4 w-4" />
+              {t('courses.dashboard')}
+            </button>
+            <button
               onClick={() => setShowEdit(true)}
               className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20"
             >
@@ -299,6 +320,7 @@ export default function CourseDetailPage() {
                     onPlay={() => handlePlayVideo(video.videoUrl, video.title, video.thumbnail)}
                     onRemove={() => handleRemoveVideo(video.id)}
                     onOpenYoutube={() => window.open(video.videoUrl, '_blank', 'noopener')}
+                    onToggleComplete={() => toggleVideoComplete(course.id, video.id)}
                   />
                 ))}
               </div>
