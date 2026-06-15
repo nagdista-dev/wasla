@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck } from 'lucide-react';
+import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck, HeartHandshake, GraduationCap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import type { Channel, Playlist } from '../types';
 
@@ -14,6 +14,8 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
   const { isRTL, t } = useLanguage();
   const navItems = [
     { path: '/', label: t('nav.home'), icon: Home },
+    { path: '/favorites', label: t('favorites.title'), icon: HeartHandshake },
+    { path: '/courses', label: t('courses.title'), icon: GraduationCap },
     { path: '/playlists', label: t('nav.playlists'), icon: Heart },
     { path: '/channels', label: t('nav.channels'), icon: Users },
     { path: '/watch-later', label: t('watchLater.title'), icon: BookmarkCheck },

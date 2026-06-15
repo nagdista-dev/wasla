@@ -80,12 +80,13 @@ const PlaylistCard = memo(function PlaylistCard({ playlist, onEdit, onDelete }: 
           {playlist.categories.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-0.5">
               {playlist.categories.map((cat) => (
-                <span
+                <button
                   key={cat}
-                  className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral truncate max-w-[120px]"
+                  onClick={(e) => { e.stopPropagation(); navigate(`/category/${encodeURIComponent(cat)}`); }}
+                  className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral truncate max-w-[120px] cursor-pointer hover:bg-brand-coral/20 transition-colors"
                 >
                   {cat}
-                </span>
+                </button>
               ))}
             </div>
           )}

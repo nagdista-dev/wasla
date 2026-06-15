@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Settings, Download, Upload, Sun, Moon, RotateCcw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/Toast';
@@ -48,6 +49,7 @@ function getStartPagePath(page: string): string {
 }
 
 export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePlaylists }: SettingsPageProps) {
+  const navigate = useNavigate();
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { showToast } = useToast();
@@ -354,9 +356,13 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
                 {allCategories.length > 0 && (
                   <div className="mb-3 flex flex-wrap gap-1.5">
                     {allCategories.map((cat) => (
-                      <span key={cat} className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral">
+                      <button
+                        key={cat}
+                        onClick={() => navigate(`/category/${encodeURIComponent(cat)}`)}
+                        className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral cursor-pointer hover:bg-brand-coral/20 transition-colors"
+                      >
                         {cat}
-                      </span>
+                      </button>
                     ))}
                   </div>
                 )}

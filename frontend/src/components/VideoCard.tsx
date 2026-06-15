@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Clock, Edit3, ExternalLink, Eye, Play, BookmarkPlus, BookmarkCheck } from 'lucide-react';
+import { Clock, Edit3, Eye, BookmarkPlus, BookmarkCheck, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
@@ -7,6 +7,7 @@ import type { Channel, LatestVideo } from '../types';
 import { usePlayer } from '../context/PlayerContext';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from './Toast';
+import { useFavorites } from '../context/FavoritesContext';
 import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
 
 interface VideoCardProps {
@@ -40,11 +41,13 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
   const { play } = usePlayer();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const channelName = video.channelName || channel.name;
   const initial = channelName.charAt(0).toUpperCase();
 
   const watchLaterItems = loadWatchLater();
   const isInWatchLater = watchLaterItems.some((item) => item.video.link === video.link);
+  const isFav = isFavorite(video.link);
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -73,9 +76,11 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
     }
   };
 
-  const handleYoutube = (e: React.MouseEvent) => {
+  const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open(video.link, '_blank');
+    const wasFav = isFav;
+    toggleFavorite(video, channelName);
+    showToast(wasFav ? t('favorites.removed') : t('favorites.saved'), wasFav ? 'info' : 'success');
   };
 
   const handleChannelClick = (e: React.MouseEvent) => {
@@ -87,7 +92,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
   return (
     <article
-      className={`group relative rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-pointer flex flex-col h-full ${
+      className={`group relative rounded-xl bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-pointer flex flex-col ${
         isLive
           ? 'border-2 border-red-500 dark:border-red-400'
           : 'border border-gray-200 dark:border-gray-700'
@@ -97,59 +102,60 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') play(video); }}
     >
-      <div className="relative aspect-video overflow-hidden">
-        <ThumbnailWithPlaceholder
-          src={video.thumbnail}
-          alt={video.title}
-          className="group-hover:scale-105"
-        />
+      <div className="relative overflow-hidden rounded-t-xl">
+        <div className="aspect-video overflow-hidden">
+          <ThumbnailWithPlaceholder
+            src={video.thumbnail}
+            alt={video.title}
+            className="group-hover:scale-105"
+          />
+        </div>
+
         {isLive ? (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 animate-pulse">
+          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 animate-pulse z-10">
             <span className="h-2 w-2 rounded-full bg-white" />
             {t('videoCard.live')}
           </span>
         ) : (
-          <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1 min-w-[48px] justify-center">
+          <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1 min-w-[48px] justify-center z-10">
             <Clock className="h-3 w-3" />
             {formatDuration(video.duration) || '—'}
           </span>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute top-2 right-2 flex gap-2">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+        <div className="absolute top-2 right-2 z-10 flex gap-1.5">
           <button
-            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
-            onClick={handlePlay}
-            aria-label={t('videoCard.playVideo')}
+            className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all ${
+              isFav
+                ? 'bg-red-500 text-white'
+                : 'bg-white/80 text-gray-600 hover:bg-white'
+            }`}
+            onClick={handleFavorite}
+            aria-label={isFav ? t('favorites.remove') : t('favorites.add')}
           >
-            <Play className="h-5 w-5 text-brand-coral" style={{ marginLeft: '1px' }} />
+            <Heart className={`h-3.5 w-3.5 ${isFav ? 'fill-current' : ''}`} />
           </button>
           <button
-            className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:scale-110 shadow-lg transition-all ${
+            className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all ${
               isInWatchLater
                 ? 'bg-brand-coral text-white'
-                : 'bg-white/90 text-gray-700 hover:bg-white'
+                : 'bg-white/80 text-gray-600 hover:bg-white'
             }`}
             onClick={handleWatchLater}
             aria-label={isInWatchLater ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
           >
             {isInWatchLater ? (
-              <BookmarkCheck className="h-5 w-5" />
+              <BookmarkCheck className="h-3.5 w-3.5" />
             ) : (
-              <BookmarkPlus className="h-5 w-5" />
+              <BookmarkPlus className="h-3.5 w-3.5" />
             )}
-          </button>
-          <button
-            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
-            onClick={handleYoutube}
-            aria-label={t('videoCard.watchOnYoutube')}
-          >
-            <ExternalLink className="h-5 w-5 text-red-600" />
           </button>
         </div>
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1 min-w-0">
         <div className="flex items-center gap-2.5 mb-2.5">
           <button
             onClick={handleChannelClick}
@@ -192,19 +198,15 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
         {channel.categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
-            {channel.categories.slice(0, 4).map((cat) => (
-              <span
+            {channel.categories.map((cat) => (
+              <button
                 key={cat}
-                className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[120px]"
+                onClick={(e) => { e.stopPropagation(); navigate(`/category/${encodeURIComponent(cat)}`); }}
+                className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[120px] hover:bg-brand-coral/10 hover:text-brand-coral hover:border-brand-coral/30 transition-colors"
               >
                 {cat}
-              </span>
+              </button>
             ))}
-            {channel.categories.length > 4 && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-white/20">
-                +{channel.categories.length - 4}
-              </span>
-            )}
           </div>
         )}
       </div>

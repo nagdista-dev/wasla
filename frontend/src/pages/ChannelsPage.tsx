@@ -59,7 +59,11 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
   const filtered = useMemo(() => {
     const q = debouncedSearch.toLowerCase().trim();
     return channels.filter((ch) => {
-      if (selectedCategory && !ch.categories.includes(selectedCategory)) return false;
+      if (selectedCategory === '__uncategorized__') {
+        if (ch.categories.length > 0) return false;
+      } else if (selectedCategory) {
+        if (!ch.categories.includes(selectedCategory)) return false;
+      }
       if (q) {
         const name = ch.name.toLowerCase();
         const handle = ch.handle?.toLowerCase() || '';
@@ -145,18 +149,17 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
               </button>
             )}
           </div>
-          {allCategories.length > 0 && (
-            <CustomFilterDropdown
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              options={[
-                { value: '', label: t('channels.allCategories') },
-                ...allCategories.map((cat) => ({ value: cat, label: cat })),
-              ]}
-              className="min-w-[160px]"
-              placeholder={t('channels.category')}
-            />
-          )}
+          <CustomFilterDropdown
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            options={[
+              { value: '', label: t('channels.allCategories') },
+              { value: '__uncategorized__', label: t('channels.uncategorized') },
+              ...allCategories.map((cat) => ({ value: cat, label: cat })),
+            ]}
+            className="min-w-[160px]"
+            placeholder={t('channels.category')}
+          />
         </div>
 
         {filtered.length === 0 ? (
@@ -212,12 +215,13 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                       {channel.categories.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-1.5">
                           {channel.categories.map((cat) => (
-                            <span
+                            <button
                               key={cat}
-                              className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/category/${encodeURIComponent(cat)}`); }}
+                              className="rounded-full bg-brand-coral/10 px-2.5 py-0.5 text-xs font-medium text-brand-coral cursor-pointer hover:bg-brand-coral/20 transition-colors"
                             >
                               {cat}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       )}

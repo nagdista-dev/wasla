@@ -65,3 +65,31 @@ export interface CourseProgress {
   startDate?: string;
   completedDate?: string;
 }
+
+export interface FavoriteVideo {
+  id: string;
+  videoUrl: string;
+  title: string;
+  thumbnail?: string;
+  channelName?: string;
+  category?: string;
+  savedAt: number;
+}
+
+export interface CourseVideo {
+  id: string;
+  videoUrl: string;
+  title: string;
+  thumbnail?: string;
+  notes?: string;
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+  videos: CourseVideo[];
+  createdAt: number;
+  updatedAt: number;
+}

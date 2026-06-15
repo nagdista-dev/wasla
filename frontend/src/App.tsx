@@ -20,6 +20,8 @@ import {
   Languages,
   BookOpen,
   BookmarkCheck,
+  HeartHandshake,
+  GraduationCap,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
@@ -43,6 +45,9 @@ const PlaylistsPage = lazy(() => import("./pages/PlaylistsPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const WatchLaterPage = lazy(() => import("./pages/WatchLaterPage"));
 const HowToUsePage = lazy(() => import("./pages/HowToUsePage"));
+const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
+const CoursesPage = lazy(() => import("./pages/CoursesPage"));
+const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -77,6 +82,8 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
   }, [language]);
   const navItems = [
     { path: "/", label: t('nav.home'), icon: Home },
+    { path: "/favorites", label: t('favorites.title'), icon: HeartHandshake },
+    { path: "/courses", label: t('courses.title'), icon: GraduationCap },
     { path: "/channels", label: t('nav.channels'), icon: Users },
     { path: "/playlists", label: t('nav.playlists'), icon: Heart },
     { path: "/watch-later", label: t('watchLater.title'), icon: BookmarkCheck },
@@ -410,6 +417,18 @@ function App() {
               <Route
                 path="/how-to-use"
                 element={<HowToUsePage />}
+              />
+              <Route
+                path="/favorites"
+                element={<FavoritesPage />}
+              />
+              <Route
+                path="/courses"
+                element={<CoursesPage />}
+              />
+              <Route
+                path="/courses/:id"
+                element={<CourseDetailPage />}
               />
             </Routes>
           </Suspense>

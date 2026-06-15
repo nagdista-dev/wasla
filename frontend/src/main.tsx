@@ -9,6 +9,8 @@ migrateStorage();
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './components/Toast'
 import { PlayerProvider } from './context/PlayerContext'
+import { FavoritesProvider } from './context/FavoritesContext'
+import { CoursesProvider } from './context/CoursesContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -16,7 +18,11 @@ createRoot(document.getElementById('root')!).render(
       <ThemeProvider>
         <PlayerProvider>
           <ToastProvider>
-            <App />
+            <FavoritesProvider>
+              <CoursesProvider>
+                <App />
+              </CoursesProvider>
+            </FavoritesProvider>
           </ToastProvider>
         </PlayerProvider>
       </ThemeProvider>
