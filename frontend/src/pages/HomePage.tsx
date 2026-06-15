@@ -515,27 +515,27 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         </div>
 
             {showSearch && (
-              <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-20">
+              <div className="fixed inset-0 z-[60] flex items-start justify-center p-2 pt-16 sm:p-4 sm:pt-20">
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowSearch(false); setSearchText(''); }} />
-                <div className="relative z-10 w-full max-w-xl max-h-[70vh] flex flex-col rounded-xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
-                  <div className="flex items-center gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
+                <div className="relative z-10 w-full sm:max-w-2xl max-h-[80vh] sm:max-h-[70vh] flex flex-col rounded-xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
+                  <div className="flex items-center gap-3 border-b border-gray-200 px-3 py-3 sm:px-4 sm:py-4 dark:border-gray-700">
                     <Search className="h-5 w-5 flex-0 text-gray-400" />
                     <input
                       type="text"
                       placeholder={t('home.searchChannels')}
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
-                      className="flex-1 bg-transparent text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
+                      className="flex-1 bg-transparent text-gray-900 outline-none placeholder:text-gray-400 dark:text-white text-sm sm:text-base"
                       autoFocus
                     />
                     <button
                       onClick={() => { setShowSearch(false); setSearchText(''); }}
-                      className="rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                      className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
                     >
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-4">
+                  <div className="flex-1 overflow-y-auto py-2 sm:py-3">
                     {!debouncedSearch ? (
                       <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.searchChannels')}</p>
                     ) : channels
@@ -563,28 +563,40 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         <button
                           key={channel.id}
                           onClick={() => { navigate(`/channel/${channel.id}`); setShowSearch(false); setSearchText(''); }}
-                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
+                          className="flex w-full items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 text-left transition hover:bg-gray-100 dark:hover:bg-white/10 border-b border-gray-100 dark:border-gray-800 last:border-0"
                         >
                           {video ? (
-                            <div className="h-10 w-16 flex-shrink-0 overflow-hidden rounded">
+                            <div className="w-16 sm:w-20 flex-shrink-0 aspect-video overflow-hidden rounded-lg">
                               <ThumbnailWithPlaceholder
                                 src={video.thumbnail}
                                 alt=""
                               />
                             </div>
                           ) : (
-                            <div className="h-10 w-16 flex-shrink-0 rounded bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center text-white font-bold text-sm">
+                            <div className="w-16 sm:w-20 flex-shrink-0 aspect-video rounded-lg bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center text-white font-bold text-sm">
                               {channel.name.charAt(0).toUpperCase()}
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                            <p className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-white leading-snug">
                               {video?.title || channel.name}
                             </p>
-                            <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                            <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
                               {video?.channelName || channel.name}
                               {loading && ' — ...'}
                             </p>
+                            {channel.categories.length > 0 && (
+                              <div className="mt-1 flex items-center gap-1.5">
+                                {channel.categories.slice(0, 2).map((cat) => (
+                                  <span key={cat} className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-[10px] font-medium text-gray-500 dark:text-gray-400 truncate max-w-[80px]">
+                                    {cat}
+                                  </span>
+                                ))}
+                                {channel.categories.length > 2 && (
+                                  <span className="text-[10px] text-gray-400 dark:text-gray-500">+{channel.categories.length - 2}</span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </button>
                       ))}
