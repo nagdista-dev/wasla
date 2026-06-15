@@ -255,6 +255,10 @@ a:focus-visible,
   background: #6b7280;
 }
 
+.animate-fadein {
+  animation: fadeIn 0.35s ease-out;
+}
+
 @keyframes splash-logo-pulse {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.06); opacity: 1; }

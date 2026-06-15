@@ -179,7 +179,11 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const displayItems = useMemo(() => {
     if (channels.length === 0) return [];
     return items
-      .filter((item) => !item.loading && item.video)
+      .filter((item) => {
+        if (item.loading) return true;
+        if (item.error) return true;
+        return !!item.video;
+      })
       .filter((item) => {
         if (selectedCategory) {
           if (item.channel.categories.length === 0) return false;
@@ -362,13 +366,17 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     {loading ? (
                       <VideoCardSkeleton />
                     ) : error ? (
-                      <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy p-6 text-center min-h-[280px] flex flex-col items-center justify-center">
-                        <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
-                        <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
-                      </article>
+                      <div className="animate-fadein h-full">
+                        <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy p-6 text-center min-h-[280px] flex flex-col items-center justify-center h-full">
+                          <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
+                          <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                        </article>
+                      </div>
                     ) : video ? (
-                      <VideoCard channel={channel} video={video} onEdit={onUpdate ? setEditingChannel : undefined} />
+                      <div className="animate-fadein h-full">
+                        <VideoCard channel={channel} video={video} onEdit={onUpdate ? setEditingChannel : undefined} />
+                      </div>
                     ) : null}
                   </div>
                 ))}
@@ -380,14 +388,17 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     {loading ? (
                       <VideoListSkeleton />
                     ) : error ? (
-                      <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700">
-                        <div className="flex-1 flex flex-col justify-center text-center">
-                          <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
-                          <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
-                          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
-                        </div>
-                      </article>
+                      <div className="animate-fadein">
+                        <article className="flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 p-4 dark:bg-dark-navy dark:ring-gray-700">
+                          <div className="flex-1 flex flex-col justify-center text-center">
+                            <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
+                            <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
+                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                          </div>
+                        </article>
+                      </div>
                     ) : video ? (
+                      <div className="animate-fadein">
                       <div
                         className="group relative flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md active:scale-[0.99] dark:bg-dark-navy dark:ring-gray-700 cursor-pointer overflow-hidden"
                         onClick={() => navigate(`/channel/${channel.id}`)}
@@ -504,6 +515,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                             </div>
                           )}
                         </div>
+                      </div>
                       </div>
                     ) : null}
                   </div>
