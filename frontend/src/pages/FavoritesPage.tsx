@@ -71,7 +71,7 @@ export default function FavoritesPage() {
             {favorites.map((fav) => (
               <div
                 key={fav.id}
-                className="group rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700"
+                className="rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:gap-4">
                   {fav.thumbnail && (
@@ -82,7 +82,7 @@ export default function FavoritesPage() {
                       />
                       <button
                         onClick={() => handlePlay(fav)}
-                        className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
+                        className="absolute inset-0 z-10 flex items-center justify-center bg-black/40"
                         aria-label={t('course.playVideo')}
                       >
                         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">

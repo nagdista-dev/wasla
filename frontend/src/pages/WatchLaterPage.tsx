@@ -108,7 +108,7 @@ export default function WatchLaterPage() {
             {filtered.map((item) => (
               <div
                 key={item.id}
-                className={`group rounded-xl transition ${
+                className={`rounded-xl transition ${
                   item.watched
                     ? 'bg-gray-50 ring-1 ring-gray-200 dark:bg-white/5 dark:ring-gray-700'
                     : 'bg-white shadow-sm ring-1 ring-gray-200 hover:shadow-md dark:bg-dark-navy dark:ring-gray-700'
@@ -125,7 +125,7 @@ export default function WatchLaterPage() {
                       />
                       <button
                         onClick={() => handlePlay(item)}
-                        className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
+                        className="absolute inset-0 z-10 flex items-center justify-center bg-black/40"
                         aria-label={t('course.playVideo')}
                       >
                         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">

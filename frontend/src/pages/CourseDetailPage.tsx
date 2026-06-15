@@ -62,7 +62,7 @@ function SortableVideoItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group flex items-start gap-2 sm:gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-200 transition dark:bg-dark-navy dark:ring-gray-700 ${
+      className={`flex items-start gap-2 sm:gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-200 transition dark:bg-dark-navy dark:ring-gray-700 ${
         isDragging ? 'z-50 ring-2 ring-brand-coral shadow-xl opacity-90' : ''
       }`}
     >
@@ -97,7 +97,7 @@ function SortableVideoItem({
         />
         <button
           onClick={onPlay}
-          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 md:group-hover:opacity-100 transition"
+          className="absolute inset-0 flex items-center justify-center bg-black/40"
           aria-label={t('course.playVideo')}
         >
           <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">
@@ -117,7 +117,7 @@ function SortableVideoItem({
         )}
       </div>
 
-      <div className="flex flex-row sm:flex-col gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
+      <div className="flex flex-row sm:flex-col gap-1 flex-shrink-0">
         <button
           onClick={onOpenYoutube}
           className="rounded-lg p-1.5 text-gray-400 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"

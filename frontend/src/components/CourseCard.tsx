@@ -17,7 +17,7 @@ const CourseCard = memo(function CourseCard({ course, onOpen, onEdit, onDelete }
 
   return (
     <article
-      className="group relative rounded-xl bg-white shadow-md ring-1 ring-gray-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-pointer dark:bg-dark-navy dark:ring-gray-700 flex flex-col"
+      className="relative rounded-xl bg-white shadow-md ring-1 ring-gray-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-pointer dark:bg-dark-navy dark:ring-gray-700 flex flex-col"
       onClick={() => onOpen(course.id)}
       role="button"
       tabIndex={0}
@@ -72,7 +72,7 @@ const CourseCard = memo(function CourseCard({ course, onOpen, onEdit, onDelete }
           })()}
 
 
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               onClick={() => navigate(`/courses/${course.id}/dashboard`)}

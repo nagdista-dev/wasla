@@ -91,7 +91,7 @@ const ToastItem = memo(function ToastItem({ toast, onRemove }: { toast: Toast; o
       <p className="flex-1 text-sm font-medium">{toast.message}</p>
       <button
         onClick={() => onRemove(toast.id)}
-        className="flex-shrink-0 text-current opacity-50 hover:opacity-100 transition-opacity"
+        className="flex-shrink-0 text-current opacity-100"
         aria-label={t('toast.dismiss')}
       >
         <X className="h-4 w-4" />
