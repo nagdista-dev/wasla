@@ -67,14 +67,14 @@ export default function CourseDashboardPage() {
 
         <div className="mb-6 flex flex-wrap items-start gap-4">
           {firstVideo?.thumbnail ? (
-            <div className="w-full sm:w-48 aspect-video overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
+            <div className="relative w-full max-w-xs sm:max-w-none sm:w-48 aspect-video overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
               <ThumbnailWithPlaceholder
                 src={firstVideo.thumbnail}
                 alt={course.name}
               />
             </div>
           ) : (
-            <div className="w-full sm:w-48 aspect-video rounded-xl bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center flex-shrink-0">
+            <div className="relative w-full max-w-xs sm:max-w-none sm:w-48 aspect-video rounded-xl bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center flex-shrink-0">
               <BarChart3 className="h-12 w-12 text-white/60" />
             </div>
           )}
