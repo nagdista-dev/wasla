@@ -231,7 +231,7 @@ export default function ChannelPage() {
   // ── Sorted videos ─────────────────────────────────────────────────────────
   const sortedVideos = useMemo(() => {
     if (!data) return [];
-    const videos = [...data.videos].slice(0, 50);
+    const videos = [...data.videos];
     switch (sortBy) {
       case 'newest':
         return videos.sort(
@@ -356,7 +356,7 @@ export default function ChannelPage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <ExternalLink className="h-4 w-4 text-red-600" />
-                YouTube
+                {t('playlists.youtube')}
               </a>
             </div>
           </div>

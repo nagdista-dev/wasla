@@ -2,10 +2,15 @@ import { useEffect, useState } from 'react';
 import { Smartphone, Download } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export default function MobileAppBanner() {
   const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installResolved, setInstallResolved] = useState(false);
 
   useEffect(() => {
@@ -27,14 +32,14 @@ export default function MobileAppBanner() {
     const handler = (e: Event) => {
       e.preventDefault();
       if (promptFired) return;
-      setDeferredPrompt(e);
+      promptFired = true;
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setVisible(true);
     };
-    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('beforeinstallprompt', handler as EventListener);
 
-    const timer = setTimeout(() => setVisible(true), 500);
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('beforeinstallprompt', handler as EventListener);
     };
   }, []);
 
@@ -42,17 +47,19 @@ export default function MobileAppBanner() {
     if (installResolved || !deferredPrompt) return;
     setInstallResolved(true);
 
-    const promptEvent = deferredPrompt as any;
-    promptEvent.prompt();
-    const result = await promptEvent.userChoice;
-    setDeferredPrompt(null);
-    setVisible(false);
-
-    if (result.outcome === 'accepted') {
-      localStorage.setItem('wasla_installed', 'true');
-    } else {
+    try {
+      await deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      if (result.outcome === 'accepted') {
+        localStorage.setItem('wasla_installed', 'true');
+      } else {
+        localStorage.setItem('wasla_install_dismissed', 'true');
+      }
+    } catch {
       localStorage.setItem('wasla_install_dismissed', 'true');
     }
+    setDeferredPrompt(null);
+    setVisible(false);
   };
 
   const handleNotNow = () => {

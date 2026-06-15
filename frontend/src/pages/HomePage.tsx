@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, ExternalLink, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
+import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
@@ -70,7 +70,7 @@ function savePref(key: string, value: unknown) {
 export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { play } = usePlayer();
+  usePlayer();
   const { showToast } = useToast();
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
@@ -416,14 +416,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                               </span>
                             );
                           })()}
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 z-20">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); play(video); }}
-                              className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm text-brand-coral flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
-                              aria-label={t('videoCard.playVideo')}
-                            >
-                              <Play className="h-5 w-5 pl-0.5" />
-                            </button>
+                          <div className="absolute top-2 right-2 z-20">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -445,25 +438,18 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                                   showToast(t('watchLater.saved'), 'success');
                                 }
                               }}
-                              className={`w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center hover:scale-110 shadow-lg transition-all ${
+                              className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all ${
                                 loadWatchLater().some((item) => item.video.link === video.link)
                                   ? 'bg-brand-coral text-white'
-                                  : 'bg-white/90 text-gray-700 hover:bg-white'
+                                  : 'bg-white/80 text-gray-600 hover:bg-white'
                               }`}
-                              aria-label={t('videoCard.watchLater')}
+                              aria-label={loadWatchLater().some((item) => item.video.link === video.link) ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
                             >
                               {loadWatchLater().some((item) => item.video.link === video.link) ? (
-                                <BookmarkCheck className="h-5 w-5" />
+                                <BookmarkCheck className="h-3.5 w-3.5" />
                               ) : (
-                                <BookmarkPlus className="h-5 w-5" />
+                                <BookmarkPlus className="h-3.5 w-3.5" />
                               )}
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); window.open(video.link, '_blank'); }}
-                              className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm text-red-600 flex items-center justify-center hover:bg-white hover:scale-110 shadow-lg transition-all"
-                              aria-label={t('videoCard.watchOnYoutube')}
-                            >
-                              <ExternalLink className="h-5 w-5" />
                             </button>
                           </div>
                         </div>
@@ -506,19 +492,15 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                           </div>
                           {channel.categories.length > 0 && (
                             <div className="flex flex-wrap gap-1.5">
-                              {channel.categories.slice(0, 3).map((cat) => (
-                                <span
+                              {channel.categories.map((cat) => (
+                                <button
                                   key={cat}
-                                className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[100px]"
+                                  onClick={(e) => { e.stopPropagation(); navigate(`/category/${encodeURIComponent(cat)}`); }}
+                                className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[100px] hover:bg-brand-coral/10 hover:text-brand-coral hover:border-brand-coral/30 transition-colors"
                               >
                                 {cat}
-                              </span>
+                              </button>
                               ))}
-                              {channel.categories.length > 3 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-white/20">
-                                  +{channel.categories.length - 3}
-                                </span>
-                              )}
                             </div>
                           )}
                         </div>
@@ -554,45 +536,66 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4">
-                    {items
-                      .filter((item) => !item.loading && item.video)
-                      .filter((item) => {
-                  if (!debouncedSearch) return true;
-                  const q = debouncedSearch.toLowerCase();
-                  const name = item.channel.name.toLowerCase();
-                  const title = item.video!.title.toLowerCase();
-                  return name.includes(q) || title.includes(q);
-                })
-                .sort((a, b) => {
-                  if (!a.video || !b.video) return 0;
-                  return new Date(b.video.publishedDate).getTime() - new Date(a.video.publishedDate).getTime();
-                })
-                .map(({ channel, video }) => (
-                  <button
-                    key={channel.id}
-                    onClick={() => { navigate(`/channel/${channel.id}`); setShowSearch(false); setSearchText(''); }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
-                  >
-                    <div className="h-12 w-20 flex-shrink-0 overflow-hidden rounded">
-                      <ThumbnailWithPlaceholder
-                        src={video!.thumbnail}
-                        alt=""
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-gray-900 dark:text-white">{video!.title}</p>
-                      <p className="truncate text-xs text-gray-500 dark:text-gray-400">{video!.channelName || channel.name}</p>
-                    </div>
-                  </button>
-                ))}
-              {debouncedSearch && items.filter((i) => !i.loading && i.video).filter((item) => {
-                const q = debouncedSearch.toLowerCase();
-                const name = item.channel.name.toLowerCase();
-                const title = item.video!.title.toLowerCase();
-                return name.includes(q) || title.includes(q);
-              }).length === 0 && (
-                <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.noVideosMatch')}</p>
-              )}
+                    {!debouncedSearch ? (
+                      <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.searchChannels')}</p>
+                    ) : channels
+                      .filter((ch) => {
+                        const q = debouncedSearch.toLowerCase().trim();
+                        const name = ch.name.toLowerCase();
+                        const handle = ch.handle?.toLowerCase() || '';
+                        return name.includes(q) || handle.includes(q);
+                      })
+                      .map((ch) => {
+                        const item = items.find((i) => i.channel.id === ch.id);
+                        const video = item?.video;
+                        const loading = item?.loading;
+                        return { channel: ch, video, loading };
+                      })
+                      .filter(({ channel, video }) => {
+                        if (!debouncedSearch) return true;
+                        const q = debouncedSearch.toLowerCase().trim();
+                        const name = channel.name.toLowerCase();
+                        const handle = channel.handle?.toLowerCase() || '';
+                        const title = video?.title?.toLowerCase() || '';
+                        return name.includes(q) || handle.includes(q) || title.includes(q);
+                      })
+                      .map(({ channel, video, loading }) => (
+                        <button
+                          key={channel.id}
+                          onClick={() => { navigate(`/channel/${channel.id}`); setShowSearch(false); setSearchText(''); }}
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
+                        >
+                          {video ? (
+                            <div className="h-12 w-20 flex-shrink-0 overflow-hidden rounded">
+                              <ThumbnailWithPlaceholder
+                                src={video.thumbnail}
+                                alt=""
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-12 w-20 flex-shrink-0 rounded bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center text-white font-bold text-lg">
+                              {channel.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                              {video?.title || channel.name}
+                            </p>
+                            <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                              {video?.channelName || channel.name}
+                              {loading && ' — ...'}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    {debouncedSearch && channels.filter((ch) => {
+                      const q = debouncedSearch.toLowerCase().trim();
+                      const name = ch.name.toLowerCase();
+                      const handle = ch.handle?.toLowerCase() || '';
+                      return name.includes(q) || handle.includes(q);
+                    }).length === 0 && (
+                      <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.noVideosMatch')}</p>
+                    )}
             </div>
           </div>
         </div>

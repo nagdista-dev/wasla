@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { fetchChannelData, fetchChannelDetails, clearCache, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists } from '../services/rssService.js';
+import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists } from '../services/rssService.js';
 import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse, ChannelPlaylistsResponse, PlaylistSummary } from '../types/index.js';
 
 const router = Router();
@@ -178,7 +178,7 @@ router.get('/playlist/:id', async (req: Request, res: Response) => {
 });
 
 router.delete('/cache', (_req: Request, res: Response) => {
-  clearCache();
+  clearAllCaches();
   res.json({ success: true, message: 'Cache cleared' });
 });
 
@@ -256,8 +256,7 @@ router.patch('/channel/:id', async (req: Request, res: Response) => {
       const validCategories = categories
         .filter((cat: string) => cat && typeof cat === 'string' && cat.trim().length > 0)
         .map((cat: string) => cat.trim())
-        .filter((cat: string, index: number, self: string[]) => self.indexOf(cat) === index)
-        .slice(0, 10);
+        .filter((cat: string, index: number, self: string[]) => self.indexOf(cat) === index);
 
       updatedData.channelName = trimmedName;
       updatedData.videos = existingChannel?.data.videos || [];

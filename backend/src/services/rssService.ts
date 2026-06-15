@@ -2,14 +2,13 @@ import { parseStringPromise } from 'xml2js';
 import { ChannelFeedData, VideoData, PlaylistSummary } from '../types/index.js';
 import { addRelativeTimeToVideos } from '../utils/dateUtils.js';
 
-const CACHE_DURATION = 12 * 60 * 1000;
-const VIDEO_LIMIT = 50;
+const CACHE_DURATION = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 100;
 const FETCH_TIMEOUT = 10000;
 const cache = new Map<string, { id: string; data: ChannelFeedData; timestamp: number }>();
 const pendingRequests = new Map<string, Promise<ChannelFeedData>>();
 
-const PLAYLIST_CACHE_DURATION = 12 * 60 * 1000;
+const PLAYLIST_CACHE_DURATION = 5 * 60 * 1000;
 const PLAYLIST_MAX_CACHE_SIZE = 100;
 const playlistCache = new Map<string, { id: string; data: PlaylistSummary[]; timestamp: number }>();
 const pendingPlaylistRequests = new Map<string, Promise<PlaylistSummary[]>>();
@@ -102,7 +101,7 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
     return pending;
   }
 
-  const promise = fetchAndParseRSS(channelId, VIDEO_LIMIT);
+  const promise = fetchAndParseRSS(channelId);
   pendingRequests.set(channelId, promise);
 
   try {
@@ -126,7 +125,7 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
   }
 }
 
-async function fetchAndParseRSS(channelId: string, limit = VIDEO_LIMIT): Promise<ChannelFeedData> {
+async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
   const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 
   const controller = new AbortController();
@@ -180,8 +179,7 @@ async function fetchAndParseRSS(channelId: string, limit = VIDEO_LIMIT): Promise
       };
     })
     .filter((v) => v.link.includes('watch?v='))  // only keep real playable video links
-    .sort((a: VideoData, b: VideoData) => Date.parse(b.publishedDate) - Date.parse(a.publishedDate))
-    .slice(0, limit);
+    .sort((a: VideoData, b: VideoData) => Date.parse(b.publishedDate) - Date.parse(a.publishedDate));
 
   if (videos.length === 0) {
     throw new Error('No videos found in channel feed');
@@ -262,10 +260,12 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
   };
 }
 
-export function clearCache(): void {
+export function clearAllCaches(): void {
   cache.clear();
   pendingRequests.clear();
   DETAILS_CACHE.clear();
+  playlistCache.clear();
+  pendingPlaylistRequests.clear();
 }
 
 export function getCacheStats(): { size: number; entries: Array<{ id: string; data: ChannelFeedData }> } {
@@ -448,6 +448,7 @@ function extractChannelIdFromJsonLd(data: Record<string, unknown>): string | nul
 }
 
 const DETAILS_CACHE = new Map<string, { data: import('../types/index.js').ChannelDetails; timestamp: number }>();
+const DETAILS_CACHE_DURATION = 5 * 60 * 1000;
 const DETAILS_MAX_CACHE_SIZE = 100;
 
 export async function fetchChannelDetails(channelId: string, handle?: string): Promise<import('../types/index.js').ChannelDetails> {
@@ -457,7 +458,7 @@ export async function fetchChannelDetails(channelId: string, handle?: string): P
   }
 
   const [rssData, pageData] = await Promise.all([
-    fetchAndParseRSS(channelId, 50),
+    fetchAndParseRSS(channelId),
     scrapeChannelPage(channelId, handle),
   ]);
 
@@ -665,6 +666,9 @@ export function clearPlaylistCache(): void {
   playlistCache.clear();
   pendingPlaylistRequests.clear();
 }
+
+// Clear all caches on startup to prevent stale data from taking effect
+clearAllCaches();
 
 export function getPlaylistCacheStats(): { size: number; entries: Array<{ id: string; data: PlaylistSummary[] }> } {
   return {
