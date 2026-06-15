@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
+import LoadingScreen from "./components/LoadingScreen";
 import AddChannelModal from "./components/AddChannelModal";
 import AddPlaylistModal from "./components/AddPlaylistModal";
 import MobileAppBanner from "./components/MobileAppBanner";
@@ -268,6 +269,16 @@ function App() {
   const [playlists, setPlaylists] = useState<Playlist[]>(loadPlaylists);
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashFadeOut, setSplashFadeOut] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSplashFadeOut(true);
+      setTimeout(() => setShowSplash(false), 600);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const updateChannels = useCallback((nextChannels: Channel[]) => {
     setChannels(nextChannels);
@@ -362,18 +373,31 @@ function App() {
   );
 
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <StartupRedirect />
-      {/* Mobile navigation */}
-      <Navigation channels={channels} />
-      {/* Desktop sidebar */}
-      <Sidebar channels={channels} playlists={playlists} />
-      <div className={`flex flex-col flex-1 min-h-screen pt-16 overflow-visible ${
-        isRTL ? 'md:mr-64' : 'md:ml-64'
-      }`}>
-        <main className="flex-1 overflow-visible">
-          <Suspense fallback={<div className="min-h-screen dark:bg-dark-navy" />}>
+    <>
+      {showSplash && <LoadingScreen fadeOut={splashFadeOut} />}
+      <BrowserRouter>
+        <ScrollToTop />
+        <StartupRedirect />
+        {/* Mobile navigation */}
+        <Navigation channels={channels} />
+        {/* Desktop sidebar */}
+        <Sidebar channels={channels} playlists={playlists} />
+        <div className={`flex flex-col flex-1 min-h-screen pt-16 overflow-visible ${
+          isRTL ? 'md:mr-64' : 'md:ml-64'
+        }`}>
+          <main className="flex-1 overflow-visible">
+            <Suspense fallback={
+              <div className="min-h-screen flex items-center justify-center dark:bg-dark-navy">
+                <div className="flex flex-col items-center gap-4">
+                  <img src={logo} alt="" className="w-16 h-16 object-contain opacity-50 splash-logo-pulse" />
+                  <div className="flex gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-coral splash-dot" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-orange splash-dot" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-yellow splash-dot" style={{ animationDelay: "300ms" }} />
+                  </div>
+                </div>
+              </div>
+            }>
             <Routes>
               <Route
                 path="/"
@@ -465,8 +489,9 @@ function App() {
         )}
         <MobileAppBanner />
         <MiniPlayerModal />
-      </div>
-    </BrowserRouter>
+        </div>
+      </BrowserRouter>
+    </>
   );
 }
 

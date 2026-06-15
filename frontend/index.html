@@ -30,10 +30,85 @@
     <meta name="twitter:image" content="/logo.png" />
     <meta name="description" content="Your curated collection of YouTube channels, playlists, and video courses." />
     <title>Wasla</title>
-    <script>try{var l=localStorage.getItem('wasla_language');var isAr=l!=='en';var appName=isAr?'وصلة':'Wasla';document.documentElement.lang=isAr?'ar':'en';document.documentElement.dir=isAr?'rtl':'ltr';document.title=appName;var meta=document.querySelector('meta[property="og:title"]');if(meta)meta.setAttribute('content',appName);meta=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(meta)meta.setAttribute('content',appName);meta=document.querySelector('meta[property="og:site_name"]');if(meta)meta.setAttribute('content',appName);var d=document.querySelector('meta[name="description"]');if(d)d.setAttribute('content',appName+' - '+d.getAttribute('content'));var od=document.querySelector('meta[property="og:description"]');if(od)od.setAttribute('content',appName+' - '+od.getAttribute('content'));var td=document.querySelector('meta[name="twitter:description"]');if(td)td.setAttribute('content',appName+' - '+td.getAttribute('content'));document.documentElement.classList.toggle('dark',localStorage.getItem('wasla_theme')!=='light')}catch(e){}</script>
+    <style>
+      .app-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #0a1128;
+      }
+      .app-splash-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      .app-splash-logo {
+        width: 7rem;
+        height: 7rem;
+        object-fit: contain;
+        animation: app-splash-pulse 2s ease-in-out infinite;
+      }
+      @media (min-width: 768px) {
+        .app-splash-logo {
+          width: 9rem;
+          height: 9rem;
+        }
+      }
+      @keyframes app-splash-pulse {
+        0%, 100% { transform: scale(1); opacity: 0.9; }
+        50% { transform: scale(1.06); opacity: 1; }
+      }
+      .app-splash-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.05em;
+        margin: 0;
+      }
+      @media (min-width: 768px) {
+        .app-splash-title {
+          font-size: 2.25rem;
+        }
+      }
+      .app-splash-dots {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .app-splash-dot {
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 50%;
+        animation: app-splash-bounce 1.4s ease-in-out infinite;
+      }
+      .app-splash-dot:nth-child(1) { background: #e2436a; animation-delay: 0ms; }
+      .app-splash-dot:nth-child(2) { background: #f37345; animation-delay: 150ms; }
+      .app-splash-dot:nth-child(3) { background: #feb144; animation-delay: 300ms; }
+      @keyframes app-splash-bounce {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+    </style>
+    <script>try{var l=localStorage.getItem('wasla_language');var isAr=l!=='en';var appName=isAr?'وصلة':'Wasla';document.documentElement.lang=isAr?'ar':'en';document.documentElement.dir=isAr?'rtl':'ltr';document.title=appName;var meta=document.querySelector('meta[property="og:title"]');if(meta)meta.setAttribute('content',appName);meta=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(meta)meta.setAttribute('content',appName);meta=document.querySelector('meta[property="og:site_name"]');if(meta)meta.setAttribute('content',appName);var d=document.querySelector('meta[name="description"]');if(d)d.setAttribute('content',appName+' - '+d.getAttribute('content'));var od=document.querySelector('meta[property="og:description"]');if(od)od.setAttribute('content',appName+' - '+od.getAttribute('content'));var td=document.querySelector('meta[name="twitter:description"]');if(td)td.setAttribute('content',appName+' - '+td.getAttribute('content'));document.documentElement.classList.toggle('dark',localStorage.getItem('wasla_theme')!=='light');var st=document.getElementById('app-splash-title');if(st)st.textContent=appName;var sl=document.getElementById('app-splash-logo');if(sl)sl.alt=appName}catch(e){}</script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-splash" class="app-splash">
+        <div class="app-splash-content">
+          <img id="app-splash-logo" src="/logo.png" alt="Wasla" class="app-splash-logo" />
+          <h1 id="app-splash-title" class="app-splash-title">Wasla</h1>
+          <div class="app-splash-dots">
+            <span class="app-splash-dot"></span>
+            <span class="app-splash-dot"></span>
+            <span class="app-splash-dot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
