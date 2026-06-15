@@ -45,13 +45,14 @@ export default function CourseDashboardPage() {
     );
   }
 
-  const total = course.videos.length;
-  const completed = course.videos.filter((v) => v.completed).length;
+  const videos = Array.isArray(course.videos) ? course.videos : [];
+  const total = videos.length;
+  const completed = videos.filter((v) => v?.completed).length;
   const remaining = total - completed;
   const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   const StatusIcon = getStatusIcon(progress);
-  const firstVideo = course.videos[0];
+  const firstVideo = videos[0];
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">

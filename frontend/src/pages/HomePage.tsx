@@ -372,7 +372,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                   </div>
                 ))}
               </div>
-) : (
+            ) : (
               <div className="space-y-3">
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <div key={channel.id} className="min-w-0">
@@ -539,12 +539,6 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                     {!debouncedSearch ? (
                       <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.searchChannels')}</p>
                     ) : channels
-                      .filter((ch) => {
-                        const q = debouncedSearch.toLowerCase().trim();
-                        const name = ch.name.toLowerCase();
-                        const handle = ch.handle?.toLowerCase() || '';
-                        return name.includes(q) || handle.includes(q);
-                      })
                       .map((ch) => {
                         const item = items.find((i) => i.channel.id === ch.id);
                         const video = item?.video;
@@ -552,7 +546,6 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         return { channel: ch, video, loading };
                       })
                       .filter(({ channel, video }) => {
-                        if (!debouncedSearch) return true;
                         const q = debouncedSearch.toLowerCase().trim();
                         const name = channel.name.toLowerCase();
                         const handle = channel.handle?.toLowerCase() || '';
@@ -600,12 +593,14 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                           </div>
                         </button>
                       ))}
-                    {debouncedSearch && channels.filter((ch) => {
+                    {debouncedSearch && channels.every((ch) => {
                       const q = debouncedSearch.toLowerCase().trim();
                       const name = ch.name.toLowerCase();
                       const handle = ch.handle?.toLowerCase() || '';
-                      return name.includes(q) || handle.includes(q);
-                    }).length === 0 && (
+                      const item = items.find((i) => i.channel.id === ch.id);
+                      const title = item?.video?.title?.toLowerCase() || '';
+                      return !name.includes(q) && !handle.includes(q) && !title.includes(q);
+                    }) && (
                       <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.noVideosMatch')}</p>
                     )}
             </div>

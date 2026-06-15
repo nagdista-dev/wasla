@@ -207,12 +207,12 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
               <div key={channel.id} className="h-full">
                 {loading ? (
                   <VideoCardSkeleton />
-                ) : error ? (
-                  <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700 flex h-full min-h-[220px] flex-col justify-center p-5 text-center">
-                    <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
-                    <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
-                  </div>
+                  ) : error ? (
+                    <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700 flex h-full min-h-[220px] flex-col justify-center p-5 text-center">
+                      <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
+                      <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
+                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                    </div>
                   ) : video ? (
                     <VideoCard channel={channel} video={video} />
                   ) : null}

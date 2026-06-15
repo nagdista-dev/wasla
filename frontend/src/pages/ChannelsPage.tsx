@@ -123,7 +123,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
   };
 
   return (
-    <div className="min-h-screen p-6 dark:bg-dark-navy ">
+    <div className="min-h-screen p-6 dark:bg-dark-navy">
       <div className="mx-auto max-w-4xl ">
         <div className="mb-6">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{t('channels.title')}</h1>
@@ -243,11 +243,11 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                           <Edit3 className="h-4 w-4" />
                           {t('channels.edit')}
                         </button>
-                         <button
-                           type="button"
-                           onClick={() => handleDeleteClick(channel)}
-                           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
-                         >
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteClick(channel)}
+                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
+                        >
                           <Trash2 className="h-4 w-4" />
                           {t('channels.delete')}
                         </button>
