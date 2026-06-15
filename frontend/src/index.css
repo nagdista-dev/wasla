@@ -29,6 +29,7 @@ html {
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
+  scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -223,37 +224,14 @@ a:focus-visible,
   border-radius: 4px;
 }
 
-/* Modal custom scrollbar */
+/* Modal scroll container */
 .modal-scroll {
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent;
-}
-
-.modal-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.modal-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.modal-scroll::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
-}
-
-.dark .modal-scroll {
-  scrollbar-color: #4b5563 transparent;
-}
-
-.dark .modal-scroll::-webkit-scrollbar-thumb {
-  background: #4b5563;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -262,7 +240,7 @@ a:focus-visible,
 
 ::-webkit-scrollbar-thumb {
   background: #d1d5db;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
