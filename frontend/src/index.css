@@ -26,8 +26,16 @@
 }
 
 html {
+  scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: #d1d5db transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 html[lang="ar"] {
