@@ -196,24 +196,26 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
           </span>
         </div>
 
-        {channel.categories.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
-            {channel.categories.slice(0, 3).map((cat) => (
-              <button
-                key={cat}
-                onClick={(e) => { e.stopPropagation(); navigate(`/category/${encodeURIComponent(cat)}`); }}
-                className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[120px] hover:bg-brand-coral/10 hover:text-brand-coral hover:border-brand-coral/30 transition-colors"
-              >
-                {cat}
-              </button>
-            ))}
-            {channel.categories.length > 3 && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-white/20">
-                +{channel.categories.length - 3}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="flex gap-1.5 mt-auto pt-1 min-h-[28px] items-start overflow-hidden flex-nowrap">
+          {channel.categories.length > 0 && (
+            <>
+              {channel.categories.slice(0, 3).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/category/${encodeURIComponent(cat)}`); }}
+                  className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[120px] hover:bg-brand-coral/10 hover:text-brand-coral hover:border-brand-coral/30 transition-colors flex-shrink-0"
+                >
+                  {cat}
+                </button>
+              ))}
+              {channel.categories.length > 3 && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-white/20 flex-shrink-0">
+                  +{channel.categories.length - 3}
+                </span>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </article>
   );
