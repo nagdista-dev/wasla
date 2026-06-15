@@ -355,7 +355,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         ) : (
           <>
             {viewMode === 'grid' ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-full">
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-full items-stretch">
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <div key={channel.id} className="min-w-0 h-full">
                     {loading ? (
@@ -563,17 +563,17 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                         <button
                           key={channel.id}
                           onClick={() => { navigate(`/channel/${channel.id}`); setShowSearch(false); setSearchText(''); }}
-                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
+                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
                         >
                           {video ? (
-                            <div className="h-12 w-20 flex-shrink-0 overflow-hidden rounded">
+                            <div className="h-10 w-16 flex-shrink-0 overflow-hidden rounded">
                               <ThumbnailWithPlaceholder
                                 src={video.thumbnail}
                                 alt=""
                               />
                             </div>
                           ) : (
-                            <div className="h-12 w-20 flex-shrink-0 rounded bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center text-white font-bold text-lg">
+                            <div className="h-10 w-16 flex-shrink-0 rounded bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center text-white font-bold text-sm">
                               {channel.name.charAt(0).toUpperCase()}
                             </div>
                           )}

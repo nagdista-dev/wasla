@@ -403,6 +403,15 @@ const en = {
   'courses.videoAdded': 'Video added to course',
   'courses.videoRemoved': 'Video removed from course',
 
+  // Contact
+  'contact.title': 'Contact Developer',
+  'contact.subtitle': 'Send feedback, report bugs, or share suggestions',
+  'contact.description': 'Have a suggestion, found a bug, or just want to say something? Send me a message directly on WhatsApp. I read every message and appreciate your feedback!',
+  'contact.placeholder': 'Write your message here…',
+  'contact.sendButton': 'Send on WhatsApp',
+  'contact.draftSaved': 'Draft saved',
+  'contact.fallback': 'If WhatsApp doesn\'t open, send a message to {number}',
+
   // General
   'general.untitled': 'Untitled',
 };

@@ -198,7 +198,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
         {channel.categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
-            {channel.categories.map((cat) => (
+            {channel.categories.slice(0, 3).map((cat) => (
               <button
                 key={cat}
                 onClick={(e) => { e.stopPropagation(); navigate(`/category/${encodeURIComponent(cat)}`); }}
@@ -207,6 +207,11 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
                 {cat}
               </button>
             ))}
+            {channel.categories.length > 3 && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-white/20">
+                +{channel.categories.length - 3}
+              </span>
+            )}
           </div>
         )}
       </div>

@@ -403,6 +403,15 @@ const ar: Record<string, string> = {
   'courses.videoAdded': 'تمت إضافة الفيديو إلى الدورة',
   'courses.videoRemoved': 'تمت إزالة الفيديو من الدورة',
 
+  // Contact
+  'contact.title': 'تواصل مع المطور',
+  'contact.subtitle': 'أرسل ملاحظات، أبلغ عن أخطاء، أو شارك اقتراحات',
+  'contact.description': 'هل لديك اقتراح، وجدت خطأ، أو تريد فقط قول شيء؟ أرسل لي رسالة مباشرة على واتساب. أقرأ كل الرسائل وأقدر ملاحظاتك!',
+  'contact.placeholder': 'اكتب رسالتك هنا…',
+  'contact.sendButton': 'إرسال على واتساب',
+  'contact.draftSaved': 'تم حفظ المسودة',
+  'contact.fallback': 'إذا لم يفتح واتساب، أرسل رسالة إلى {number}',
+
   // General
   'general.untitled': 'بدون عنوان',
 };

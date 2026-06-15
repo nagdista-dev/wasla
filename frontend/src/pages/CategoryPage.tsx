@@ -202,7 +202,7 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
             </p>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
             {displayItems.map(({ channel, video, loading, error }) => (
               <div key={channel.id} className="h-full">
                 {loading ? (
