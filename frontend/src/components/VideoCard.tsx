@@ -92,7 +92,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
   return (
     <article
-      className={`group relative rounded-xl bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-pointer flex flex-col ${
+      className={`group relative rounded-xl bg-white shadow-md dark:bg-dark-navy transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] cursor-pointer flex flex-col h-full ${
         isLive
           ? 'border-2 border-red-500 dark:border-red-400'
           : 'border border-gray-200 dark:border-gray-700'
