@@ -410,6 +410,12 @@ const ar: Record<string, string> = {
   'courses.resumeCourse': 'استئناف الدورة',
   'courses.markComplete': 'تحديد كمكتمل',
   'courses.markIncomplete': 'تحديد كغير مكتمل',
+  'courses.remaining': 'المتبقي',
+  'courses.statusNotStarted': 'لم تبدأ',
+  'courses.statusJustStarted': 'بدأت للتو',
+  'courses.statusInProgress': 'قيد التقدم',
+  'courses.statusAlmostDone': 'تقريباً منتهية',
+  'courses.statusCompleted': 'مكتملة',
   'courses.noProgress': 'لم يتم إكمال أي فيديو بعد',
 
   // Contact

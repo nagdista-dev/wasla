@@ -410,6 +410,12 @@ const en = {
   'courses.resumeCourse': 'Resume Course',
   'courses.markComplete': 'Mark as complete',
   'courses.markIncomplete': 'Mark as incomplete',
+  'courses.remaining': 'Remaining',
+  'courses.statusNotStarted': 'Not started',
+  'courses.statusJustStarted': 'Just started',
+  'courses.statusInProgress': 'In progress',
+  'courses.statusAlmostDone': 'Almost done',
+  'courses.statusCompleted': 'Completed',
   'courses.noProgress': 'No videos completed yet',
 
   // Contact
