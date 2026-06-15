@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { X, Loader2, RefreshCcw } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -40,7 +40,7 @@ const extractHandle = (value: string): string | null => {
   return null;
 };
 
-export default function EditChannelModal({ channel, onClose, onUpdate, existingCategories = [] }: {
+const EditChannelModal = memo(function EditChannelModal({ channel, onClose, onUpdate, existingCategories = [] }: {
   channel: Channel;
   onClose: () => void;
   onUpdate: (name: string, categories: string[]) => void;
@@ -290,4 +290,6 @@ export default function EditChannelModal({ channel, onClose, onUpdate, existingC
       </div>
     </div>
   );
-}
+});
+
+export default EditChannelModal;

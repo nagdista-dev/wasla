@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { X, RefreshCcw, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -43,7 +43,7 @@ const extractHandle = (value: string): string | null => {
   return null;
 };
 
-export default function AddChannelModal({ onClose, onAdd, existingCategories = [] }: { onClose: () => void; onAdd: (ch: ChannelEntry) => void; existingCategories?: string[] }) {
+const AddChannelModal = memo(function AddChannelModal({ onClose, onAdd, existingCategories = [] }: { onClose: () => void; onAdd: (ch: ChannelEntry) => void; existingCategories?: string[] }) {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const [input, setInput] = useState('');
@@ -219,4 +219,6 @@ export default function AddChannelModal({ onClose, onAdd, existingCategories = [
       </div>
     </div>
   );
-}
+});
+
+export default AddChannelModal;

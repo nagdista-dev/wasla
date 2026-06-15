@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Clock, Edit3, Eye, BookmarkPlus, BookmarkCheck, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -45,8 +45,9 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
   const channelName = video.channelName || channel.name;
   const initial = channelName.charAt(0).toUpperCase();
 
-  const watchLaterItems = loadWatchLater();
-  const isInWatchLater = watchLaterItems.some((item) => item.video.link === video.link);
+  const [isInWatchLater, setIsInWatchLater] = useState(() =>
+    loadWatchLater().some((item) => item.video.link === video.link)
+  );
   const isFav = isFavorite(video.link);
 
   const handlePlay = (e: React.MouseEvent) => {
@@ -56,13 +57,13 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
   const handleWatchLater = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const items = loadWatchLater();
-    const existing = items.find((item) => item.video.link === video.link);
-    if (existing) {
-      const filtered = items.filter((item) => item.video.link !== video.link);
-      saveWatchLater(filtered);
+    if (isInWatchLater) {
+      const items = loadWatchLater();
+      saveWatchLater(items.filter((item) => item.video.link !== video.link));
+      setIsInWatchLater(false);
       showToast(t('watchLater.removed'), 'info');
     } else {
+      const items = loadWatchLater();
       items.push({
         id: `${channel.id}_${Date.now()}`,
         video,
@@ -72,6 +73,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
         watched: false,
       });
       saveWatchLater(items);
+      setIsInWatchLater(true);
       showToast(t('watchLater.saved'), 'success');
     }
   };

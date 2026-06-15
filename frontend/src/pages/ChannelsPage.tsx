@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Heart, Edit3, Trash2, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
@@ -51,8 +51,8 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
     channelName: '',
   });
 
-  useMemo(() => savePref('wasla_channels_category', selectedCategory), [selectedCategory]);
-  useMemo(() => savePref('wasla_channels_search', searchText), [searchText]);
+  useEffect(() => { savePref('wasla_channels_category', selectedCategory); }, [selectedCategory]);
+  useEffect(() => { savePref('wasla_channels_search', searchText); }, [searchText]);
 
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 

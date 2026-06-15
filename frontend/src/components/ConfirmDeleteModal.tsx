@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -9,7 +10,7 @@ interface ConfirmDeleteModalProps {
   description: string;
 }
 
-export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title, description }: ConfirmDeleteModalProps) {
+const ConfirmDeleteModal = memo(function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title, description }: ConfirmDeleteModalProps) {
   const { t, isRTL } = useLanguage();
   if (!isOpen) return null;
 
@@ -63,4 +64,6 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title, 
       </div>
     </div>
   );
-}
+});
+
+export default ConfirmDeleteModal;

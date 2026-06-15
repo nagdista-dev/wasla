@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { extractVideoId } from '../utils/videoUtils';
@@ -26,7 +26,7 @@ async function fetchVideoMetadata(videoId: string): Promise<OembedResponse | nul
   }
 }
 
-export default function AddVideoModal({ onClose, onAdd }: AddVideoModalProps) {
+const AddVideoModal = memo(function AddVideoModal({ onClose, onAdd }: AddVideoModalProps) {
   const { t } = useLanguage();
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -139,4 +139,6 @@ export default function AddVideoModal({ onClose, onAdd }: AddVideoModalProps) {
       </div>
     </div>
   );
-}
+});
+
+export default AddVideoModal;

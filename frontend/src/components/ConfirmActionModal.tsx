@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -10,7 +11,7 @@ interface ConfirmActionModalProps {
   confirmLabel?: string;
 }
 
-export default function ConfirmActionModal({ isOpen, onClose, onConfirm, title, description, confirmLabel }: ConfirmActionModalProps) {
+const ConfirmActionModal = memo(function ConfirmActionModal({ isOpen, onClose, onConfirm, title, description, confirmLabel }: ConfirmActionModalProps) {
   const { t, isRTL } = useLanguage();
   const label = confirmLabel || t('confirmAction.confirm');
   if (!isOpen) return null;
@@ -65,4 +66,6 @@ export default function ConfirmActionModal({ isOpen, onClose, onConfirm, title, 
       </div>
     </div>
   );
-}
+});
+
+export default ConfirmActionModal;

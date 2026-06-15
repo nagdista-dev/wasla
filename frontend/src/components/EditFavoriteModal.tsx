@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import type { FavoriteVideo } from '../types';
@@ -10,7 +10,7 @@ interface EditFavoriteModalProps {
   existingCategories?: string[];
 }
 
-export default function EditFavoriteModal({ video, onClose, onUpdate, existingCategories = [] }: EditFavoriteModalProps) {
+const EditFavoriteModal = memo(function EditFavoriteModal({ video, onClose, onUpdate, existingCategories = [] }: EditFavoriteModalProps) {
   const { t } = useLanguage();
   const [title, setTitle] = useState(video.title);
   const [category, setCategory] = useState(video.category || '');
@@ -115,4 +115,6 @@ export default function EditFavoriteModal({ video, onClose, onUpdate, existingCa
       </div>
     </div>
   );
-}
+});
+
+export default EditFavoriteModal;

@@ -84,6 +84,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_selected_category', ''));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showAllFilters, setShowAllFilters] = useState(false);
+  const watchLaterCache = useMemo(() => loadWatchLater(), []);
   const filterControlsRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
 
@@ -420,32 +421,31 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const items = loadWatchLater();
-                                const existing = items.find((item) => item.video.link === video.link);
+                                const existing = watchLaterCache.find((item) => item.video.link === video.link);
                                 if (existing) {
-                                  saveWatchLater(items.filter((item) => item.video.link !== video.link));
+                                  saveWatchLater(watchLaterCache.filter((item) => item.video.link !== video.link));
                                   showToast(t('watchLater.removed'), 'info');
                                 } else {
-                                  items.push({
+                                  const newItems = [...watchLaterCache, {
                                     id: `${channel.id}_${Date.now()}`,
                                     video,
                                     channelName: video.channelName || channel.name,
                                     channelId: channel.id,
                                     savedAt: Date.now(),
                                     watched: false,
-                                  });
-                                  saveWatchLater(items);
+                                  }];
+                                  saveWatchLater(newItems);
                                   showToast(t('watchLater.saved'), 'success');
                                 }
                               }}
                               className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all ${
-                                loadWatchLater().some((item) => item.video.link === video.link)
+                                watchLaterCache.some((item) => item.video.link === video.link)
                                   ? 'bg-brand-coral text-white'
                                   : 'bg-white/80 text-gray-600 hover:bg-white'
                               }`}
-                              aria-label={loadWatchLater().some((item) => item.video.link === video.link) ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
+                              aria-label={watchLaterCache.some((item) => item.video.link === video.link) ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
                             >
-                              {loadWatchLater().some((item) => item.video.link === video.link) ? (
+                              {watchLaterCache.some((item) => item.video.link === video.link) ? (
                                 <BookmarkCheck className="h-3.5 w-3.5" />
                               ) : (
                                 <BookmarkPlus className="h-3.5 w-3.5" />

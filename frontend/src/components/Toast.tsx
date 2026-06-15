@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, createContext, useContext, type ReactNode } from 'react';
+import { memo, useState, useEffect, useCallback, createContext, useContext, type ReactNode } from 'react';
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -22,15 +22,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [idCounter, setIdCounter] = useState(0);
 
-  const showToast = (message: string, type: ToastType) => {
+  const showToast = useCallback((message: string, type: ToastType) => {
+    setIdCounter((prev) => prev + 1);
     const id = idCounter + 1;
-    setIdCounter(id);
     setToasts((prev) => [...prev, { id, message, type }]);
-  };
+  }, [idCounter]);
 
-  const removeToast = (id: number) => {
+  const removeToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   return (
     <ToastContext.Provider value={{ toasts, showToast, removeToast }}>

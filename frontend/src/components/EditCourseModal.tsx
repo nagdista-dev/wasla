@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useCourses } from '../context/CoursesContext';
@@ -9,7 +9,7 @@ interface EditCourseModalProps {
   onClose: () => void;
 }
 
-export default function EditCourseModal({ course, onClose }: EditCourseModalProps) {
+const EditCourseModal = memo(function EditCourseModal({ course, onClose }: EditCourseModalProps) {
   const { t } = useLanguage();
   const { updateCourse } = useCourses();
   const [name, setName] = useState(course.name);
@@ -94,4 +94,6 @@ export default function EditCourseModal({ course, onClose }: EditCourseModalProp
       </div>
     </div>
   );
-}
+});
+
+export default EditCourseModal;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from './Toast';
@@ -66,7 +66,7 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export default function AddPlaylistModal({ onClose, onAdd, existingCategories = [] }: AddPlaylistModalProps) {
+const AddPlaylistModal = memo(function AddPlaylistModal({ onClose, onAdd, existingCategories = [] }: AddPlaylistModalProps) {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const [input, setInput] = useState('');
@@ -211,4 +211,6 @@ export default function AddPlaylistModal({ onClose, onAdd, existingCategories = 
       </div>
     </div>
   );
-}
+});
+
+export default AddPlaylistModal;

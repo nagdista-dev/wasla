@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Heart, Search, X } from 'lucide-react';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import PlaylistCard from '../components/PlaylistCard';
@@ -39,8 +39,8 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Playlist | null>(null);
 
-  useMemo(() => savePref('wasla_playlists_search', searchText), [searchText]);
-  useMemo(() => savePref('wasla_playlists_category', selectedCategory), [selectedCategory]);
+  useEffect(() => { savePref('wasla_playlists_search', searchText); }, [searchText]);
+  useEffect(() => { savePref('wasla_playlists_category', selectedCategory); }, [selectedCategory]);
 
   const allCategories = Array.from(new Set(playlists.flatMap((p) => p.categories))).sort((a, b) => a.localeCompare(b));
 

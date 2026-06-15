@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import type { Playlist } from '../types';
@@ -10,7 +10,7 @@ interface EditPlaylistModalProps {
   existingCategories?: string[];
 }
 
-export default function EditPlaylistModal({ playlist, onClose, onUpdate, existingCategories = [] }: EditPlaylistModalProps) {
+const EditPlaylistModal = memo(function EditPlaylistModal({ playlist, onClose, onUpdate, existingCategories = [] }: EditPlaylistModalProps) {
   const { t } = useLanguage();
   const [name, setName] = useState(playlist.name);
   const [description, setDescription] = useState(playlist.description || '');
@@ -150,4 +150,6 @@ export default function EditPlaylistModal({ playlist, onClose, onUpdate, existin
       </div>
     </div>
   );
-}
+});
+
+export default EditPlaylistModal;

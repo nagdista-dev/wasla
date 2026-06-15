@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useCourses } from '../context/CoursesContext';
@@ -8,7 +8,7 @@ interface CreateCourseModalProps {
   onCreated: (courseId: string) => void;
 }
 
-export default function CreateCourseModal({ onClose, onCreated }: CreateCourseModalProps) {
+const CreateCourseModal = memo(function CreateCourseModal({ onClose, onCreated }: CreateCourseModalProps) {
   const { t } = useLanguage();
   const { createCourse } = useCourses();
   const [name, setName] = useState('');
@@ -91,4 +91,6 @@ export default function CreateCourseModal({ onClose, onCreated }: CreateCourseMo
       </div>
     </div>
   );
-}
+});
+
+export default CreateCourseModal;

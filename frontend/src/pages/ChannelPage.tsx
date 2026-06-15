@@ -7,7 +7,7 @@ import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
-import type { Channel, ChannelDetailsData, Playlist } from '../types';
+import type { Channel, ChannelDetailsData, LatestVideo, Playlist } from '../types';
 
 // ─── Color helpers ───────────────────────────────────────────────────────────
 
@@ -140,6 +140,125 @@ function PlaylistCardSkeleton() {
     </div>
   );
 }
+
+// ─── Memoized Videos Panel ─────────────────────────────────────────────────────
+
+const VideosPanel = memo(function VideosPanel({
+  sortedVideos,
+  channelForVideo,
+  sortBy,
+  onSortChange,
+}: {
+  sortedVideos: LatestVideo[];
+  channelForVideo: Channel;
+  sortBy: SortMode;
+  onSortChange: (v: SortMode) => void;
+}) {
+  const { t } = useLanguage();
+
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <Play className="h-5 w-5 text-brand-coral" />
+          {t('channel.videos')}
+        </h2>
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="h-4 w-4 text-gray-400" />
+          <CustomFilterDropdown
+            value={sortBy}
+            onChange={(v) => onSortChange(v as SortMode)}
+            options={[
+              { value: 'newest', label: t('channel.newest') },
+              { value: 'oldest', label: t('channel.oldest') },
+              { value: 'most_viewed', label: t('channel.mostViewed') },
+              { value: 'least_viewed', label: t('channel.leastViewed') },
+            ]}
+            className="min-w-[130px]"
+            placeholder={t('channel.sort')}
+          />
+        </div>
+      </div>
+
+      {sortedVideos.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy/50">
+          <Play className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
+          <p className="text-base font-medium text-gray-500 dark:text-gray-400">
+            {t('channel.noVideosFound')}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+          {sortedVideos.map((video) => (
+            <VideoCard
+              key={video.link}
+              channel={channelForVideo}
+              video={video}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+});
+
+// ─── Memoized Playlists Panel ─────────────────────────────────────────────────
+
+const PlaylistsPanel = memo(function PlaylistsPanel({
+  playlists,
+  playlistsLoading,
+  playlistsError,
+}: {
+  playlists: PlaylistSummary[];
+  playlistsLoading: boolean;
+  playlistsError: string;
+}) {
+  const { t } = useLanguage();
+
+  return (
+    <>
+      {playlistsLoading && (
+        <>
+          <div className="mb-5 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t('channel.loadingPlaylists')}
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <PlaylistCardSkeleton key={i} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {!playlistsLoading && playlistsError && (
+        <div className="rounded-xl border border-dashed border-red-300 bg-red-50 p-10 text-center dark:border-red-800 dark:bg-red-950/20">
+          <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-400" />
+          <p className="text-base font-medium text-red-600 dark:text-red-400">
+            {playlistsError}
+          </p>
+        </div>
+      )}
+
+      {!playlistsLoading && !playlistsError && playlists.length === 0 && (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy/50">
+          <ListVideo className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
+          <p className="text-base font-medium text-gray-500 dark:text-gray-400">
+            {t('channel.noPlaylistsFound')}
+          </p>
+        </div>
+      )}
+
+      {!playlistsLoading && !playlistsError && playlists.length > 0 && (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
+          {playlists.map((item) => (
+            <ChannelPlaylistCard key={item.id} item={item} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+});
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -422,48 +541,12 @@ export default function ChannelPage() {
           aria-labelledby="tab-videos"
           hidden={activeTab !== 'videos'}
         >
-          {/* Sort controls */}
-          <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Play className="h-5 w-5 text-brand-coral" />
-              {t('channel.videos')}
-            </h2>
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="h-4 w-4 text-gray-400" />
-              <CustomFilterDropdown
-                value={sortBy}
-                onChange={(v) => setSortBy(v as SortMode)}
-                options={[
-                  { value: 'newest', label: t('channel.newest') },
-                  { value: 'oldest', label: t('channel.oldest') },
-                  { value: 'most_viewed', label: t('channel.mostViewed') },
-                  { value: 'least_viewed', label: t('channel.leastViewed') },
-                ]}
-                className="min-w-[130px]"
-                placeholder={t('channel.sort')}
-              />
-            </div>
-          </div>
-
-          {/* Video grid */}
-          {sortedVideos.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy/50">
-              <Play className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-              <p className="text-base font-medium text-gray-500 dark:text-gray-400">
-                {t('channel.noVideosFound')}
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-              {sortedVideos.map((video) => (
-                <VideoCard
-                  key={video.link}
-                  channel={channelForVideo}
-                  video={video}
-                />
-              ))}
-            </div>
-          )}
+          <VideosPanel
+            sortedVideos={sortedVideos}
+            channelForVideo={channelForVideo}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
         </div>
 
         {/* ── Playlists panel ── */}
@@ -473,49 +556,11 @@ export default function ChannelPage() {
           aria-labelledby="tab-playlists"
           hidden={activeTab !== 'playlists'}
         >
-          {/* Loading */}
-          {playlistsLoading && (
-            <>
-              <div className="mb-5 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t('channel.loadingPlaylists')}
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <PlaylistCardSkeleton key={i} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Error */}
-          {!playlistsLoading && playlistsError && (
-            <div className="rounded-xl border border-dashed border-red-300 bg-red-50 p-10 text-center dark:border-red-800 dark:bg-red-950/20">
-              <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-400" />
-              <p className="text-base font-medium text-red-600 dark:text-red-400">
-                {playlistsError}
-              </p>
-            </div>
-          )}
-
-          {/* Empty */}
-          {!playlistsLoading && !playlistsError && playlists.length === 0 && (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy/50">
-              <ListVideo className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-              <p className="text-base font-medium text-gray-500 dark:text-gray-400">
-                {t('channel.noPlaylistsFound')}
-              </p>
-            </div>
-          )}
-
-          {/* Playlist grid */}
-          {!playlistsLoading && !playlistsError && playlists.length > 0 && (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-              {playlists.map((item) => (
-                <ChannelPlaylistCard key={item.id} item={item} />
-              ))}
-            </div>
-          )}
+          <PlaylistsPanel
+            playlists={playlists}
+            playlistsLoading={playlistsLoading}
+            playlistsError={playlistsError}
+          />
         </div>
       </div>
     </div>
