@@ -65,24 +65,24 @@ export default function CourseDashboardPage() {
           {t('courses.backToCourses')}
         </button>
 
-        <div className="mb-6 flex flex-wrap items-start gap-4">
-          {firstVideo?.thumbnail ? (
-            <div className="relative w-full max-w-xs sm:max-w-none sm:w-48 aspect-video overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
-              <ThumbnailWithPlaceholder
-                src={firstVideo.thumbnail}
-                alt={course.name}
-              />
-            </div>
-          ) : (
-            <div className="relative w-full max-w-xs sm:max-w-none sm:w-48 aspect-video rounded-xl bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center flex-shrink-0">
-              <BarChart3 className="h-12 w-12 text-white/60" />
-            </div>
-          )}
+        <div className="mb-6 rounded-xl bg-white p-4 sm:p-5 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            {firstVideo?.thumbnail ? (
+              <div className="relative w-full sm:w-48 aspect-video overflow-hidden rounded-lg flex-shrink-0">
+                <ThumbnailWithPlaceholder
+                  src={firstVideo.thumbnail}
+                  alt={course.name}
+                />
+              </div>
+            ) : (
+              <div className="relative w-full sm:w-48 aspect-video rounded-lg bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center flex-shrink-0">
+                <BarChart3 className="h-12 w-12 text-white/60" />
+              </div>
+            )}
 
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 flex flex-col gap-3">
               <div className="min-w-0">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">{course.name}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">{course.name}</h1>
                 {course.description && (
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{course.description}</p>
                 )}
@@ -103,7 +103,7 @@ export default function CourseDashboardPage() {
               </div>
               <button
                 onClick={() => navigate(`/courses/${course.id}`)}
-                className="flex items-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-pink flex-shrink-0"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-pink"
               >
                 <Play className="h-4 w-4" />
                 {t('courses.resumeCourse')}
@@ -121,7 +121,7 @@ export default function CourseDashboardPage() {
           </div>
         ) : (
           <>
-            <div className="mb-6 grid gap-3 sm:gap-4 grid-cols-3">
+            <div className="mb-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
               <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                   <BookOpen className="h-3.5 w-3.5" />
@@ -146,7 +146,7 @@ export default function CourseDashboardPage() {
             </div>
 
             <div className="mb-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700">
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl font-bold text-gray-900 dark:text-white">{progress}%</span>
                   <span className="flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-white/10 px-3 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300">
