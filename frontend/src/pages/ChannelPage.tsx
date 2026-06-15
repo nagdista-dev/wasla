@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertCircle, ArrowUpDown, ExternalLink, Film, ListVideo, Loader2, Play } from 'lucide-react';
 import { api } from '../api';
