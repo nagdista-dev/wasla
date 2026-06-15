@@ -62,21 +62,21 @@ function SortableVideoItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group flex items-start gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-200 transition dark:bg-dark-navy dark:ring-gray-700 ${
+      className={`group flex items-start gap-2 sm:gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-200 transition dark:bg-dark-navy dark:ring-gray-700 ${
         isDragging ? 'z-50 ring-2 ring-brand-coral shadow-xl opacity-90' : ''
       }`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="mt-1 flex cursor-grab touch-none items-center rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/10 active:cursor-grabbing"
+        className="mt-1 flex cursor-grab touch-none items-center rounded p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/10 active:cursor-grabbing"
       >
         <GripVertical className="h-5 w-5" />
       </div>
 
       <button
         onClick={onToggleComplete}
-        className="mt-1.5 flex-shrink-0 text-gray-400 hover:text-green-500 transition-colors"
+        className="mt-1.5 flex-shrink-0 text-gray-400 hover:text-green-500 transition-colors min-w-[20px]"
         aria-label={video.completed ? t('course.markIncomplete') : t('course.markComplete')}
       >
         {video.completed ? (
@@ -86,27 +86,27 @@ function SortableVideoItem({
         )}
       </button>
 
-      <span className="mt-2 flex-shrink-0 text-xs font-bold text-gray-400 w-5 text-center">
+      <span className="mt-2 flex-shrink-0 text-xs font-bold text-gray-400 w-5 text-center hidden sm:block">
         {index + 1}
       </span>
 
-      <div className="relative w-28 flex-shrink-0 aspect-video overflow-hidden rounded-lg">
+      <div className="relative w-16 sm:w-28 flex-shrink-0 aspect-video overflow-hidden rounded-lg">
         <ThumbnailWithPlaceholder
           src={video.thumbnail}
           alt={video.title}
         />
         <button
           onClick={onPlay}
-          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100"
+          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 md:group-hover:opacity-100 transition"
           aria-label={t('course.playVideo')}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">
-            <Play className="h-4 w-4 pl-0.5" />
+          <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg">
+            <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4 pl-0.5" />
           </span>
         </button>
       </div>
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 self-center">
         <h4 className="line-clamp-2 text-sm font-medium text-gray-900 dark:text-white">
           {video.title}
         </h4>
@@ -117,10 +117,10 @@ function SortableVideoItem({
         )}
       </div>
 
-      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex flex-row sm:flex-col gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button
           onClick={onOpenYoutube}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
           aria-label={t('courses.openYoutube')}
           title={t('courses.openYoutube')}
         >
