@@ -117,7 +117,7 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
       <div className="flex items-center gap-2">
         <button
           onClick={toggleTheme}
-          className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
           aria-label={t('nav.toggleTheme')}
         >
           {theme === "dark" ? (
@@ -129,7 +129,7 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
 
         <button
           onClick={() => setLanguage(language === "en" ? "ar" : "en")}
-          className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
           aria-label={t('nav.toggleLanguage')}
         >
           <Languages className="h-4 w-4" />
@@ -137,7 +137,7 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
 
         <button
           onClick={() => setMenuOpen(true)}
-          className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+          className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
           aria-label={t('nav.menu')}
         >
           <Menu className="h-5 w-5" />
@@ -387,13 +387,13 @@ function App() {
         }`}>
           <main className="flex-1 overflow-visible">
             <Suspense fallback={
-              <div className="min-h-screen flex items-center justify-center dark:bg-dark-navy">
-                <div className="flex flex-col items-center gap-4">
-                  <img src={logo} alt="" className="w-16 h-16 object-contain opacity-50 splash-logo-pulse" />
-                  <div className="flex gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-coral splash-dot" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-orange splash-dot" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-yellow splash-dot" style={{ animationDelay: "300ms" }} />
+              <div className="min-h-screen flex items-center justify-center dark:bg-dark-navy" style={{ minHeight: "100dvh" }}>
+                <div className="flex flex-col items-center gap-4 px-6">
+                  <img src={logo} alt="" className="w-16 h-16 sm:w-20 sm:h-20 object-contain opacity-50 splash-logo-pulse" />
+                  <div className="flex gap-2.5">
+                    <span className="w-3 h-3 rounded-full bg-brand-coral splash-dot" style={{ animationDelay: "0ms" }} />
+                    <span className="w-3 h-3 rounded-full bg-brand-orange splash-dot" style={{ animationDelay: "150ms" }} />
+                    <span className="w-3 h-3 rounded-full bg-brand-yellow splash-dot" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>

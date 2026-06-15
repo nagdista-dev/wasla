@@ -127,31 +127,31 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
-        <div className="absolute top-2 right-2 z-10 flex gap-1.5">
+        <div className="absolute top-2 right-2 z-10 flex gap-2">
           <button
-            className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all ${
+            className={`min-w-[44px] min-h-[44px] rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all active:scale-95 ${
               isFav
-                ? 'bg-red-500 text-white'
-                : 'bg-white/80 text-gray-600 hover:bg-white'
+                ? 'bg-red-500 text-white shadow-red-500/30'
+                : 'bg-white/90 text-gray-700 hover:bg-white dark:bg-gray-800/90 dark:text-gray-200'
             }`}
             onClick={handleFavorite}
             aria-label={isFav ? t('favorites.remove') : t('favorites.add')}
           >
-            <Heart className={`h-3.5 w-3.5 ${isFav ? 'fill-current' : ''}`} />
+            <Heart className={`h-5 w-5 ${isFav ? 'fill-current' : ''}`} />
           </button>
           <button
-            className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all ${
+            className={`min-w-[44px] min-h-[44px] rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all active:scale-95 ${
               isInWatchLater
-                ? 'bg-brand-coral text-white'
-                : 'bg-white/80 text-gray-600 hover:bg-white'
+                ? 'bg-brand-coral text-white shadow-brand-coral/30'
+                : 'bg-white/90 text-gray-700 hover:bg-white dark:bg-gray-800/90 dark:text-gray-200'
             }`}
             onClick={handleWatchLater}
             aria-label={isInWatchLater ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
           >
             {isInWatchLater ? (
-              <BookmarkCheck className="h-3.5 w-3.5" />
+              <BookmarkCheck className="h-5 w-5" />
             ) : (
-              <BookmarkPlus className="h-3.5 w-3.5" />
+              <BookmarkPlus className="h-5 w-5" />
             )}
           </button>
         </div>

@@ -255,6 +255,16 @@ a:focus-visible,
   background: #6b7280;
 }
 
+/* Mobile tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent overscroll on mobile */
+html {
+  overscroll-behavior: none;
+}
+
 .animate-fadein {
   animation: fadeIn 0.35s ease-out;
 }

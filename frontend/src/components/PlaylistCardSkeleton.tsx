@@ -1,6 +1,6 @@
 export default function PlaylistCardSkeleton() {
   return (
-    <div className="flex flex-col h-full rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700 min-w-0">
+    <div className="flex flex-col h-full rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700 min-w-0 w-full">
       <div className="aspect-video w-full overflow-hidden rounded-t-xl skeleton-shimmer" />
       <div className="flex flex-1 flex-col p-4 gap-3">
         <div className="space-y-2">

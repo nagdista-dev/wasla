@@ -231,12 +231,12 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         <div className="flex items-center gap-2 px-4 md:px-6 py-3">
           <div className="flex items-center gap-1.5 flex-0">
             <button onClick={() => setShowSearch(true)}
-              className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
+              className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
               aria-label={t('home.search')}>
               <Search className="h-5 w-5" />
             </button>
             <button type="button" onClick={() => fetchLatestVideos(true)} disabled={isRefreshing}
-              className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
+              className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
               aria-label={t('home.refresh')}>
               <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -250,14 +250,14 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
             <CustomFilterDropdown value={sortBy} onChange={v => setSortBy(v as any)}
               options={[{ value: 'newest', label: t('home.newest') }, { value: 'views', label: t('home.mostViewed') }, { value: 'channel', label: t('home.channelAZ') }, { value: 'category', label: t('home.category') }]} className="flex-1 min-w-0" placeholder={t('home.filterSort')} />
             <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
-              className="hidden md:flex rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0"
+              className="hidden md:flex rounded-lg bg-white min-w-[44px] min-h-[44px] items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0"
               aria-label={viewMode === 'grid' ? t('home.switchToListView') : t('home.switchToGridView')}>
               {viewMode === 'grid' ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
             </button>
           </div>
           {hasOverflow && (
             <button type="button" onClick={() => setShowAllFilters(true)}
-              className="flex items-center gap-1 rounded-lg bg-white px-2.5 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0 md:hidden">
+              className="flex items-center gap-1 rounded-lg bg-white min-w-[44px] min-h-[44px] justify-center text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0 md:hidden">
               <span className="text-lg leading-none">…</span>
             </button>
           )}
@@ -360,7 +360,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         ) : (
           <>
             {viewMode === 'grid' ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-full items-stretch">
+              <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-full items-stretch">
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <div key={channel.id} className="min-w-0 h-full">
                     {loading ? (
@@ -449,17 +449,17 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
                                   showToast(t('watchLater.saved'), 'success');
                                 }
                               }}
-                              className={`w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all ${
+                              className={`min-w-[44px] min-h-[44px] rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all active:scale-95 ${
                                 watchLaterCache.some((item) => item.video.link === video.link)
-                                  ? 'bg-brand-coral text-white'
-                                  : 'bg-white/80 text-gray-600 hover:bg-white'
+                                  ? 'bg-brand-coral text-white shadow-brand-coral/30'
+                                  : 'bg-white/90 text-gray-700 hover:bg-white dark:bg-gray-800/90 dark:text-gray-200'
                               }`}
                               aria-label={watchLaterCache.some((item) => item.video.link === video.link) ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
                             >
                               {watchLaterCache.some((item) => item.video.link === video.link) ? (
-                                <BookmarkCheck className="h-3.5 w-3.5" />
+                                <BookmarkCheck className="h-5 w-5" />
                               ) : (
-                                <BookmarkPlus className="h-3.5 w-3.5" />
+                                <BookmarkPlus className="h-5 w-5" />
                               )}
                             </button>
                           </div>

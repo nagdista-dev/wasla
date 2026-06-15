@@ -204,7 +204,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                         <button
                           type="button"
                           onClick={() => onToggleFavorite(channel.id)}
-                          className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-white/10 flex-shrink-0"
+                          className="rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 transition hover:bg-gray-100 dark:hover:bg-white/10 flex-shrink-0"
                           aria-label={channel.favorite ? t('channels.removeFromFavorites') : t('channels.addToFavorites')}
                         >
                           <Heart

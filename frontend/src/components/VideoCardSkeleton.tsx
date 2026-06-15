@@ -1,7 +1,8 @@
 export default function VideoCardSkeleton() {
   return (
-    <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy border border-gray-200 dark:border-gray-700 flex flex-col h-full">
+    <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy border border-gray-200 dark:border-gray-700 flex flex-col h-full w-full">
       <div className="relative aspect-video skeleton-shimmer">
+        <div className="absolute top-2 right-2 h-11 w-11 rounded-full skeleton-shimmer" />
         <div className="absolute bottom-2 right-2 h-5 w-12 rounded skeleton-shimmer" />
       </div>
       <div className="p-4 flex flex-col flex-1 gap-3">

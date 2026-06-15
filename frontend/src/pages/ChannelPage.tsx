@@ -188,7 +188,7 @@ const VideosPanel = memo(function VideosPanel({
           </p>
         </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
           {sortedVideos.map((video) => (
             <VideoCard
               key={video.link}
@@ -223,7 +223,7 @@ const PlaylistsPanel = memo(function PlaylistsPanel({
             <Loader2 className="h-4 w-4 animate-spin" />
             {t('channel.loadingPlaylists')}
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
             {Array.from({ length: 8 }).map((_, i) => (
               <PlaylistCardSkeleton key={i} />
             ))}
@@ -250,7 +250,7 @@ const PlaylistsPanel = memo(function PlaylistsPanel({
       )}
 
       {!playlistsLoading && !playlistsError && playlists.length > 0 && (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
           {playlists.map((item) => (
             <ChannelPlaylistCard key={item.id} item={item} />
           ))}
@@ -386,7 +386,7 @@ export default function ChannelPage() {
             <div className="h-10 w-24 rounded skeleton-shimmer mb-[-1px]" />
             <div className="h-10 w-32 rounded skeleton-shimmer mb-[-1px]" />
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
             {Array.from({ length: 6 }).map((_, i) => (
               <VideoCardSkeleton key={i} />
             ))}
