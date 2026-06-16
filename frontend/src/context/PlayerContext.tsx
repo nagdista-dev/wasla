@@ -3,29 +3,29 @@ import type { LatestVideo } from '../types';
 import { normalizeVideo } from '../utils/videoUtils';
 
 interface PlayerContextType {
-  currentVideo: LatestVideo | null;
-  play: (video: LatestVideo) => void;
+  currentVideo: (LatestVideo & { _videoId: string; channelId?: string }) | null;
+  play: (video: LatestVideo, channelId?: string) => void;
   close: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
-  const [currentVideo, setCurrentVideo] = useState<LatestVideo | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<(LatestVideo & { _videoId: string; channelId?: string }) | null>(null);
 
   /**
    * Unified playback entry point (Task 6).
    * Normalizes every video to a consistent schema before storing it.
    * Silently skips unresolvable videos instead of crashing.
    */
-  const play = useCallback((video: LatestVideo) => {
+  const play = useCallback((video: LatestVideo, channelId?: string) => {
     const normalized = normalizeVideo(video);
     if (!normalized) {
       // Video ID could not be resolved — skip gracefully (Task 5)
       console.warn('[Wasla Player] Skipping unplayable video:', video.title, video.link);
       return;
     }
-    setCurrentVideo(normalized);
+    setCurrentVideo({ ...normalized, channelId });
   }, []);
 
   const close = useCallback(() => setCurrentVideo(null), []);

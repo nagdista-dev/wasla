@@ -51,7 +51,7 @@ export default function WatchLaterPage() {
   };
 
   const handlePlay = (item: WatchLaterItem) => {
-    play(item.video);
+    play(item.video, item.channelId);
   };
 
   const handleNavigateToChannel = (channelId: string) => {

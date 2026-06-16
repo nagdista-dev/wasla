@@ -318,6 +318,8 @@ const en = {
   'miniPlayer.showLess': 'Show less',
   'miniPlayer.share': 'Share',
   'miniPlayer.linkCopied': 'Link copied to clipboard',
+  'miniPlayer.loading': 'Loading video...',
+  'miniPlayer.openChannel': 'Open channel',
 
   // Mobile App Banner
   'appBanner.installTitle': 'Install Wasla',

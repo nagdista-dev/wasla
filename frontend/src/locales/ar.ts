@@ -315,9 +315,11 @@ const ar: Record<string, string> = {
   'miniPlayer.views': 'مشاهدة',
   'miniPlayer.description': 'الوصف',
   'miniPlayer.showMore': 'عرض المزيد',
-  'miniPlayer.showLess': 'عرض أقل',
+  'miniPlayer.showLess': ' عرض أقل',
   'miniPlayer.share': 'مشاركة',
   'miniPlayer.linkCopied': 'تم نسخ الرابط',
+  'miniPlayer.loading': 'جاري تحميل الفيديو...',
+  'miniPlayer.openChannel': 'فتح القناة',
 
   // Mobile App Banner
   'appBanner.installTitle': 'تثبيت وصلة',

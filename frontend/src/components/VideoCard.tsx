@@ -52,7 +52,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
-    play(video);
+    play(video, channel.id);
   };
 
   const handleWatchLater = (e: React.MouseEvent) => {

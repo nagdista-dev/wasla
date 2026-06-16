@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookmarkCheck, BookmarkPlus, ChevronDown, ChevronUp, Clock, ExternalLink, Eye, Heart, Share2, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -161,12 +162,14 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const navigate = useNavigate();
   const playerRef = useRef<YTPlayer | null>(null);
   const playerReadyRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [apiFailed, setApiFailed] = useState(false);
+  const [playerReady, setPlayerReady] = useState(false);
   const [isInWatchLater, setIsInWatchLater] = useState(false);
   const [closing, setClosing] = useState(false);
 
@@ -190,6 +193,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
     }
 
     setApiFailed(false);
+    setPlayerReady(false);
     playerReadyRef.current = false;
     let destroyed = false;
 
@@ -221,6 +225,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
           events: {
             onReady: () => {
               playerReadyRef.current = true;
+              setPlayerReady(true);
             },
             onError: () => {
               setApiFailed(true);
@@ -398,10 +403,23 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                 allowFullScreen
               />
             ) : (
-              <div
-                ref={containerRef}
-                className="absolute inset-0 w-full h-full"
-              />
+              <>
+                <div
+                  ref={containerRef}
+                  className="absolute inset-0 w-full h-full"
+                />
+                {!playerReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+                    <div className="flex flex-col items-center gap-4 text-white">
+                      <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 border-4 border-white/20 rounded-full" />
+                        <div className="absolute inset-0 border-4 border-brand-coral rounded-full animate-spin border-t-transparent" />
+                      </div>
+                      <p className="text-sm text-white/70">{t('miniPlayer.loading')}</p>
+                    </div>
+                  </div>
+                )}
+              </>
             )
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
@@ -431,17 +449,37 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
             {/* ─── 3. Channel Info + 4. Publish Date & Stats ─────────── */}
             <div className="flex items-center gap-3">
               {/* Channel avatar */}
-              <span
-                className="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm"
-                style={{ background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}
-              >
-                {channelInitial}
-              </span>
+              {currentVideo.channelId ? (
+                <button
+                  onClick={() => navigate(`/channel/${currentVideo.channelId}`)}
+                  className="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm hover:opacity-80 transition-opacity"
+                  style={{ background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}
+                  aria-label={t('miniPlayer.openChannel')}
+                >
+                  {channelInitial}
+                </button>
+              ) : (
+                <span
+                  className="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm"
+                  style={{ background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}
+                >
+                  {channelInitial}
+                </span>
+              )}
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
-                  {currentVideo.channelName}
-                </p>
+                {currentVideo.channelId ? (
+                  <button
+                    onClick={() => navigate(`/channel/${currentVideo.channelId}`)}
+                    className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate hover:text-brand-coral transition-colors"
+                  >
+                    {currentVideo.channelName}
+                  </button>
+                ) : (
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
+                    {currentVideo.channelName}
+                  </p>
+                )}
                 <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5 flex-shrink-0" />
