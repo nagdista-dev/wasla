@@ -9,6 +9,7 @@ export interface FilterState {
   timeRange: TimeRange;
   sortBy: SortBy;
   hiddenCategories: string[];
+  showLiveOnly: boolean;
 }
 
 interface FilterContextType {
@@ -17,6 +18,7 @@ interface FilterContextType {
   setTimeRange: (value: TimeRange) => void;
   setSortBy: (value: SortBy) => void;
   setHiddenCategories: (value: string[]) => void;
+  setShowLiveOnly: (value: boolean) => void;
   resetFilters: () => void;
   activeFilterCount: number;
   showFilterModal: boolean;
@@ -45,23 +47,27 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [timeRange, setTimeRangeState] = useState<TimeRange>(() => loadPref2<TimeRange>('wasla_time', 'all'));
   const [sortBy, setSortByState] = useState<SortBy>(() => loadPref2<SortBy>('wasla_sort', 'newest'));
   const [hiddenCategories, setHiddenCategoriesState] = useState<string[]>(() => loadHiddenCategories());
+  const [showLiveOnly, setShowLiveOnlyState] = useState<boolean>(() => loadPref2<boolean>('wasla_show_live_only', false));
   const [showFilterModal, setShowFilterModal] = useState(false);
 
   useEffect(() => { savePref2('wasla_selected_category', selectedCategory); }, [selectedCategory]);
   useEffect(() => { savePref2('wasla_time', timeRange); }, [timeRange]);
   useEffect(() => { savePref2('wasla_sort', sortBy); }, [sortBy]);
   useEffect(() => { saveHiddenCategories(hiddenCategories); }, [hiddenCategories]);
+  useEffect(() => { savePref2('wasla_show_live_only', showLiveOnly); }, [showLiveOnly]);
 
   const setSelectedCategory = useCallback((value: string) => setSelectedCategoryState(value), []);
   const setTimeRange = useCallback((value: TimeRange) => setTimeRangeState(value), []);
   const setSortBy = useCallback((value: SortBy) => setSortByState(value), []);
   const setHiddenCategories = useCallback((value: string[]) => setHiddenCategoriesState(value), []);
+  const setShowLiveOnly = useCallback((value: boolean) => setShowLiveOnlyState(value), []);
 
   const resetFilters = useCallback(() => {
     setSelectedCategoryState('');
     setTimeRangeState('all');
     setSortByState('newest');
     setHiddenCategoriesState([]);
+    setShowLiveOnlyState(false);
   }, []);
 
   const activeFilterCount = useMemo(() => {
@@ -70,15 +76,17 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     if (timeRange !== 'all') count++;
     if (sortBy !== 'newest') count++;
     if (hiddenCategories.length > 0) count++;
+    if (showLiveOnly) count++;
     return count;
-  }, [selectedCategory, timeRange, sortBy, hiddenCategories]);
+  }, [selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly]);
 
   const filters = useMemo<FilterState>(() => ({
     selectedCategory,
     timeRange,
     sortBy,
     hiddenCategories,
-  }), [selectedCategory, timeRange, sortBy, hiddenCategories]);
+    showLiveOnly,
+  }), [selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly]);
 
   return (
     <FilterContext.Provider value={{
@@ -87,6 +95,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       setTimeRange,
       setSortBy,
       setHiddenCategories,
+      setShowLiveOnly,
       resetFilters,
       activeFilterCount,
       showFilterModal,

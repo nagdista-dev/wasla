@@ -25,10 +25,13 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
   ];
 
   const categories = useMemo(
-    () => Array.from(new Set([
-      ...channels.flatMap((c) => c.categories),
-      ...playlists.flatMap((p) => p.categories),
-    ])).sort((a, b) => a.localeCompare(b)),
+    () => {
+      const cats = Array.from(new Set([
+        ...channels.flatMap((c) => c.categories),
+        ...playlists.flatMap((p) => p.categories),
+      ])).sort((a, b) => a.localeCompare(b));
+      return ['Live', ...cats];
+    },
     [channels, playlists]
   );
 

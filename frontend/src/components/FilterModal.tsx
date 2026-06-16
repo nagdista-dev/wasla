@@ -35,6 +35,7 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
   const [timeRange, setTimeRange] = useState(filters.timeRange);
   const [sortBy, setSortBy] = useState(filters.sortBy);
   const [hiddenCategories, setHiddenCategories] = useState<string[]>(filters.hiddenCategories);
+  const [showLiveOnly, setShowLiveOnly] = useState<boolean>(filters.showLiveOnly);
   const [closing, setClosing] = useState(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -45,6 +46,7 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
       setTimeRange(filters.timeRange);
       setSortBy(filters.sortBy);
       setHiddenCategories(filters.hiddenCategories);
+      setShowLiveOnly(filters.showLiveOnly);
       previousFocusRef.current = document.activeElement as HTMLElement;
       setTimeout(() => modalRef.current?.focus(), 50);
     }
@@ -84,9 +86,9 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
   }, [isOpen, filters, handleCancel]);
 
   const handleApply = useCallback(() => {
-    onApply({ selectedCategory, timeRange, sortBy, hiddenCategories });
+    onApply({ selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly });
     onClose();
-  }, [onApply, onClose, selectedCategory, timeRange, sortBy, hiddenCategories]);
+  }, [onApply, onClose, selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly]);
 
   const handleReset = useCallback(() => {
     setSelectedCategory('');
@@ -168,6 +170,32 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
           </div>
 
           <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('filterModal.liveOnly')}</label>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setShowLiveOnly(false)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  !showLiveOnly
+                    ? 'bg-brand-coral text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20'
+                }`}
+              >
+                {t('home.allVideos')}
+              </button>
+              <button
+                onClick={() => setShowLiveOnly(true)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  showLiveOnly
+                    ? 'bg-red-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20'
+                }`}
+              >
+                {t('home.liveOnly')}
+              </button>
+            </div>
+          </div>
+
+          <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('filterModal.publishedTime')}</label>
             <div className="flex flex-wrap gap-1.5">
               {timeOptions.map(opt => (
@@ -221,7 +249,7 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
             {categories.length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-gray-500">{t('filterModal.noCategories')}</p>
             ) : (
-              <div className="space-y-1 max-h-40 overflow-y-auto modal-scroll">
+              <div className="space-y-1 max-h-64 overflow-y-auto modal-scroll">
                 {categories.map(cat => {
                   const isHidden = hiddenCategories.includes(cat);
                   return (

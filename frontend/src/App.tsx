@@ -100,10 +100,10 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
     { path: "/settings", label: t('nav.settings'), icon: Settings },
   ];
   const categories = useMemo(
-    () =>
-      Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) =>
-        a.localeCompare(b),
-      ),
+    () => {
+      const cats = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
+      return ['Live', ...cats];
+    },
     [channels],
   );
 
@@ -382,10 +382,13 @@ function App() {
   );
 
   const allCategories = useMemo(
-    () => Array.from(new Set([
-      ...channels.flatMap((c) => c.categories),
-      ...playlists.flatMap((p) => p.categories),
-    ])).sort((a, b) => a.localeCompare(b)),
+    () => {
+      const categories = Array.from(new Set([
+        ...channels.flatMap((c) => c.categories),
+        ...playlists.flatMap((p) => p.categories),
+      ])).sort((a, b) => a.localeCompare(b));
+      return ['Live', ...categories];
+    },
     [channels, playlists],
   );
 

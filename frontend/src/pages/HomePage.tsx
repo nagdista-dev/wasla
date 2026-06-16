@@ -72,8 +72,8 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const { t } = useLanguage();
   usePlayer();
   const { showToast } = useToast();
-  const { filters, setShowFilterModal, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories } = useFilters();
-  const { selectedCategory, timeRange, sortBy, hiddenCategories } = filters;
+  const { filters, setShowFilterModal, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowLiveOnly } = useFilters();
+  const { selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly } = filters;
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
@@ -180,6 +180,13 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         return true;
       })
       .filter((item) => {
+        if (!item.video) return true;
+        if (showLiveOnly) {
+          return item.video.isLive === true;
+        }
+        return true;
+      })
+      .filter((item) => {
         if (!item.video || timeRange === 'all') return true;
         const now = Date.now();
         const published = new Date(item.video.publishedDate).getTime();
@@ -213,7 +220,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         }
         return 0;
       });
-  }, [items, selectedCategory, timeRange, sortBy, hiddenCategories, channels.length]);
+  }, [items, selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly, channels.length]);
 
   const activeChips = useMemo(() => {
     const chips: { key: string; label: string; onRemove: () => void }[] = [];
@@ -228,11 +235,14 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
       const sortLabels: Record<string, string> = { views: t('home.mostViewed'), channel: t('home.channelAZ'), category: t('home.category') };
       chips.push({ key: `sort:${sortBy}`, label: sortLabels[sortBy] || sortBy, onRemove: () => setSortBy('newest') });
     }
+    if (showLiveOnly) {
+      chips.push({ key: 'live:only', label: t('home.liveOnly'), onRemove: () => setShowLiveOnly(false) });
+    }
     hiddenCategories.forEach(cat => {
       chips.push({ key: `hidden:${cat}`, label: `${t('filterModal.hiddenCategories')}: ${cat}`, onRemove: () => setHiddenCategories(hiddenCategories.filter(c => c !== cat)) });
     });
     return chips;
-  }, [selectedCategory, timeRange, sortBy, hiddenCategories, t, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories]);
+  }, [selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly, t, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowLiveOnly]);
 
   return (
     <div className="min-h-screen dark:bg-dark-navy overflow-visible">
