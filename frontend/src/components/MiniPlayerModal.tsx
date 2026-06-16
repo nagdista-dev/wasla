@@ -116,9 +116,6 @@ function formatTimestamp(timestamp: string): string {
  * clickable spans.
  */
 function formatDescription(text: string): string {
-  // First, handle timestamps (HH:MM:SS or MM:SS)
-  const timestampRegex = /\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g;
-  
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -139,11 +136,11 @@ function formatDescription(text: string): string {
       /(^|\n)([\-\=]{3,})($|\n)/g,
       '$1<hr class="border-gray-200 dark:border-white/10 my-2" />$3'
     )
-    .replace(timestampRegex, (match) => {
+    .replace(/\n/g, '<br/>')
+    .replace(/\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g, (match) => {
       const seconds = timestampToSeconds(match);
       return `<span class="timestamp-highlight cursor-pointer font-mono text-brand-coral hover:text-brand-pink transition-colors" data-seconds="${seconds}">${formatTimestamp(match)}</span>`;
-    })
-    .replace(/\n/g, '<br/>');
+    });
 }
 
 // ─── Description Component (lazy-rendered, collapsible) ───────────────────────
