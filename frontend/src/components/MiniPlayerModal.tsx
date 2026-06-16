@@ -187,7 +187,7 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
       {needsToggle && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-brand-coral hover:text-brand-pink transition-colors"
+          className="mt-2 flex items-center gap-1 text-xs sm:text-sm font-semibold text-brand-coral hover:text-brand-pink transition-colors"
         >
           {expanded ? (
             <>
@@ -410,24 +410,24 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
 
   return (
     <div
-      className={`fixed inset-0 z-[70] flex items-start justify-center transition-opacity duration-250 ${
+      className={`fixed inset-0 z-[70] flex items-end sm:items-start justify-center transition-all duration-300 ${
         closing ? 'opacity-0' : 'opacity-100'
       }`}
     >
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 backdrop-blur-md ${
-          theme === 'dark' ? 'bg-black/85' : 'bg-black/60'
-        }`}
+        className={`fixed inset-0 backdrop-blur-sm ${
+          theme === 'dark' ? 'bg-black/90' : 'bg-black/70'
+        } transition-opacity duration-300`}
         onClick={handleClose}
       />
 
-      {/* Modal Container — full height, top-aligned */}
+      {/* Modal Container */}
       <div
         ref={modalRef}
-        className={`relative z-10 w-full sm:max-w-3xl h-[100dvh] sm:h-[100dvh] sm:max-h-[100dvh] flex flex-col sm:rounded-none overflow-hidden shadow-2xl transition-transform duration-250 ${
+        className={`relative z-10 w-full h-[100dvh] sm:h-auto sm:max-w-4xl sm:max-h-[90dvh] flex flex-col overflow-hidden rounded-t-2xl sm:rounded-xl shadow-2xl transition-all duration-300 ease-out ${
           closing
-            ? 'translate-y-8 sm:scale-95'
+            ? 'translate-y-0 sm:scale-95'
             : 'translate-y-0 sm:scale-100 animate-modal-enter'
         } ${
           theme === 'dark'
@@ -448,95 +448,69 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
         </button>
 
         {/* ─── 1. Video Player ─────────────────────────────────────── */}
-        <div className="relative aspect-[16/10] w-full flex-shrink-0 bg-black">
-          {videoId ? (
-            apiFailed ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                title={currentVideo.title || 'YouTube video'}
-                className="absolute inset-0 w-full h-full"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-              />
-            ) : (
-              <>
-                <div
-                  ref={containerRef}
-                  className="absolute inset-0 w-full h-full"
-                />
-                {!playerReady && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
-                    <div className="flex flex-col items-center gap-4 text-white">
-                      <div className="relative w-16 h-16">
-                        <div className="absolute inset-0 border-4 border-white/20 rounded-full" />
-                        <div className="absolute inset-0 border-4 border-brand-coral rounded-full animate-spin border-t-transparent" />
+        <div className="relative aspect-[16/9] w-full flex-shrink-0 bg-black sm:aspect-[16/10]">
+          <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-0">
+            <div className="w-full h-full sm:w-full sm:h-full">
+              {videoId ? (
+                apiFailed ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                    title={currentVideo.title || 'YouTube video'}
+                    className="absolute inset-0 w-full h-full rounded-lg sm:rounded-none"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                ) : (
+                  <>
+                    <div
+                      ref={containerRef}
+                      className="absolute inset-0 w-full h-full"
+                    />
+                    {!playerReady && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+                        <div className="flex flex-col items-center gap-4 text-white">
+                          <div className="relative w-16 h-16">
+                            <div className="absolute inset-0 border-4 border-white/20 rounded-full" />
+                            <div className="absolute inset-0 border-4 border-brand-coral rounded-full animate-spin border-t-transparent" />
+                          </div>
+                          <p className="text-sm text-white/70">{t('miniPlayer.loading')}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-white/70">{t('miniPlayer.loading')}</p>
-                    </div>
-                  </div>
-                )}
-              </>
-            )
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
-              <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
-              <button
-                onClick={() => { window.open(currentVideo.link, '_blank'); close(); }}
-                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                {t('miniPlayer.openOnYoutube')}
-              </button>
+                    )}
+                  </>
+                )
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900 rounded-lg sm:rounded-none">
+                  <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+                  <button
+                    onClick={() => { window.open(currentVideo.link, '_blank'); close(); }}
+                    className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {t('miniPlayer.openOnYoutube')}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* ─── Scrollable Content Area ──────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto overscroll-contain modal-scroll">
-          <div className="px-5 sm:px-6 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain modal-scroll pb-safe">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
 
             {/* ─── 2. Video Title ────────────────────────────────────── */}
-            <h2 className="text-lg sm:text-xl font-bold leading-snug text-gray-900 dark:text-white">
+            <h2 className="text-lg sm:text-xl font-bold leading-snug text-gray-900 dark:text-white line-clamp-2">
               {currentVideo.title}
             </h2>
+            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+              {currentVideo.channelName} • {formatRelativeTime(currentVideo.publishedDate, t)}
+            </div>
 
             <div className="border-t border-gray-100 dark:border-white/10" />
 
-            {/* ─── 3. Channel Info + 4. Publish Date & Stats ─────────── */}
-              <div className="flex items-center gap-3">
-              {/* Channel avatar */}
-              {currentVideo.channelId ? (
-                <button
-                  onClick={(e) => { e.stopPropagation(); navigate(`/channel/${currentVideo.channelId}`); }}
-                  className="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm hover:opacity-80 transition-opacity"
-                  style={{ background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}
-                  aria-label={t('miniPlayer.openChannel')}
-                >
-                  {channelInitial}
-                </button>
-              ) : (
-                <span
-                  className="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm"
-                  style={{ background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}
-                >
-                  {channelInitial}
-                </span>
-              )}
-
-              <div className="flex-1 min-w-0">
-                {currentVideo.channelId ? (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate(`/channel/${currentVideo.channelId}`); }}
-                    className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate hover:text-brand-coral transition-colors"
-                  >
-                    {currentVideo.channelName}
-                  </button>
-                ) : (
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
-                    {currentVideo.channelName}
-                  </p>
-                )}
-                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            {/* ─── 4. Publish Date & Stats ─────────── */}
+              <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5 flex-shrink-0" />
                     {formatRelativeTime(currentVideo.publishedDate, t)}
@@ -554,14 +528,12 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                     </span>
                   )}
                 </div>
-              </div>
-            </div>
 
             <div className="border-t border-gray-100 dark:border-white/10" />
 
             {/* ─── 5. Video Description ──────────────────────────────── */}
             {currentVideo.description && currentVideo.description.trim().length > 0 ? (
-              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 border border-gray-100 dark:border-white/10">
+              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10">
                 <VideoDescription
                   description={currentVideo.description}
                   t={t}
@@ -569,8 +541,8 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                 />
               </div>
             ) : (
-              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 border border-gray-100 dark:border-white/10">
-                <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10">
+                <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 italic">
                   {t('miniPlayer.noDescription')}
                 </p>
               </div>
@@ -579,18 +551,18 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
             <div className="border-t border-gray-100 dark:border-white/10" />
 
             {/* ─── 6. Related Actions ────────────────────────────────── */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={(e) => { e.stopPropagation(); openAtCurrentTime(); }}
-                className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20"
-              >
-                <ExternalLink className="h-4 w-4" />
-                {t('miniPlayer.openOnYoutube')}
-              </button>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+               <button
+                 onClick={(e) => { e.stopPropagation(); openAtCurrentTime(); }}
+                 className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-3 sm:px-5 sm:py-2.5 text-sm sm:text-base font-semibold text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20 min-h-[44px]"
+               >
+                 <ExternalLink className="h-4 w-4" />
+                 {t('miniPlayer.openOnYoutube')}
+               </button>
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleWatchLater(); }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-3 sm:px-5 sm:py-2.5 text-sm sm:text-base font-medium transition-all active:scale-95 border min-h-[44px] ${
                   isInWatchLater
                     ? 'bg-brand-coral/10 text-brand-coral border-brand-coral/30 dark:bg-brand-coral/20'
                     : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
@@ -603,7 +575,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleFavorite(); }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-3 sm:px-5 sm:py-2.5 text-sm sm:text-base font-medium transition-all active:scale-95 border min-h-[44px] ${
                   isFav
                     ? 'bg-red-500/10 text-red-500 border-red-500/30 dark:bg-red-500/20'
                     : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
@@ -616,7 +588,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleShare(); }}
-                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
+                className="flex items-center gap-2 rounded-xl px-4 py-3 sm:px-5 sm:py-2.5 text-sm sm:text-base font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px]"
                 aria-label={t('miniPlayer.share')}
               >
                 <Share2 className="h-4 w-4" />
@@ -631,7 +603,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                     window.open(`https://www.youtube.com/embed/${videoId}`, '_blank');
                   }
                 }}
-                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
+                className="flex items-center gap-2 rounded-xl px-4 py-3 sm:px-5 sm:py-2.5 text-sm sm:text-base font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px]"
                 aria-label={t('miniPlayer.fullscreen')}
               >
                 <Maximize2 className="h-4 w-4" />

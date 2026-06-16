@@ -229,6 +229,11 @@ a:focus-visible,
   overflow-y: auto;
 }
 
+/* Safe area for mobile */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
