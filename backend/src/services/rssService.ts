@@ -176,6 +176,7 @@ async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
         channelName,
         views: getViews(mediaCommunity['media:statistics']),
         duration: getDuration(mediaGroup['media:content']),
+        description: getString(mediaGroup['media:description']) || undefined,
       };
     })
     .filter((v) => v.link.includes('watch?v='))  // only keep real playable video links

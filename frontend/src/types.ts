@@ -15,6 +15,7 @@ export interface LatestVideo {
   relativeTime?: string;
   views?: number;
   duration?: string;
+  description?: string;
   isLive?: boolean;
 }
 

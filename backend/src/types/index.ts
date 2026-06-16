@@ -7,6 +7,7 @@ export interface VideoData {
   relativeTime?: string;
   views?: number;
   duration?: string;
+  description?: string;
 }
 
 export interface ChannelFeedData {

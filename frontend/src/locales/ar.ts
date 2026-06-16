@@ -311,7 +311,13 @@ const ar: Record<string, string> = {
   // Mini Player
   'miniPlayer.close': 'إغلاق المشغل',
   'miniPlayer.couldNotLoad': 'تعذر تحميل الفيديو',
-  'miniPlayer.openOnYoutube': 'فتح على يوتيوب في الوقت الحالي',
+  'miniPlayer.openOnYoutube': 'فتح على يوتيوب',
+  'miniPlayer.views': 'مشاهدة',
+  'miniPlayer.description': 'الوصف',
+  'miniPlayer.showMore': 'عرض المزيد',
+  'miniPlayer.showLess': 'عرض أقل',
+  'miniPlayer.share': 'مشاركة',
+  'miniPlayer.linkCopied': 'تم نسخ الرابط',
 
   // Mobile App Banner
   'appBanner.installTitle': 'تثبيت وصلة',

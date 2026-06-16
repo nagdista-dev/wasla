@@ -311,7 +311,13 @@ const en = {
   // Mini Player
   'miniPlayer.close': 'Close player',
   'miniPlayer.couldNotLoad': 'Could not load video',
-  'miniPlayer.openOnYoutube': 'Open on YouTube at current time',
+  'miniPlayer.openOnYoutube': 'Open on YouTube',
+  'miniPlayer.views': 'views',
+  'miniPlayer.description': 'Description',
+  'miniPlayer.showMore': 'Show more',
+  'miniPlayer.showLess': 'Show less',
+  'miniPlayer.share': 'Share',
+  'miniPlayer.linkCopied': 'Link copied to clipboard',
 
   // Mobile App Banner
   'appBanner.installTitle': 'Install Wasla',

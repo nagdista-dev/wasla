@@ -1,9 +1,13 @@
-import { memo, useEffect, useRef, useState } from 'react';
-import { ExternalLink, X } from 'lucide-react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { BookmarkCheck, BookmarkPlus, ChevronDown, ChevronUp, Clock, ExternalLink, Eye, Heart, Share2, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useTheme } from '../context/ThemeContext';
+import { useFavorites } from '../context/FavoritesContext';
+import { useToast } from './Toast';
 import { extractVideoId, buildWatchUrl } from '../utils/videoUtils';
+import { formatRelativeTime } from '../utils/formatRelativeTime';
+import { loadWatchLater, saveWatchLater } from '../storage';
 
 // ─── YouTube IFrame API types ─────────────────────────────────────────────────
 
@@ -56,40 +60,135 @@ function loadYouTubeAPI(): Promise<void> {
 
 loadYouTubeAPI();
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatViews(views?: number | string): string | undefined {
+  if (views === undefined || views === null) return undefined;
+  const num = typeof views === 'string' ? parseInt(views, 10) : views;
+  if (isNaN(num)) return undefined;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+  return num.toString();
+}
+
+function formatDuration(duration?: string): string | undefined {
+  if (!duration) return undefined;
+  const total = parseInt(duration, 10);
+  if (isNaN(total)) return undefined;
+  const hrs = Math.floor(total / 3600);
+  const mins = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Format the description text, preserving line breaks and converting
+ * bare URLs to clickable links.
+ */
+function formatDescription(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(
+      /(https?:\/\/[^\s<]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-brand-coral hover:underline break-all">$1</a>'
+    )
+    .replace(/\n/g, '<br/>');
+}
+
+// ─── Description Component (lazy-rendered, collapsible) ───────────────────────
+
+const DESCRIPTION_COLLAPSED_LINES = 3;
+
+function VideoDescription({ description, t }: { description: string; t: (key: string) => string }) {
+  const [expanded, setExpanded] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [needsToggle, setNeedsToggle] = useState(false);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      const lineHeight = parseFloat(getComputedStyle(contentRef.current).lineHeight) || 20;
+      const maxCollapsedHeight = lineHeight * DESCRIPTION_COLLAPSED_LINES;
+      setNeedsToggle(contentRef.current.scrollHeight > maxCollapsedHeight + 4);
+    }
+  }, [description]);
+
+  const formattedHtml = formatDescription(description);
+
+  return (
+    <div className="relative">
+      <div
+        ref={contentRef}
+        className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-line transition-all duration-300 ease-in-out overflow-hidden"
+        style={{
+          maxHeight: expanded ? `${contentRef.current?.scrollHeight ?? 9999}px` : `${DESCRIPTION_COLLAPSED_LINES * 1.625}em`,
+        }}
+        dangerouslySetInnerHTML={{ __html: formattedHtml }}
+      />
+      {needsToggle && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-brand-coral hover:text-brand-pink transition-colors"
+        >
+          {expanded ? (
+            <>
+              {t('miniPlayer.showLess')}
+              <ChevronUp className="h-3.5 w-3.5" />
+            </>
+          ) : (
+            <>
+              {t('miniPlayer.showMore')}
+              <ChevronDown className="h-3.5 w-3.5" />
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const MiniPlayerModal = memo(function MiniPlayerModal() {
   const { t, isRTL } = useLanguage();
   const { currentVideo, close } = usePlayer();
   const { theme } = useTheme();
+  const { showToast } = useToast();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const playerRef = useRef<YTPlayer | null>(null);
   const playerReadyRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  // Per-video state — reset whenever currentVideo changes
   const [apiFailed, setApiFailed] = useState(false);
+  const [isInWatchLater, setIsInWatchLater] = useState(false);
+  const [closing, setClosing] = useState(false);
 
+  // Check watch later status when video changes
+  useEffect(() => {
+    if (currentVideo) {
+      setIsInWatchLater(loadWatchLater().some(item => item.video.link === currentVideo.link));
+    }
+  }, [currentVideo]);
+
+  // YouTube Player setup
   useEffect(() => {
     if (!currentVideo) return;
 
-    // Task 5: Derive videoId from the (already-normalized) link.
-    // The link is guaranteed to be watch?v= by PlayerContext, but we add
-    // a second layer of extraction as a defensive fallback.
     let videoId = extractVideoId(currentVideo.link);
 
     if (!videoId) {
-      // Final safeguard — log and skip gracefully (Task 5)
       console.warn('[MiniPlayer] Cannot resolve videoId from:', currentVideo.link);
       setApiFailed(true);
       return;
     }
 
-    // Reset state for this video (Task 5 — correct state reset on video switch)
     setApiFailed(false);
     playerReadyRef.current = false;
     let destroyed = false;
 
-    // 5-second API-load timeout → fall back to plain iframe embed
     const timeout = setTimeout(() => {
       if (!destroyed && !playerReadyRef.current) {
         setApiFailed(true);
@@ -100,7 +199,6 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
       if (destroyed) return;
       clearTimeout(timeout);
 
-      // Destroy any previous player instance before creating a new one
       if (playerRef.current) {
         try { playerRef.current.destroy(); } catch { /* ignore */ }
         playerRef.current = null;
@@ -141,8 +239,33 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
     };
   }, [currentVideo]);
 
-  // Task 5: Safe open-at-current-time — builds URL from canonical watch link
-  const openAtCurrentTime = () => {
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (currentVideo) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [currentVideo]);
+
+  // Trap Escape key
+  useEffect(() => {
+    if (!currentVideo) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') handleClose();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentVideo]);
+
+  const handleClose = useCallback(() => {
+    setClosing(true);
+    setTimeout(() => {
+      setClosing(false);
+      close();
+    }, 250);
+  }, [close]);
+
+  const openAtCurrentTime = useCallback(() => {
     if (!currentVideo) return;
 
     let currentTime = 0;
@@ -152,7 +275,6 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
       } catch { /* player may not be ready */ }
     }
 
-    // Use the normalized link (always watch?v=...) — safe to parse
     const videoId = extractVideoId(currentVideo.link);
     const baseUrl = videoId ? buildWatchUrl(videoId) : currentVideo.link;
 
@@ -166,34 +288,104 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
       window.open(baseUrl, '_blank');
     }
     close();
-  };
+  }, [currentVideo, close]);
 
+  const handleWatchLater = useCallback(() => {
+    if (!currentVideo) return;
+    if (isInWatchLater) {
+      const items = loadWatchLater();
+      saveWatchLater(items.filter(item => item.video.link !== currentVideo.link));
+      setIsInWatchLater(false);
+      showToast(t('watchLater.removed'), 'info');
+    } else {
+      const items = loadWatchLater();
+      items.push({
+        id: `unknown_${Date.now()}`,
+        video: currentVideo,
+        channelName: currentVideo.channelName,
+        channelId: '',
+        savedAt: Date.now(),
+        watched: false,
+      });
+      saveWatchLater(items);
+      setIsInWatchLater(true);
+      showToast(t('watchLater.saved'), 'success');
+    }
+  }, [currentVideo, isInWatchLater, showToast, t]);
+
+  const handleFavorite = useCallback(() => {
+    if (!currentVideo) return;
+    const wasFav = isFavorite(currentVideo.link);
+    toggleFavorite(currentVideo, currentVideo.channelName);
+    showToast(wasFav ? t('favorites.removed') : t('favorites.saved'), wasFav ? 'info' : 'success');
+  }, [currentVideo, isFavorite, toggleFavorite, showToast, t]);
+
+  const handleShare = useCallback(() => {
+    if (!currentVideo) return;
+    if (navigator.share) {
+      navigator.share({
+        title: currentVideo.title,
+        url: currentVideo.link,
+      }).catch(() => { /* cancelled */ });
+    } else {
+      navigator.clipboard.writeText(currentVideo.link).then(() => {
+        showToast(t('miniPlayer.linkCopied'), 'success');
+      }).catch(() => { /* noop */ });
+    }
+  }, [currentVideo, showToast, t]);
+
+  if (!currentVideo && !closing) return null;
   if (!currentVideo) return null;
 
-  // Task 3: ID resolution is purely from the video link — no origin check
   const videoId = extractVideoId(currentVideo.link);
+  const channelInitial = (currentVideo.channelName || '?').charAt(0).toUpperCase();
+  const formattedViews = formatViews(currentVideo.views);
+  const formattedDuration = formatDuration(currentVideo.duration);
+  const isFav = isFavorite(currentVideo.link);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div
+      className={`fixed inset-0 z-[70] flex items-start justify-center transition-opacity duration-250 ${
+        closing ? 'opacity-0' : 'opacity-100'
+      }`}
+    >
+      {/* Backdrop */}
       <div
-        className={`fixed inset-0 backdrop-blur-sm ${
-          theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
+        className={`fixed inset-0 backdrop-blur-md ${
+          theme === 'dark' ? 'bg-black/85' : 'bg-black/60'
         }`}
-        onClick={close}
+        onClick={handleClose}
       />
-      <div className="relative z-10 w-full max-w-4xl rounded-xl overflow-hidden bg-black shadow-2xl flex flex-col">
+
+      {/* Modal Container — full height, top-aligned */}
+      <div
+        ref={modalRef}
+        className={`relative z-10 w-full sm:max-w-3xl h-[100dvh] sm:h-[100dvh] sm:max-h-[100dvh] flex flex-col sm:rounded-none overflow-hidden shadow-2xl transition-transform duration-250 ${
+          closing
+            ? 'translate-y-8 sm:scale-95'
+            : 'translate-y-0 sm:scale-100 animate-modal-enter'
+        } ${
+          theme === 'dark'
+            ? 'bg-[#0f1729] ring-1 ring-white/10'
+            : 'bg-white'
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={currentVideo.title}
+      >
+        {/* Close button */}
         <button
-          onClick={close}
-          className={`absolute top-3 ${isRTL ? 'left-3' : 'right-3'} z-20 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition-colors`}
+          onClick={handleClose}
+          className={`absolute top-3 ${isRTL ? 'left-3' : 'right-3'} z-20 rounded-full bg-black/50 backdrop-blur-sm p-2 text-white/90 hover:bg-black/70 hover:text-white transition-all active:scale-90`}
           aria-label={t('miniPlayer.close')}
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="relative aspect-video w-full">
+        {/* ─── 1. Video Player ─────────────────────────────────────── */}
+        <div className="relative aspect-video w-full flex-shrink-0 bg-black">
           {videoId ? (
             apiFailed ? (
-              /* Fallback: plain iframe embed — always works */
               <iframe
                 src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
                 title={currentVideo.title || 'YouTube video'}
@@ -202,14 +394,12 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                 allowFullScreen
               />
             ) : (
-              /* Primary: YouTube IFrame Player API */
               <div
                 ref={containerRef}
                 className="absolute inset-0 w-full h-full"
               />
             )
           ) : (
-            /* No usable video ID — graceful failure message */
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
               <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
               <button
@@ -223,15 +413,106 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
           )}
         </div>
 
-        <div className="flex items-center justify-center gap-4 px-4 py-3 bg-black/80">
-          <button
-            onClick={openAtCurrentTime}
-            className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-            aria-label={t('miniPlayer.openOnYoutube')}
-          >
-            <ExternalLink className="h-4 w-4" />
-            {t('miniPlayer.openOnYoutube')}
-          </button>
+        {/* ─── Scrollable Content Area ──────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto overscroll-contain modal-scroll">
+          <div className="px-5 sm:px-6 py-4 space-y-4">
+
+            {/* ─── 2. Video Title ────────────────────────────────────── */}
+            <h2 className="text-lg sm:text-xl font-bold leading-snug text-gray-900 dark:text-white">
+              {currentVideo.title}
+            </h2>
+
+            {/* ─── 3. Channel Info + 4. Publish Date & Stats ─────────── */}
+            <div className="flex items-center gap-3">
+              {/* Channel avatar */}
+              <span
+                className="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm"
+                style={{ background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}
+              >
+                {channelInitial}
+              </span>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
+                  {currentVideo.channelName}
+                </p>
+                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                    {formatRelativeTime(currentVideo.publishedDate, t)}
+                  </span>
+                  {formattedViews && (
+                    <span className="flex items-center gap-1">
+                      <Eye className="h-3.5 w-3.5 flex-shrink-0" />
+                      {formattedViews} {t('miniPlayer.views')}
+                    </span>
+                  )}
+                  {formattedDuration && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                      {formattedDuration}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ─── 5. Video Description ──────────────────────────────── */}
+            {currentVideo.description && currentVideo.description.trim().length > 0 && (
+              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 border border-gray-100 dark:border-white/10">
+                <VideoDescription
+                  description={currentVideo.description}
+                  t={t}
+                />
+              </div>
+            )}
+
+            {/* ─── 6. Related Actions ────────────────────────────────── */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={openAtCurrentTime}
+                className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {t('miniPlayer.openOnYoutube')}
+              </button>
+
+              <button
+                onClick={handleWatchLater}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
+                  isInWatchLater
+                    ? 'bg-brand-coral/10 text-brand-coral border-brand-coral/30 dark:bg-brand-coral/20'
+                    : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
+                }`}
+                aria-label={isInWatchLater ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
+              >
+                {isInWatchLater ? <BookmarkCheck className="h-4 w-4" /> : <BookmarkPlus className="h-4 w-4" />}
+                {isInWatchLater ? t('watchLater.remove') : t('videoCard.watchLater')}
+              </button>
+
+              <button
+                onClick={handleFavorite}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
+                  isFav
+                    ? 'bg-red-500/10 text-red-500 border-red-500/30 dark:bg-red-500/20'
+                    : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
+                }`}
+                aria-label={isFav ? t('favorites.remove') : t('favorites.add')}
+              >
+                <Heart className={`h-4 w-4 ${isFav ? 'fill-current' : ''}`} />
+                {isFav ? t('favorites.remove') : t('favorites.add')}
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
+                aria-label={t('miniPlayer.share')}
+              >
+                <Share2 className="h-4 w-4" />
+                {t('miniPlayer.share')}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
