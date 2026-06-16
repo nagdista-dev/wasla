@@ -348,7 +348,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
       if (playerRef.current && playerReadyRef.current) {
         playerRef.current.seekTo(seconds, true);
       }
-      const timeStr = formatDuration(seconds);
+      const timeStr = formatDuration(String(seconds));
       showToast(t('miniPlayer.jumpToTimestamp', { time: timeStr || seconds.toString() }), 'success');
     } catch {
       showToast(t('miniPlayer.jumpFailed'), 'error');
