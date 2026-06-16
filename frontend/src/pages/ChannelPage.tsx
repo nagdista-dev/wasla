@@ -187,17 +187,17 @@ const VideosPanel = memo(function VideosPanel({
             {t('channel.noVideosFound')}
           </p>
         </div>
-      ) : (
-        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-          {sortedVideos.map((video) => (
-            <VideoCard
-              key={video.link}
-              channel={channelForVideo}
-              video={video}
-            />
-          ))}
-        </div>
-      )}
+        ) : (
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
+            {sortedVideos.map((video) => (
+              <VideoCard
+                key={video.link}
+                channel={channelForVideo}
+                video={video}
+              />
+            ))}
+          </div>
+        )}
     </>
   );
 });
@@ -386,7 +386,7 @@ export default function ChannelPage() {
             <div className="h-10 w-24 rounded skeleton-shimmer mb-[-1px]" />
             <div className="h-10 w-32 rounded skeleton-shimmer mb-[-1px]" />
           </div>
-          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
             {Array.from({ length: 6 }).map((_, i) => (
               <VideoCardSkeleton key={i} />
             ))}
