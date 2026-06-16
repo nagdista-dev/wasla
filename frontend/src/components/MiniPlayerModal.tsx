@@ -387,7 +387,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
         </button>
 
         {/* ─── 1. Video Player ─────────────────────────────────────── */}
-        <div className="relative aspect-video w-full flex-shrink-0 bg-black">
+        <div className="relative aspect-[16/10] w-full flex-shrink-0 bg-black">
           {videoId ? (
             apiFailed ? (
               <iframe
@@ -426,6 +426,8 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               {currentVideo.title}
             </h2>
 
+            <div className="border-t border-gray-100 dark:border-white/10" />
+
             {/* ─── 3. Channel Info + 4. Publish Date & Stats ─────────── */}
             <div className="flex items-center gap-3">
               {/* Channel avatar */}
@@ -461,6 +463,8 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               </div>
             </div>
 
+            <div className="border-t border-gray-100 dark:border-white/10" />
+
             {/* ─── 5. Video Description ──────────────────────────────── */}
             {currentVideo.description && currentVideo.description.trim().length > 0 && (
               <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 border border-gray-100 dark:border-white/10">
@@ -470,6 +474,8 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                 />
               </div>
             )}
+
+            <div className="border-t border-gray-100 dark:border-white/10" />
 
             {/* ─── 6. Related Actions ────────────────────────────────── */}
             <div className="flex items-center gap-2 flex-wrap">
