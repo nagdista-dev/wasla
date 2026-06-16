@@ -11,6 +11,7 @@ import { ToastProvider } from './components/Toast'
 import { PlayerProvider } from './context/PlayerContext'
 import { FavoritesProvider } from './context/FavoritesContext'
 import { CoursesProvider } from './context/CoursesContext'
+import { FilterProvider } from './context/FilterContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -20,7 +21,9 @@ createRoot(document.getElementById('root')!).render(
           <ToastProvider>
             <FavoritesProvider>
               <CoursesProvider>
-                <App />
+                <FilterProvider>
+                  <App />
+                </FilterProvider>
               </CoursesProvider>
             </FavoritesProvider>
           </ToastProvider>

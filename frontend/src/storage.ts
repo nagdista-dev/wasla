@@ -100,3 +100,21 @@ export function loadCourses(): Course[] {
 export function saveCourses(courses: Course[]): void {
   localStorage.setItem(COURSES_KEY, JSON.stringify(courses));
 }
+
+export const HIDDEN_CATEGORIES_KEY = 'wasla_hidden_categories';
+
+export function loadHiddenCategories(): string[] {
+  try {
+    const stored = localStorage.getItem(HIDDEN_CATEGORIES_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((c): c is string => typeof c === 'string');
+  } catch {
+    return [];
+  }
+}
+
+export function saveHiddenCategories(categories: string[]): void {
+  localStorage.setItem(HIDDEN_CATEGORIES_KEY, JSON.stringify(categories));
+}

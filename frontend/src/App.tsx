@@ -23,6 +23,7 @@ import {
   HeartHandshake,
   GraduationCap,
   MessageCircle,
+  SlidersHorizontal,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
@@ -36,6 +37,8 @@ import { loadChannels, saveChannels, loadPlaylists, savePlaylists } from "./stor
 import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
 import Sidebar from "./components/Sidebar";
+import FilterModal from "./components/FilterModal";
+import { useFilters } from "./context/FilterContext";
 import logo from "./assets/logo.png";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -79,6 +82,7 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
   const { pathname } = useLocation();
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const { activeFilterCount, setShowFilterModal } = useFilters();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -115,6 +119,18 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
       </Link>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowFilterModal(true)}
+          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 relative"
+          aria-label={t('filterModal.filter')}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-brand-coral text-[10px] font-bold text-white leading-none px-1">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
         <button
           onClick={toggleTheme}
           className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
@@ -265,6 +281,7 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
 
 function App() {
   const { isRTL } = useLanguage();
+  const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, resetFilters, showFilterModal, setShowFilterModal } = useFilters();
   const [channels, setChannels] = useState<Channel[]>(loadChannels);
   const [playlists, setPlaylists] = useState<Playlist[]>(loadPlaylists);
   const [showChannelModal, setShowChannelModal] = useState(false);
@@ -489,6 +506,19 @@ function App() {
         )}
         <MobileAppBanner />
         <MiniPlayerModal />
+        <FilterModal
+          isOpen={showFilterModal}
+          onClose={() => setShowFilterModal(false)}
+          filters={filters}
+          onApply={(f) => {
+            setSelectedCategory(f.selectedCategory);
+            setTimeRange(f.timeRange);
+            setSortBy(f.sortBy);
+            setHiddenCategories(f.hiddenCategories);
+          }}
+          onReset={resetFilters}
+          categories={allCategories}
+        />
         </div>
       </BrowserRouter>
     </>

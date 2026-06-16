@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, LayoutGrid, List, Play, RefreshCw, Search, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
-import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
 import VideoListSkeleton from '../components/VideoListSkeleton';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
+import { useFilters } from '../context/FilterContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
@@ -72,6 +72,8 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const { t } = useLanguage();
   usePlayer();
   const { showToast } = useToast();
+  const { filters, setShowFilterModal, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories } = useFilters();
+  const { selectedCategory, timeRange, sortBy, hiddenCategories } = filters;
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
@@ -79,32 +81,12 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
-  const [sortBy, setSortBy] = useState<'newest' | 'views' | 'channel' | 'category'>(loadPref<'newest' | 'views' | 'channel' | 'category'>('wasla_sort', 'newest'));
-  const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>(loadPref<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('wasla_time', 'all'));
-  const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_selected_category', ''));
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showAllFilters, setShowAllFilters] = useState(false);
   const watchLaterCache = useMemo(() => loadWatchLater(), []);
-  const filterControlsRef = useRef<HTMLDivElement>(null);
-  const [hasOverflow, setHasOverflow] = useState(false);
-
-  useLayoutEffect(() => {
-    const el = filterControlsRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(() => {
-      setHasOverflow(el.scrollWidth > el.clientWidth);
-    });
-    observer.observe(el);
-    setHasOverflow(el.scrollWidth > el.clientWidth);
-    return () => observer.disconnect();
-  }, []);
-
-  const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
   useEffect(() => { savePref('wasla_viewMode', viewMode); }, [viewMode]);
-  useEffect(() => { savePref('wasla_selected_category', selectedCategory); }, [selectedCategory]);
-  useEffect(() => { savePref('wasla_sort', sortBy); }, [sortBy]);
-  useEffect(() => { savePref('wasla_time', timeRange); }, [timeRange]);
+
+  const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
   // Load cached videos instantly on mount
   useEffect(() => {
@@ -185,6 +167,12 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         return !!item.video;
       })
       .filter((item) => {
+        if (hiddenCategories.length > 0) {
+          if (item.channel.categories.some(cat => hiddenCategories.includes(cat))) return false;
+        }
+        return true;
+      })
+      .filter((item) => {
         if (selectedCategory) {
           if (item.channel.categories.length === 0) return false;
           if (!item.channel.categories.includes(selectedCategory)) return false;
@@ -201,10 +189,12 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
           case 'today': return diff < 86_400_000;
           case 'week': return diff < 604_800_000;
           case 'month': return diff < 2_592_000_000;
+          case '3months': return diff < 7_776_000_000;
           case 'year': return diff < 31_536_000_000;
           default: return true;
         }
       })
+
       .sort((a, b) => {
         if (!a.video || !b.video) return 0;
         if (sortBy === 'newest') {
@@ -223,115 +213,77 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         }
         return 0;
       });
-  }, [items, selectedCategory, timeRange, sortBy, channels.length]);
+  }, [items, selectedCategory, timeRange, sortBy, hiddenCategories, channels.length]);
+
+  const activeChips = useMemo(() => {
+    const chips: { key: string; label: string; onRemove: () => void }[] = [];
+    if (selectedCategory) {
+      chips.push({ key: `cat:${selectedCategory}`, label: selectedCategory, onRemove: () => setSelectedCategory('') });
+    }
+    if (timeRange !== 'all') {
+      const timeLabels: Record<string, string> = { hour: t('home.lastHour'), today: t('home.today'), week: t('home.thisWeek'), month: t('home.thisMonth'), '3months': t('filterModal.last3Months'), year: t('home.thisYear') };
+      chips.push({ key: `time:${timeRange}`, label: timeLabels[timeRange] || timeRange, onRemove: () => setTimeRange('all') });
+    }
+    if (sortBy !== 'newest') {
+      const sortLabels: Record<string, string> = { views: t('home.mostViewed'), channel: t('home.channelAZ'), category: t('home.category') };
+      chips.push({ key: `sort:${sortBy}`, label: sortLabels[sortBy] || sortBy, onRemove: () => setSortBy('newest') });
+    }
+    hiddenCategories.forEach(cat => {
+      chips.push({ key: `hidden:${cat}`, label: `${t('filterModal.hiddenCategories')}: ${cat}`, onRemove: () => setHiddenCategories(hiddenCategories.filter(c => c !== cat)) });
+    });
+    return chips;
+  }, [selectedCategory, timeRange, sortBy, hiddenCategories, t, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories]);
 
   return (
     <div className="min-h-screen dark:bg-dark-navy overflow-visible">
       <div className="sticky top-16 z-20 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 shadow-sm">
         <div className="flex items-center gap-2 px-4 md:px-6 py-3">
-          <div className="flex items-center gap-1.5 flex-0">
-            <button onClick={() => setShowSearch(true)}
-              className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
-              aria-label={t('home.search')}>
-              <Search className="h-5 w-5" />
-            </button>
-            <button type="button" onClick={() => fetchLatestVideos(true)} disabled={isRefreshing}
-              className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
-              aria-label={t('home.refresh')}>
-              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
-          <div ref={filterControlsRef} className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-            <CustomFilterDropdown value={selectedCategory} onChange={setSelectedCategory}
-              options={[{ value: '', label: t('home.filterAll') }, ...allCategories.map(cat => ({ value: cat, label: cat }))]}
-              className="flex-1 min-w-0" placeholder={t('home.filterCategory')} />
-            <CustomFilterDropdown value={timeRange} onChange={v => setTimeRange(v as any)}
-              options={[{ value: 'all', label: t('home.allTime') }, { value: 'hour', label: t('home.lastHour') }, { value: 'today', label: t('home.today') }, { value: 'week', label: t('home.thisWeek') }, { value: 'month', label: t('home.thisMonth') }, { value: 'year', label: t('home.thisYear') }]} className="flex-1 min-w-0" placeholder={t('home.filterTime')} />
-            <CustomFilterDropdown value={sortBy} onChange={v => setSortBy(v as any)}
-              options={[{ value: 'newest', label: t('home.newest') }, { value: 'views', label: t('home.mostViewed') }, { value: 'channel', label: t('home.channelAZ') }, { value: 'category', label: t('home.category') }]} className="flex-1 min-w-0" placeholder={t('home.filterSort')} />
-            <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
-              className="hidden md:flex rounded-lg bg-white min-w-[44px] min-h-[44px] items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0"
-              aria-label={viewMode === 'grid' ? t('home.switchToListView') : t('home.switchToGridView')}>
-              {viewMode === 'grid' ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
-            </button>
-          </div>
-          {hasOverflow && (
-            <button type="button" onClick={() => setShowAllFilters(true)}
-              className="flex items-center gap-1 rounded-lg bg-white min-w-[44px] min-h-[44px] justify-center text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-0 md:hidden">
-              <span className="text-lg leading-none">…</span>
-            </button>
-          )}
+          <button onClick={() => setShowSearch(true)}
+            className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
+            aria-label={t('home.search')}>
+            <Search className="h-5 w-5" />
+          </button>
+          <button type="button" onClick={() => fetchLatestVideos(true)} disabled={isRefreshing}
+            className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
+            aria-label={t('home.refresh')}>
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={() => setShowFilterModal(true)}
+            className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 relative"
+            aria-label={t('filterModal.filter')}
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+          </button>
+          <div className="flex-1" />
+          <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
+            className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
+            aria-label={viewMode === 'grid' ? t('home.switchToListView') : t('home.switchToGridView')}>
+            {viewMode === 'grid' ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
+          </button>
         </div>
-      </div>
-
-        <div className="px-6 pt-4">
-          {showAllFilters && (
-          <div className="fixed inset-0 z-[55] flex items-start justify-center p-4 pt-20">
-            <div className="fixed inset-0 bg-black/50" onClick={() => setShowAllFilters(false)} />
-            <div className="relative z-10 w-full max-w-sm rounded-xl bg-white p-5 shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('home.filters')}</h3>
-                <button onClick={() => setShowAllFilters(false)} className="rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10">
-                  <X className="h-5 w-5" />
+        {activeChips.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 px-4 md:px-6 pb-3">
+            {activeChips.map(chip => (
+              <span
+                key={chip.key}
+                className="inline-flex items-center gap-1 rounded-full bg-brand-coral/10 px-2.5 py-1 text-xs font-medium text-brand-coral dark:bg-brand-coral/20"
+              >
+                {chip.label}
+                <button
+                  onClick={chip.onRemove}
+                  className="inline-flex items-center justify-center rounded-full p-0.5 hover:bg-brand-coral/20 transition"
+                  aria-label={`Remove ${chip.label} filter`}
+                >
+                  <X className="h-3 w-3" />
                 </button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('home.filterCategory')}</label>
-                  <CustomFilterDropdown
-                    value={selectedCategory}
-                    onChange={setSelectedCategory}
-                    options={[
-                      { value: '', label: t('home.filterAll') },
-                      ...allCategories.map((cat) => ({ value: cat, label: cat })),
-                    ]}
-                    placeholder={t('home.filterCategory')}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('home.filterTime')}</label>
-                  <CustomFilterDropdown
-                    value={timeRange}
-                    onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
-                    options={[
-                      { value: 'all', label: t('home.allTime') },
-                      { value: 'hour', label: t('home.lastHour') },
-                      { value: 'today', label: t('home.today') },
-                      { value: 'week', label: t('home.thisWeek') },
-                      { value: 'month', label: t('home.thisMonth') },
-                      { value: 'year', label: t('home.thisYear') },
-                    ]}
-                    placeholder={t('home.filterTime')}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('home.sortBy')}</label>
-                  <CustomFilterDropdown
-                    value={sortBy}
-                    onChange={(v) => setSortBy(v as 'newest' | 'views' | 'channel' | 'category')}
-                    options={[
-                      { value: 'newest', label: t('home.newest') },
-                      { value: 'views', label: t('home.mostViewed') },
-                      { value: 'channel', label: t('home.channelAZ') },
-                      { value: 'category', label: t('home.category') },
-                    ]}
-                    placeholder={t('home.sortBy')}
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode((prev) => (prev === 'grid' ? 'list' : 'grid'))}
-                    className="rounded-lg bg-white px-3 py-2 text-sm text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
-                  >
-                    {viewMode === 'grid' ? t('home.switchToList') : t('home.switchToGrid')}
-                  </button>
-                </div>
-              </div>
-            </div>
+              </span>
+            ))}
           </div>
         )}
+      </div>
 
+      <div className="px-6 pt-4">
         {channels.length > 0 && (
           <div className="mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           {items.some((i) => i.loading) ? (

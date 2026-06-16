@@ -427,6 +427,25 @@ const en = {
   'contact.draftSaved': 'Draft saved',
   'contact.fallback': 'If WhatsApp doesn\'t open, send a message to {number}',
 
+  // Filter Modal
+  'filterModal.title': 'Filters',
+  'filterModal.apply': 'Apply',
+  'filterModal.reset': 'Reset',
+  'filterModal.cancel': 'Cancel',
+  'filterModal.hiddenCategories': 'Hidden Categories',
+  'filterModal.hiddenCategoriesHint': 'Select categories to hide from your feed',
+  'filterModal.clearHidden': 'Clear All Hidden Categories',
+  'filterModal.noCategories': 'No categories available',
+  'filterModal.filter': 'Filter',
+  'filterModal.activeFilters': 'Filter ({count})',
+  'filterModal.clearAll': 'Clear all filters',
+  'filterModal.category': 'Category',
+  'filterModal.time': 'Time',
+  'filterModal.sort': 'Sort by',
+  'filterModal.viewMode': 'View mode',
+  'filterModal.publishedTime': 'Published Time',
+  'filterModal.last3Months': 'Last 3 Months',
+
   // General
   'general.untitled': 'Untitled',
 };

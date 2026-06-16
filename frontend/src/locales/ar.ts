@@ -427,6 +427,25 @@ const ar: Record<string, string> = {
   'contact.draftSaved': 'تم حفظ المسودة',
   'contact.fallback': 'إذا لم يفتح واتساب، أرسل رسالة إلى {number}',
 
+  // Filter Modal
+  'filterModal.title': 'الفلاتر',
+  'filterModal.apply': 'تطبيق',
+  'filterModal.reset': 'إعادة تعيين',
+  'filterModal.cancel': 'إلغاء',
+  'filterModal.hiddenCategories': 'التصنيفات المخفية',
+  'filterModal.hiddenCategoriesHint': 'اختر التصنيفات التي لا تريد رؤيتها',
+  'filterModal.clearHidden': 'مسح جميع التصنيفات المخفية',
+  'filterModal.noCategories': 'لا توجد تصنيفات متاحة',
+  'filterModal.filter': 'فلتر',
+  'filterModal.activeFilters': 'فلتر ({count})',
+  'filterModal.clearAll': 'مسح جميع الفلاتر',
+  'filterModal.category': 'التصنيف',
+  'filterModal.time': 'الوقت',
+  'filterModal.sort': 'ترتيب حسب',
+  'filterModal.viewMode': 'طريقة العرض',
+  'filterModal.publishedTime': 'وقت النشر',
+  'filterModal.last3Months': 'آخر 3 أشهر',
+
   // General
   'general.untitled': 'بدون عنوان',
 };
