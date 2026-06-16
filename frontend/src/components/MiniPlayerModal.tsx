@@ -422,10 +422,10 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
         onClick={handleClose}
       />
 
-      {/* Modal Container — responsive height and width */}
+      {/* Modal Container — full height, top-aligned */}
       <div
         ref={modalRef}
-        className={`relative z-10 w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[95dvh] flex flex-col sm:rounded-xl overflow-hidden shadow-2xl transition-transform duration-250 ${
+        className={`relative z-10 w-full sm:max-w-3xl h-[100dvh] sm:h-[100dvh] sm:max-h-[100dvh] flex flex-col sm:rounded-none overflow-hidden shadow-2xl transition-transform duration-250 ${
           closing
             ? 'translate-y-8 sm:scale-95'
             : 'translate-y-0 sm:scale-100 animate-modal-enter'
@@ -448,7 +448,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
         </button>
 
         {/* ─── 1. Video Player ─────────────────────────────────────── */}
-        <div className="relative aspect-[16/10] w-full flex-shrink-0 bg-black sm:aspect-[21/9]">
+        <div className="relative aspect-[16/10] w-full flex-shrink-0 bg-black">
           {videoId ? (
             apiFailed ? (
               <iframe
@@ -579,10 +579,10 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
             <div className="border-t border-gray-100 dark:border-white/10" />
 
             {/* ─── 6. Related Actions ────────────────────────────────── */}
-            <div className="flex flex-wrap items-center gap-2 sm:justify-between w-full">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={(e) => { e.stopPropagation(); openAtCurrentTime(); }}
-                className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20 w-full sm:w-auto"
+                className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20"
               >
                 <ExternalLink className="h-4 w-4" />
                 {t('miniPlayer.openOnYoutube')}
@@ -590,7 +590,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleWatchLater(); }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border w-full sm:w-auto ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
                   isInWatchLater
                     ? 'bg-brand-coral/10 text-brand-coral border-brand-coral/30 dark:bg-brand-coral/20'
                     : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
@@ -603,7 +603,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleFavorite(); }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border w-full sm:w-auto ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
                   isFav
                     ? 'bg-red-500/10 text-red-500 border-red-500/30 dark:bg-red-500/20'
                     : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
@@ -616,7 +616,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
 
               <button
                 onClick={(e) => { e.stopPropagation(); handleShare(); }}
-                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 w-full sm:w-auto"
+                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
                 aria-label={t('miniPlayer.share')}
               >
                 <Share2 className="h-4 w-4" />
@@ -631,7 +631,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                     window.open(`https://www.youtube.com/embed/${videoId}`, '_blank');
                   }
                 }}
-                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 w-full sm:w-auto"
+                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
                 aria-label={t('miniPlayer.fullscreen')}
               >
                 <Maximize2 className="h-4 w-4" />
