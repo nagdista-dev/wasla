@@ -328,33 +328,25 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
   const openAtCurrentTime = useCallback(() => {
     if (!currentVideo) return;
 
-    let currentTime = 0;
-    if (playerRef.current && playerReadyRef.current) {
-      try {
-        currentTime = Math.floor(playerRef.current.getCurrentTime());
-      } catch { /* player may not be ready */ }
-    }
-
     const videoId = extractVideoId(currentVideo.link);
-    const baseUrl = videoId ? buildWatchUrl(videoId) : currentVideo.link;
-
-    try {
-      const url = new URL(baseUrl);
-      if (currentTime > 0) {
-        url.searchParams.set('t', `${currentTime}s`);
-      }
-      window.open(url.toString(), '_blank');
-    } catch {
-      window.open(baseUrl, '_blank');
+    if (!videoId) {
+      window.open(currentVideo.link, '_blank');
+      close();
+      return;
     }
+
+    const baseUrl = buildWatchUrl(videoId);
+    window.open(baseUrl, '_blank');
     close();
   }, [currentVideo, close]);
 
   const jumpToTimestamp = useCallback((seconds: number) => {
-    if (!currentVideo || !playerRef.current || !playerReadyRef.current) return;
+    if (!currentVideo) return;
 
     try {
-      playerRef.current.seekTo(seconds, true);
+      if (playerRef.current && playerReadyRef.current) {
+        playerRef.current.seekTo(seconds, true);
+      }
       showToast(t('miniPlayer.jumpToTimestamp', { time: formatDuration(seconds) }), 'success');
     } catch {
       showToast(t('miniPlayer.jumpFailed'), 'error');
