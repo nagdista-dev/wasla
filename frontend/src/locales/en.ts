@@ -323,6 +323,7 @@ const en = {
   'miniPlayer.fullscreen': 'Fullscreen',
   'miniPlayer.jumpToTimestamp': 'Jump to {time}',
   'miniPlayer.jumpFailed': 'Failed to jump to timestamp',
+  'miniPlayer.noDescription': 'No description available for this video.',
 
   // Mobile App Banner
   'appBanner.installTitle': 'Install Wasla',

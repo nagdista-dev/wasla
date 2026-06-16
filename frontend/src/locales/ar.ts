@@ -323,6 +323,7 @@ const ar: Record<string, string> = {
   'miniPlayer.fullscreen': 'ملء الشاشة',
   'miniPlayer.jumpToTimestamp': 'القفز إلى {time}',
   'miniPlayer.jumpFailed': 'فشل القفز إلى الطابع الزمني',
+  'miniPlayer.noDescription': 'لا يوجد وصف متاح لهذا الفيديو.',
 
   // Mobile App Banner
   'appBanner.installTitle': 'تثبيت وصلة',

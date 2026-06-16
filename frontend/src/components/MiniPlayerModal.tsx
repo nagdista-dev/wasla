@@ -512,11 +512,11 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
             <div className="border-t border-gray-100 dark:border-white/10" />
 
             {/* ─── 3. Channel Info + 4. Publish Date & Stats ─────────── */}
-            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
               {/* Channel avatar */}
               {currentVideo.channelId ? (
                 <button
-                  onClick={() => navigate(`/channel/${currentVideo.channelId}`)}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/channel/${currentVideo.channelId}`); }}
                   className="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 text-base font-bold text-white shadow-sm hover:opacity-80 transition-opacity"
                   style={{ background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}
                   aria-label={t('miniPlayer.openChannel')}
@@ -535,7 +535,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               <div className="flex-1 min-w-0">
                 {currentVideo.channelId ? (
                   <button
-                    onClick={() => navigate(`/channel/${currentVideo.channelId}`)}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/channel/${currentVideo.channelId}`); }}
                     className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate hover:text-brand-coral transition-colors"
                   >
                     {currentVideo.channelName}
@@ -556,7 +556,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                       {formattedViews} {t('miniPlayer.views')}
                     </span>
                   )}
-                  {formattedDuration && (
+                  {currentVideo.description && currentVideo.description.trim().length > 0 && formattedDuration && (
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 flex-shrink-0" />
                       {formattedDuration}
@@ -569,13 +569,19 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
             <div className="border-t border-gray-100 dark:border-white/10" />
 
             {/* ─── 5. Video Description ──────────────────────────────── */}
-            {currentVideo.description && currentVideo.description.trim().length > 0 && (
+            {currentVideo.description && currentVideo.description.trim().length > 0 ? (
               <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 border border-gray-100 dark:border-white/10">
                 <VideoDescription
                   description={currentVideo.description}
                   t={t}
                   onTimestampClick={jumpToTimestamp}
                 />
+              </div>
+            ) : (
+              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 border border-gray-100 dark:border-white/10">
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                  {t('miniPlayer.noDescription')}
+                </p>
               </div>
             )}
 
@@ -584,7 +590,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
             {/* ─── 6. Related Actions ────────────────────────────────── */}
             <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={openAtCurrentTime}
+                onClick={(e) => { e.stopPropagation(); openAtCurrentTime(); }}
                 className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20"
               >
                 <ExternalLink className="h-4 w-4" />
@@ -592,7 +598,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               </button>
 
               <button
-                onClick={handleWatchLater}
+                onClick={(e) => { e.stopPropagation(); handleWatchLater(); }}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
                   isInWatchLater
                     ? 'bg-brand-coral/10 text-brand-coral border-brand-coral/30 dark:bg-brand-coral/20'
@@ -605,7 +611,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               </button>
 
               <button
-                onClick={handleFavorite}
+                onClick={(e) => { e.stopPropagation(); handleFavorite(); }}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95 border ${
                   isFav
                     ? 'bg-red-500/10 text-red-500 border-red-500/30 dark:bg-red-500/20'
@@ -618,7 +624,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               </button>
 
               <button
-                onClick={handleShare}
+                onClick={(e) => { e.stopPropagation(); handleShare(); }}
                 className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
                 aria-label={t('miniPlayer.share')}
               >
@@ -627,7 +633,8 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               </button>
 
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   const videoId = extractVideoId(currentVideo.link);
                   if (videoId) {
                     window.open(`https://www.youtube.com/embed/${videoId}`, '_blank');
