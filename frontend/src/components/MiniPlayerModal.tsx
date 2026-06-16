@@ -84,7 +84,7 @@ function formatDuration(duration?: string): string | undefined {
 
 /**
  * Format the description text, preserving line breaks and converting
- * bare URLs to clickable links.
+ * bare URLs to clickable links, and hashtags to styled spans.
  */
 function formatDescription(text: string): string {
   return text
@@ -94,6 +94,10 @@ function formatDescription(text: string): string {
     .replace(
       /(https?:\/\/[^\s<]+)/g,
       '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-brand-coral hover:underline break-all">$1</a>'
+    )
+    .replace(
+      /(^|\s)(#[a-zA-Z0-9_]+)/g,
+      '$1<span class="text-brand-pink hover:text-brand-coral transition-colors cursor-default">$2</span>'
     )
     .replace(/\n/g, '<br/>');
 }
