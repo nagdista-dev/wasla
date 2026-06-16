@@ -307,6 +307,15 @@ html {
   }
 }
 
+@keyframes slideUpFullScreen {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up-fullscreen {
+  animation: slideUpFullScreen 0.25s ease-out;
+}
+
 @keyframes splash-logo-pulse {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.06); opacity: 1; }
@@ -349,4 +358,53 @@ html {
 
 .animate-modal-enter {
   animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Timestamp highlighting in video descriptions */
+.timestamp-highlight {
+  color: #e2436a;
+  font-weight: 500;
+  padding: 0 2px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.timestamp-highlight:hover {
+  color: #b51762;
+  background-color: rgba(226, 67, 106, 0.1);
+  text-decoration: underline;
+}
+
+.timestamp-highlight::after {
+  content: attr(data-seconds);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  z-index: 50;
+}
+
+.timestamp-highlight:hover::after {
+  opacity: 1;
+}
+
+.dark .timestamp-highlight {
+  color: #f37345;
+}
+
+.dark .timestamp-highlight:hover {
+  color: #feb144;
+  background-color: rgba(243, 115, 69, 0.2);
 }

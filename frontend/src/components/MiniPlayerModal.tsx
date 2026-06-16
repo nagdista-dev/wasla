@@ -84,11 +84,41 @@ function formatDuration(duration?: string): string | undefined {
 }
 
 /**
+ * Convert timestamp (HH:MM:SS or MM:SS) to seconds
+ */
+function timestampToSeconds(timestamp: string): number {
+  const parts = timestamp.split(':').map(Number);
+  if (parts.length === 3) {
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  } else if (parts.length === 2) {
+    return parts[0] * 60 + parts[1];
+  }
+  return 0;
+}
+
+/**
+ * Format timestamp with leading zeros
+ */
+function formatTimestamp(timestamp: string): string {
+  const parts = timestamp.split(':').map(Number);
+  if (parts.length === 3) {
+    return `${parts[0].toString().padStart(2, '0')}:${parts[1].toString().padStart(2, '0')}:${parts[2].toString().padStart(2, '0')}`;
+  } else if (parts.length === 2) {
+    return `${parts[0].toString().padStart(2, '0')}:${parts[1].toString().padStart(2, '0')}`;
+  }
+  return timestamp;
+}
+
+/**
  * Format the description text, preserving line breaks and converting
  * bare URLs to clickable links, hashtags to styled spans, email addresses
- * to styled spans, and --- or === to divider lines.
+ * to styled spans, --- or === to divider lines, and timestamps to styled,
+ * clickable spans.
  */
 function formatDescription(text: string): string {
+  // First, handle timestamps (HH:MM:SS or MM:SS)
+  const timestampRegex = /\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g;
+  
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -109,6 +139,10 @@ function formatDescription(text: string): string {
       /(^|\n)([\-\=]{3,})($|\n)/g,
       '$1<hr class="border-gray-200 dark:border-white/10 my-2" />$3'
     )
+    .replace(timestampRegex, (match) => {
+      const seconds = timestampToSeconds(match);
+      return `<span class="timestamp-highlight cursor-pointer font-mono text-brand-coral hover:text-brand-pink transition-colors" data-seconds="${seconds}">${formatTimestamp(match)}</span>`;
+    })
     .replace(/\n/g, '<br/>');
 }
 
@@ -116,28 +150,39 @@ function formatDescription(text: string): string {
 
 const DESCRIPTION_COLLAPSED_LINES = 3;
 
-function VideoDescription({ description, t }: { description: string; t: (key: string) => string }) {
+function VideoDescription({ description, t, onTimestampClick }: { description: string; t: (key: string) => string; onTimestampClick?: (seconds: number) => void }) {
   const [expanded, setExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsToggle, setNeedsToggle] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
 
   useEffect(() => {
     if (contentRef.current) {
       const lineHeight = parseFloat(getComputedStyle(contentRef.current).lineHeight) || 20;
       const maxCollapsedHeight = lineHeight * DESCRIPTION_COLLAPSED_LINES;
       setNeedsToggle(contentRef.current.scrollHeight > maxCollapsedHeight + 4);
+      setContentHeight(contentRef.current.scrollHeight);
     }
   }, [description]);
 
   const formattedHtml = formatDescription(description);
 
+  const handleTimestampClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const timestampSpan = target.closest('.timestamp-highlight') as HTMLElement;
+    if (timestampSpan && onTimestampClick) {
+      const seconds = parseInt(timestampSpan.dataset.seconds || '0', 10);
+      onTimestampClick(seconds);
+    }
+  };
+
   return (
-    <div className="relative">
+    <div className="relative" onClick={handleTimestampClick}>
       <div
         ref={contentRef}
         className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-line transition-all duration-300 ease-in-out overflow-hidden"
         style={{
-          maxHeight: expanded ? `${contentRef.current?.scrollHeight ?? 9999}px` : `${DESCRIPTION_COLLAPSED_LINES * 1.625}em`,
+          maxHeight: expanded ? `${contentHeight ?? 9999}px` : `${DESCRIPTION_COLLAPSED_LINES * 1.625}em`,
         }}
         dangerouslySetInnerHTML={{ __html: formattedHtml }}
       />
@@ -307,6 +352,17 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
     }
     close();
   }, [currentVideo, close]);
+
+  const jumpToTimestamp = useCallback((seconds: number) => {
+    if (!currentVideo || !playerRef.current || !playerReadyRef.current) return;
+
+    try {
+      playerRef.current.seekTo(seconds, true);
+      showToast(t('miniPlayer.jumpToTimestamp', { time: formatDuration(seconds) }), 'success');
+    } catch {
+      showToast(t('miniPlayer.jumpFailed'), 'error');
+    }
+  }, [currentVideo, showToast, t]);
 
   const handleWatchLater = useCallback(() => {
     if (!currentVideo) return;
@@ -518,6 +574,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                 <VideoDescription
                   description={currentVideo.description}
                   t={t}
+                  onTimestampClick={jumpToTimestamp}
                 />
               </div>
             )}

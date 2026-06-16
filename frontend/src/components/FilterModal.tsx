@@ -50,6 +50,15 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
     }
   }, [isOpen, filters]);
 
+  const handleCancel = useCallback(() => {
+    setClosing(true);
+    setTimeout(() => {
+      setClosing(false);
+      onClose();
+      previousFocusRef.current?.focus();
+    }, 200);
+  }, [onClose]);
+
   useEffect(() => {
     if (!isOpen) return;
     function handleKeyDown(e: KeyboardEvent) {
@@ -72,21 +81,12 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filters]);
+  }, [isOpen, filters, handleCancel]);
 
   const handleApply = useCallback(() => {
     onApply({ selectedCategory, timeRange, sortBy, hiddenCategories });
     onClose();
   }, [onApply, onClose, selectedCategory, timeRange, sortBy, hiddenCategories]);
-
-  const handleCancel = useCallback(() => {
-    setClosing(true);
-    setTimeout(() => {
-      setClosing(false);
-      onClose();
-      previousFocusRef.current?.focus();
-    }, 200);
-  }, [onClose]);
 
   const handleReset = useCallback(() => {
     setSelectedCategory('');
@@ -111,14 +111,14 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 ${closing ? 'animate-fadeout' : 'animate-fadein'}`}
+      className={`fixed inset-0 z-[60] flex items-center justify-center p-0 ${closing ? 'animate-fadeout' : 'animate-fadein'}`}
       style={{ animationDuration: '0.2s' }}
     >
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCancel} />
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative z-10 w-full sm:max-w-lg max-h-[90dvh] flex flex-col rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700 ${closing ? 'animate-slide-down' : 'animate-slide-up sm:animate-scale-in'}`}
+        className={`relative z-10 w-full h-screen max-h-screen flex flex-col rounded-none bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700 ${closing ? 'animate-slide-down' : 'animate-slide-up-fullscreen'}`}
         role="dialog"
         aria-modal="true"
         aria-label={t('filterModal.title')}

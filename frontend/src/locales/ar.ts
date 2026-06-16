@@ -321,6 +321,8 @@ const ar: Record<string, string> = {
   'miniPlayer.loading': 'جاري تحميل الفيديو...',
   'miniPlayer.openChannel': 'فتح القناة',
   'miniPlayer.fullscreen': 'ملء الشاشة',
+  'miniPlayer.jumpToTimestamp': 'القفز إلى {time}',
+  'miniPlayer.jumpFailed': 'فشل القفز إلى الطابع الزمني',
 
   // Mobile App Banner
   'appBanner.installTitle': 'تثبيت وصلة',

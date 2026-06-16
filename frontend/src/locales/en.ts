@@ -321,6 +321,8 @@ const en = {
   'miniPlayer.loading': 'Loading video...',
   'miniPlayer.openChannel': 'Open channel',
   'miniPlayer.fullscreen': 'Fullscreen',
+  'miniPlayer.jumpToTimestamp': 'Jump to {time}',
+  'miniPlayer.jumpFailed': 'Failed to jump to timestamp',
 
   // Mobile App Banner
   'appBanner.installTitle': 'Install Wasla',
