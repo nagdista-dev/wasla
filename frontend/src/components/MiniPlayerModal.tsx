@@ -36,6 +36,7 @@ declare global {
 interface YTPlayer {
   getCurrentTime: () => number;
   destroy: () => void;
+  seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
 }
 
 // ─── API loader (singleton) ───────────────────────────────────────────────────
@@ -347,7 +348,8 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
       if (playerRef.current && playerReadyRef.current) {
         playerRef.current.seekTo(seconds, true);
       }
-      showToast(t('miniPlayer.jumpToTimestamp', { time: formatDuration(seconds) }), 'success');
+      const timeStr = formatDuration(seconds);
+      showToast(t('miniPlayer.jumpToTimestamp', { time: timeStr || seconds.toString() }), 'success');
     } catch {
       showToast(t('miniPlayer.jumpFailed'), 'error');
     }

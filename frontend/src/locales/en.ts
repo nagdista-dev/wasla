@@ -50,8 +50,6 @@ const en = {
   'home.refreshing': 'Refreshing...',
   'home.loadingChannels': 'Loading channels...',
   'home.loadingVideos': 'Loading videos…',
-  'home.showing': 'Showing {count} of {total} channels',
-  'home.showingWithCategory': 'Showing {count} of {total} channels ({category})',
   'home.addFirstChannel': 'Add your first channel',
   'home.addFirstChannelDesc': 'Use the plus button to add a YouTube channel. Its latest video will appear here.',
   'home.couldNotFetch': 'Could not fetch this channel',
