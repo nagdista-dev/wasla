@@ -320,6 +320,7 @@ const en = {
   'miniPlayer.linkCopied': 'Link copied to clipboard',
   'miniPlayer.loading': 'Loading video...',
   'miniPlayer.openChannel': 'Open channel',
+  'miniPlayer.fullscreen': 'Fullscreen',
 
   // Mobile App Banner
   'appBanner.installTitle': 'Install Wasla',

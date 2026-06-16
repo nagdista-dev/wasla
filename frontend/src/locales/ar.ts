@@ -320,6 +320,7 @@ const ar: Record<string, string> = {
   'miniPlayer.linkCopied': 'تم نسخ الرابط',
   'miniPlayer.loading': 'جاري تحميل الفيديو...',
   'miniPlayer.openChannel': 'فتح القناة',
+  'miniPlayer.fullscreen': 'ملء الشاشة',
 
   // Mobile App Banner
   'appBanner.installTitle': 'تثبيت وصلة',

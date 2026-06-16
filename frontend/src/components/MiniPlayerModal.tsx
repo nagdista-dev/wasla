@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookmarkCheck, BookmarkPlus, ChevronDown, ChevronUp, Clock, ExternalLink, Eye, Heart, Share2, X } from 'lucide-react';
+import { BookmarkCheck, BookmarkPlus, ChevronDown, ChevronUp, Clock, ExternalLink, Eye, Heart, Maximize2, Share2, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useTheme } from '../context/ThemeContext';
@@ -85,7 +85,8 @@ function formatDuration(duration?: string): string | undefined {
 
 /**
  * Format the description text, preserving line breaks and converting
- * bare URLs to clickable links, and hashtags to styled spans.
+ * bare URLs to clickable links, hashtags to styled spans, email addresses
+ * to styled spans, and --- or === to divider lines.
  */
 function formatDescription(text: string): string {
   return text
@@ -97,8 +98,16 @@ function formatDescription(text: string): string {
       '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-brand-coral hover:underline break-all">$1</a>'
     )
     .replace(
-      /(^|\s)(#[a-zA-Z0-9_]+)/g,
+      /(^|\s)(#[a-zA-Z0-9_\u0600-\u06FF]+)/g,
       '$1<span class="text-brand-pink hover:text-brand-coral transition-colors cursor-default">$2</span>'
+    )
+    .replace(
+      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+      '<span class="text-brand-purple hover:text-brand-coral transition-colors cursor-default underline">$1</span>'
+    )
+    .replace(
+      /(^|\n)([\-\=]{3,})($|\n)/g,
+      '$1<hr class="border-gray-200 dark:border-white/10 my-2" />$3'
     )
     .replace(/\n/g, '<br/>');
 }
@@ -558,6 +567,20 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
               >
                 <Share2 className="h-4 w-4" />
                 {t('miniPlayer.share')}
+              </button>
+
+              <button
+                onClick={() => {
+                  const videoId = extractVideoId(currentVideo.link);
+                  if (videoId) {
+                    window.open(`https://www.youtube.com/embed/${videoId}`, '_blank');
+                  }
+                }}
+                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
+                aria-label={t('miniPlayer.fullscreen')}
+              >
+                <Maximize2 className="h-4 w-4" />
+                {t('miniPlayer.fullscreen')}
               </button>
             </div>
           </div>
