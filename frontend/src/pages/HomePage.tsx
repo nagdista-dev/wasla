@@ -322,7 +322,7 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         ) : (
           <>
             {viewMode === 'grid' ? (
-              <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-full items-stretch">
+              <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-full items-stretch">
                 {displayItems.map(({ channel, video, loading, error }) => (
                   <div key={channel.id} className="min-w-0 h-full">
                     {loading ? (
