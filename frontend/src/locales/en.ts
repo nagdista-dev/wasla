@@ -460,6 +460,38 @@ const en = {
 
   // General
   'general.untitled': 'Untitled',
+
+  // Loading Screen Benefits
+  'loadingScreen.benefit1': 'Discover new YouTube channels and expand your content library',
+  'loadingScreen.benefit2': 'Organize your favorite channels in personalized playlists',
+  'loadingScreen.benefit3': 'Keep track of videos you want to watch later',
+  'loadingScreen.benefit4': 'Mark videos as completed to track your learning progress',
+  'loadingScreen.benefit5': 'Search and filter channels by categories and upload dates',
+  'loadingScreen.benefit6': 'Access all your content in one unified interface',
+  'loadingScreen.benefit7': 'Enjoy a clean, distraction-free viewing experience',
+  'loadingScreen.benefit8': 'Stay updated with your favorite creators and their latest content',
+  'loadingScreen.benefit9': 'Prevent distractions with focused viewing modes',
+  'loadingScreen.benefit10': 'Showcase user-added content from the community',
+  'loadingScreen.benefit11': 'Create personalized watch lists for specific topics',
+  'loadingScreen.benefit12': 'Track your learning progress with completion markers',
+  'loadingScreen.benefit13': 'Discover trending channels and popular content',
+  'loadingScreen.benefit14': 'Save time with intelligent content organization',
+  'loadingScreen.benefit15': 'Maintain your viewing history across devices',
+  'loadingScreen.benefit16': 'Find content quickly with advanced search capabilities',
+  'loadingScreen.benefit17': 'Connect with fellow enthusiasts through shared playlists',
+  'loadingScreen.benefit18': 'Customize your interface to match your preferences',
+  'loadingScreen.benefit19': 'Access premium features without the clutter',
+  'loadingScreen.benefit20': 'Build your personal knowledge base over time',
+  'loadingScreen.benefit21': 'Share your discoveries with friends and followers',
+  'loadingScreen.benefit22': 'Explore niche content from specialized creators',
+  'loadingScreen.benefit23': 'Create themed collections for different interests',
+  'loadingScreen.benefit24': 'Enjoy ad-free viewing experience',
+  'loadingScreen.benefit25': 'Discover hidden gems in your favorite categories',
+  'loadingScreen.benefit26': 'Build a library of educational content',
+  'loadingScreen.benefit27': 'Find content that matches your learning style',
+  'loadingScreen.benefit28': 'Create custom categories for better organization',
+  'loadingScreen.benefit29': 'Access your content anytime, anywhere',
+  'loadingScreen.benefit30': 'Transform your viewing habits with smart recommendations'
 };
 
 export type TranslationKeys = keyof typeof en;

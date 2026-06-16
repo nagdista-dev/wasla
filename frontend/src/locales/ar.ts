@@ -460,6 +460,38 @@ const ar: Record<string, string> = {
 
   // General
   'general.untitled': 'بدون عنوان',
+
+  // Loading Screen Benefits
+  'loadingScreen.benefit1': 'اكتشف قنوات يوتيوب جديدة ووسّع مكتبتك من المحتوى',
+  'loadingScreen.benefit2': 'نظم قنواتك المفضلة في قوائم تشغيل مخصصة',
+  'loadingScreen.benefit3': 'تابع الفيديوهات التي تريد مشاهدتها لاحقاً',
+  'loadingScreen.benefit4': 'حدد الفيديوهات كمكتملة لتتبع تقدمك في التعلم',
+  'loadingScreen.benefit5': 'ابحث و filtr القنوات حسب التصنيفات وتواريخ التحميل',
+  'loadingScreen.benefit6': 'الوصول إلى كل محتواك في واجهة موحدة واحدة',
+  'loadingScreen.benefit7': 'استمتع بتجربة مشاهدة نظيفة وخالية من المشتتات',
+  'loadingScreen.benefit8': 'ابق على اطلاع دائم بمبدعي المحتوى المفضلين لديك وأحدث محتواهم',
+  'loadingScreen.benefit9': 'منع المشتتات مع وضعيات مشاهدة مركزة',
+  'loadingScreen.benefit10': 'عرض المحتوى الذي يضيفه المستخدمون من المجتمع',
+  'loadingScreen.benefit11': 'إنشاء قوائم مشاهدة مخصصة لمواضيع محددة',
+  'loadingScreen.benefit12': 'تتبع تقدمك في التعلم مع علامات الإكمال',
+  'loadingScreen.benefit13': 'اكتشف القنوات الشائعة والمحتوى الرائج',
+  'loadingScreen.benefit14': 'وفر الوقت مع تنظيم المحتوى الذكي',
+  'loadingScreen.benefit15': 'الاحتفاظ بتاريخ مشاهدتك عبر الأجهزة',
+  'loadingScreen.benefit16': 'العثور على المحتوى بسرعة مع قدرات البحث المتقدمة',
+  'loadingScreen.benefit17': 'التواصل مع زملائك من خلال قوائم التشغيل المشتركة',
+  'loadingScreen.benefit18': 'تخصيص واجهتك لتناسب تفضيلاتك',
+  'loadingScreen.benefit19': 'الوصول إلى الميزات المميزة دون الفوضى',
+  'loadingScreen.benefit20': 'بناء قاعدة معرفية من المحتوى التعليمي',
+  'loadingScreen.benefit21': 'مشاركة اكتشافاتك مع الأصدقاء والمتابعين',
+  'loadingScreen.benefit22': 'استكشاف المحتوى المتخصص من المبدعين الخبراء',
+  'loadingScreen.benefit23': 'إنشاء مجموعات مواضيعية لمختلف الاهتمامات',
+  'loadingScreen.benefit24': 'الاستمتاع بتجربة مشاهدة خالية من الإعلانات',
+  'loadingScreen.benefit25': 'اكتشاف الكنوز المخفية في فئاتك المفضلة',
+  'loadingScreen.benefit26': 'بناء مكتبة من المحتوى التعليمي',
+  'loadingScreen.benefit27': 'العثور على المحتوى الذي يتناسب مع أسلوب تعلمك',
+  'loadingScreen.benefit28': 'إنشاء فئات مخصصة لتحسين التنظيم',
+  'loadingScreen.benefit29': 'الوصول إلى محتواك في أي وقت وأي مكان',
+  'loadingScreen.benefit30': 'تحويل عادات مشاهدتك مع توصيات ذكية'
 };
 
 export default ar;
