@@ -67,7 +67,7 @@ function savePref(key: string, value: unknown) {
   } catch { /* noop */ }
 }
 
-export default function HomePage({ channels, onUpdate }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void }) {
+export default function HomePage({ channels, onUpdate, onImportChannels }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannels?: () => void }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   usePlayer();
@@ -312,12 +312,21 @@ export default function HomePage({ channels, onUpdate }: { channels: Channel[]; 
         )}
 
         {channels.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
-            <Play className="mx-auto mb-4 h-12 w-12 text-brand-coral" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('home.addFirstChannel')}</h2>
-            <p className="mx-auto mt-2 max-w-md text-gray-600 dark:text-gray-400">
-              {t('home.addFirstChannelDesc')}
-            </p>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 sm:p-14 text-center max-w-lg w-full dark:border-gray-600 dark:bg-dark-navy">
+              <Play className="mx-auto mb-5 h-14 w-14 text-brand-coral" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('home.addFirstChannel')}</h2>
+              <p className="mx-auto mt-3 max-w-md text-gray-500 dark:text-gray-400 leading-relaxed">
+                {t('home.addFirstChannelDesc')}
+              </p>
+              <button
+                onClick={onImportChannels}
+                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-brand-coral px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-coral/30 hover:bg-brand-pink transition-all active:scale-95 min-h-[48px]"
+              >
+                <Play className="h-5 w-5" />
+                {t('home.importChannels') || 'Import Channels'}
+              </button>
+            </div>
           </div>
         ) : (
           <>

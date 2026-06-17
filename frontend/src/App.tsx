@@ -423,7 +423,7 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <HomePage channels={channels} onUpdate={handleUpdateChannel} />
+                  <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannels={() => setShowChannelModal(true)} />
                 }
               />
               <Route path="/channel/:channelId" element={<ChannelPage />} />
