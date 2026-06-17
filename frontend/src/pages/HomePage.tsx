@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
@@ -17,43 +16,9 @@ import { useToast } from '../components/Toast';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import { parseAndValidateChannelsJson } from '../utils/importChannels';
 import { getAllFromIndex } from '../services/indexedDbService';
-import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
+import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepository';
+import type { Channel, ChannelLatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
-
-type ChannelApiResponse = {
-  success: boolean;
-  data?: {
-    latestVideo?: LatestVideo;
-    videos?: LatestVideo[];
-    title?: string;
-    link?: string;
-    thumbnail?: string;
-    publishedDate?: string;
-    published?: string;
-    channelName?: string;
-  };
-  error?: string;
-  cached?: boolean;
-};
-
-function getLatestVideo(channel: Channel, data: ChannelApiResponse['data']): LatestVideo | undefined {
-  if (data?.latestVideo) return data.latestVideo;
-
-  const firstVideo = data?.videos?.[0];
-  if (firstVideo) return firstVideo;
-
-  if (data?.title || data?.link) {
-    return {
-      title: data.title || 'Untitled',
-      link: data.link || `https://www.youtube.com/channel/${channel.id}`,
-      thumbnail: data.thumbnail,
-      publishedDate: data.publishedDate || data.published || '',
-      channelName: data.channelName || channel.name,
-    };
-  }
-
-  return undefined;
-}
 
 function loadPref<T>(key: string, fallback: T): T {
   try {
@@ -92,70 +57,38 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasLoadedCache, setHasLoadedCache] = useState(false);
   const [importingJson, setImportingJson] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const itemsRef = useRef<ChannelLatestVideo[]>([]);
   const watchLaterCache = useMemo(() => loadWatchLater(), []);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => { savePref('wasla_viewMode', viewMode); }, [viewMode]);
 
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
-  // Load cached videos instantly on mount
-  useEffect(() => {
-    const cached = loadPref<ChannelLatestVideo[] | null>('wasla_videos_cache', null);
-    if (cached && cached.length > 0) {
-      setItems(cached);
+  const fetchLatestVideos = useCallback(async () => {
+    if (channels.length === 0) {
+      setItems([]);
+      setHasLoadedCache(true);
+      return;
     }
-  }, []);
 
-  const fetchLatestVideos = useCallback(async (force = false) => {
-    if (force) setIsRefreshing(true);
-
-    const initialItems: ChannelLatestVideo[] = channels.map((channel) => ({
-      channel,
-      loading: !force,
-    }));
-    if (!force) setItems(initialItems);
-
-    const results = await Promise.allSettled(
-      channels.map((channel) =>
-        api.get<ChannelApiResponse>(`/channel/${encodeURIComponent(channel.id)}`).then((response) => ({
-          channel,
-          response,
-        })),
-      ),
-    );
-
-    const newItems: ChannelLatestVideo[] = results.map((result, index) => {
-      if (result.status === 'rejected') {
-        return {
-          channel: channels[index],
-          loading: false,
-          error: t('home.couldNotFetch'),
-        };
-      }
-
-      const data = result.value.response.data.data;
-
-      if (!result.value.response.data.success || !data) {
-        return {
-          channel: channels[index],
-          loading: false,
-          error: result.value.response.data.error || t('home.couldNotFetch'),
-        };
-      }
-
-      return {
-        channel: channels[index],
-        video: getLatestVideo(channels[index], data),
-        loading: false,
-        error: data.latestVideo || data.videos?.[0] || data.title ? undefined : t('home.noVideoFound'),
-      };
-    });
-
-    setItems(newItems);
-    savePref('wasla_videos_cache', newItems);
-    if (force) setIsRefreshing(false);
+    setIsRefreshing(true);
+    try {
+      const newItems = await refreshHomeFeed(channels, {
+        couldNotFetch: t('home.couldNotFetch'),
+        noVideoFound: t('home.noVideoFound'),
+      }, itemsRef.current);
+      setItems(newItems);
+    } finally {
+      setIsRefreshing(false);
+      setHasLoadedCache(true);
+    }
   }, [channels, t]);
 
   const handleJsonImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,15 +139,52 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
   }, [onImportChannelsJson, showToast, t]);
 
   useEffect(() => {
-    if (channels.length === 0) {
-      return;
-    }
+    let cancelled = false;
 
     const loadVideos = async () => {
-      await fetchLatestVideos();
+      if (channels.length === 0) {
+        setItems([]);
+        setHasLoadedCache(true);
+        return;
+      }
+
+      setHasLoadedCache(false);
+
+      try {
+        const cachedItems = await loadHomeFeedFromCache(channels);
+        if (cancelled) return;
+
+        if (cachedItems.length === channels.length) {
+          setItems(cachedItems);
+          setHasLoadedCache(true);
+          return;
+        }
+
+        if (cachedItems.length > 0) {
+          const cachedByChannel = new Map(cachedItems.map((item) => [item.channel.id, item]));
+          setItems(channels.map((channel) => cachedByChannel.get(channel.id) || {
+            channel,
+            loading: true,
+          }));
+        } else {
+          setItems(channels.map((channel) => ({
+            channel,
+            loading: true,
+          })));
+        }
+
+        await fetchLatestVideos();
+      } catch {
+        if (cancelled) return;
+        await fetchLatestVideos();
+      }
     };
 
     void loadVideos();
+
+    return () => {
+      cancelled = true;
+    };
   }, [channels, fetchLatestVideos]);
 
   const displayItems = useMemo(() => {
@@ -312,7 +282,7 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
             aria-label={t('home.search')}>
             <Search className="h-5 w-5" />
           </button>
-          <button type="button" onClick={() => fetchLatestVideos(true)} disabled={isRefreshing}
+          <button type="button" onClick={() => fetchLatestVideos()} disabled={isRefreshing}
             className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
             aria-label={t('home.refresh')}>
             <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -355,7 +325,7 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
       <div className="px-6 pt-4">
         {channels.length > 0 && (
           <div className="mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          {items.some((i) => i.loading) ? (
+          {items.some((i) => i.loading) || isRefreshing || !hasLoadedCache ? (
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
               {isRefreshing ? t('home.refreshing') : t('home.loadingVideos')}
@@ -508,22 +478,6 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
                             alt={video.title}
                             className="h-full w-full"
                           />
-                          {video.duration && (() => {
-                            const total = parseInt(video.duration, 10);
-                            const formatted = isNaN(total) ? video.duration : (() => {
-                              const hrs = Math.floor(total / 3600);
-                              const mins = Math.floor((total % 3600) / 60);
-                              const secs = total % 60;
-                              if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                              return `${mins}:${secs.toString().padStart(2, '0')}`;
-                            })();
-                            return (
-                              <span className="absolute bottom-1.5 right-1.5 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-1.5 py-0.5 rounded flex items-center gap-1 z-10">
-                                <Clock className="h-3 w-3" />
-                                {formatted}
-                              </span>
-                            );
-                          })()}
                           <div className="absolute top-2 right-2 z-20">
                             <button
                               onClick={(e) => {

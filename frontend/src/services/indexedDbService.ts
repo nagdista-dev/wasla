@@ -1,5 +1,5 @@
 const DB_NAME = 'wasla_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export interface StoreSchema {
   name: string;
@@ -22,6 +22,14 @@ const STORES: StoreSchema[] = [
     keyPath: 'videoId',
     indexes: [
       { name: 'lastUpdated', keyPath: 'lastUpdated' },
+    ],
+  },
+  {
+    name: 'homeVideoCache',
+    keyPath: 'channelId',
+    indexes: [
+      { name: 'videoId', keyPath: 'videoId' },
+      { name: 'fetchedAt', keyPath: 'fetchedAt' },
     ],
   },
   {
@@ -145,6 +153,20 @@ export async function clearStore(storeName: string): Promise<void> {
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
     store.clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function replaceStoreItems<T>(storeName: string, items: T[]): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    store.clear();
+    for (const item of items) {
+      store.put(item);
+    }
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });

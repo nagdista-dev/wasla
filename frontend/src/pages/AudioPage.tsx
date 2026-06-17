@@ -7,6 +7,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { extractVideoId } from '../utils/videoUtils';
 import { useToast } from '../components/Toast';
 import { useMeta } from '../hooks/useMeta';
+import { findCachedHomeVideoById } from '../services/videoCacheService';
 import type { LatestVideo } from '../types';
 
 const SLEEP_TIMER_OPTIONS = [10, 20, 30, 60] as const;
@@ -52,52 +53,45 @@ function AudioPage() {
   useMeta({ title: video ? `${video.title} - ${t('audioPage.title')}` : t('audioPage.title') });
 
   useEffect(() => {
+    let cancelled = false;
     let found: (LatestVideo & { channelId?: string }) | null = null;
 
-    const stateData = location.state as { video?: LatestVideo; channelId?: string } | undefined;
-    if (stateData?.video) {
-      const extractedId = extractVideoId(stateData.video.link);
-      if (extractedId === videoId) {
-        found = { ...stateData.video, channelId: stateData.channelId };
-      }
-    }
-
-    if (!found && currentVideo && currentVideo._videoId === videoId) {
-      found = { ...currentVideo };
-    }
-
-    if (!found && playerVideo && playerVideo._videoId === videoId) {
-      found = { ...playerVideo };
-    }
-
-    if (!found) {
-      try {
-        const cachedVideos = localStorage.getItem('wasla_videos_cache');
-        if (cachedVideos) {
-          const parsed = JSON.parse(cachedVideos);
-          for (const entry of Object.values(parsed) as Array<{ videos?: LatestVideo[] }>) {
-            if (entry?.videos) {
-              for (const v of entry.videos) {
-                const extractedId = extractVideoId(v.link);
-                if (extractedId === videoId) {
-                  found = v;
-                  break;
-                }
-              }
-            }
-            if (found) break;
-          }
+    const resolveVideo = async () => {
+      const stateData = location.state as { video?: LatestVideo; channelId?: string } | undefined;
+      if (stateData?.video) {
+        const extractedId = extractVideoId(stateData.video.link);
+        if (extractedId === videoId) {
+          found = { ...stateData.video, channelId: stateData.channelId };
         }
-      } catch { /* ignore */ }
-    }
-
-    if (found) {
-      setVideo(found);
-      if (!currentVideo || currentVideo._videoId !== videoId) {
-        playAudio(found, found.channelId);
       }
-    }
-    setLoading(false);
+
+      if (!found && currentVideo && currentVideo._videoId === videoId) {
+        found = { ...currentVideo };
+      }
+
+      if (!found && playerVideo && playerVideo._videoId === videoId) {
+        found = { ...playerVideo };
+      }
+
+      if (!found && videoId) {
+        found = await findCachedHomeVideoById(videoId);
+      }
+
+      if (cancelled) return;
+      if (found) {
+        setVideo(found);
+        if (!currentVideo || currentVideo._videoId !== videoId) {
+          playAudio(found, found.channelId);
+        }
+      }
+      setLoading(false);
+    };
+
+    void resolveVideo();
+
+    return () => {
+      cancelled = true;
+    };
   }, [videoId, currentVideo, playerVideo, location.state, playAudio]);
 
   const handleBack = useCallback(() => {

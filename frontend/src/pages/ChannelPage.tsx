@@ -502,7 +502,7 @@ export default function ChannelPage() {
               {t('channel.videos')}
               {activeTab === 'videos' && (
                 <span
-                  className="absolute bottom-0 start-0 end-0 h-0.5 rounded-t bg-brand-coral"
+                  className="absolute bottom-0 start-0 end-0 h-px bg-gray-200 dark:bg-gray-700"
                   aria-hidden="true"
                 />
               )}
@@ -526,7 +526,7 @@ export default function ChannelPage() {
               {t('channel.playlists')}
               {activeTab === 'playlists' && (
                 <span
-                  className="absolute bottom-0 start-0 end-0 h-0.5 rounded-t bg-brand-coral"
+                  className="absolute bottom-0 start-0 end-0 h-px bg-gray-200 dark:bg-gray-700"
                   aria-hidden="true"
                 />
               )}

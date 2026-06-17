@@ -14,6 +14,7 @@ import { loadWatchLater, saveWatchLater } from '../storage';
 import { useMeta } from '../hooks/useMeta';
 import { usePlaybackResume } from '../hooks/usePlaybackResume';
 import { recordWatch } from '../services/watchHistoryService';
+import { findCachedHomeVideoById } from '../services/videoCacheService';
 import type { LatestVideo } from '../types';
 
 function formatViews(views?: number | string): string | undefined {
@@ -131,6 +132,8 @@ function VideoPage() {
   const [isInWatchLater, setIsInWatchLater] = useState(false);
   const [resumeTime, setResumeTime] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [resumeVideoId, setResumeVideoId] = useState<string | null>(null);
+  const [progressCheckedVideoId, setProgressCheckedVideoId] = useState<string | null>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -145,51 +148,45 @@ function VideoPage() {
     loadProgress,
     clearProgress,
     updatePosition,
+    saveOnPause,
   } = usePlaybackResume(video ? extractVideoId(video.link) || videoId : undefined);
 
   useMeta({ title: video?.title || t('videoPage.loading') });
 
   useEffect(() => {
+    let cancelled = false;
     let found: (LatestVideo & { channelId?: string }) | null = null;
 
-    const stateData = location.state as { video?: LatestVideo; channelId?: string } | undefined;
-    if (stateData?.video) {
-      const extractedId = extractVideoId(stateData.video.link);
-      if (extractedId === videoId) {
-        found = { ...stateData.video, channelId: stateData.channelId };
-      }
-    }
-
-    if (!found && currentVideo && currentVideo._videoId === videoId) {
-      found = { ...currentVideo };
-    }
-
-    if (!found) {
-      try {
-        const cachedVideos = localStorage.getItem('wasla_videos_cache');
-        if (cachedVideos) {
-          const parsed = JSON.parse(cachedVideos);
-          for (const entry of Object.values(parsed) as Array<{ videos?: LatestVideo[] }>) {
-            if (entry?.videos) {
-              for (const v of entry.videos) {
-                const extractedId = extractVideoId(v.link);
-                if (extractedId === videoId) {
-                  found = v;
-                  break;
-                }
-              }
-            }
-            if (found) break;
-          }
+    const resolveVideo = async () => {
+      const stateData = location.state as { video?: LatestVideo; channelId?: string } | undefined;
+      if (stateData?.video) {
+        const extractedId = extractVideoId(stateData.video.link);
+        if (extractedId === videoId) {
+          found = { ...stateData.video, channelId: stateData.channelId };
         }
-      } catch { /* ignore */ }
-    }
+      }
 
-    if (found) {
-      setVideo(found);
-      mediaManager.requestPlay('video');
-    }
-    setLoading(false);
+      if (!found && currentVideo && currentVideo._videoId === videoId) {
+        found = { ...currentVideo };
+      }
+
+      if (!found && videoId) {
+        found = await findCachedHomeVideoById(videoId);
+      }
+
+      if (cancelled) return;
+      if (found) {
+        setVideo(found);
+        mediaManager.requestPlay('video');
+      }
+      setLoading(false);
+    };
+
+    void resolveVideo();
+
+    return () => {
+      cancelled = true;
+    };
   }, [videoId, currentVideo, location.state, mediaManager]);
 
   useEffect(() => {
@@ -202,6 +199,7 @@ function VideoPage() {
     if (!video) return;
     const vidId = extractVideoId(video.link) || videoId;
     if (!vidId) return;
+    let cancelled = false;
 
     if (!historyRecordedRef.current) {
       historyRecordedRef.current = true;
@@ -217,22 +215,37 @@ function VideoPage() {
     }
 
     loadProgress().then((progress) => {
+      if (cancelled) return;
       if (progress && progress.currentTime > 5 && progress.currentTime < progress.duration - 5) {
         setResumeTime(progress.currentTime);
+        setResumeVideoId(vidId);
         setShowResumePrompt(true);
+      } else {
+        setResumeTime(null);
+        setResumeVideoId(null);
+        setShowResumePrompt(false);
       }
+      setProgressCheckedVideoId(vidId);
+    }).catch(() => {
+      if (!cancelled) setProgressCheckedVideoId(vidId);
     });
-  }, [video]);
+    return () => {
+      cancelled = true;
+    };
+  }, [video, videoId, loadProgress]);
 
   const durationSeconds = video ? (parseInt(video.duration || '0', 10) || 0) : 0;
   const embedId = video ? (extractVideoId(video.link) || videoId) : videoId;
-  const startParam = resumeTime ? `&start=${Math.floor(resumeTime)}` : '';
+  const shouldShowResumePrompt = showResumePrompt && resumeVideoId === embedId;
+  const progressChecked = progressCheckedVideoId === embedId;
+  const startParam = resumeTime && resumeVideoId === embedId && !shouldShowResumePrompt ? `&start=${Math.floor(resumeTime)}` : '';
   const embedSrc = embedId
     ? `https://www.youtube.com/embed/${embedId}?autoplay=1${startParam}`
     : '';
+  const canRenderPlayer = progressChecked && !shouldShowResumePrompt;
 
   useEffect(() => {
-    if (!video || showResumePrompt || durationSeconds <= 0) return;
+    if (!video || !canRenderPlayer || durationSeconds <= 0) return;
 
     trackingStartRef.current = Date.now();
     initialOffsetRef.current = resumeTime ?? 0;
@@ -261,13 +274,26 @@ function VideoPage() {
         animFrameRef.current = 0;
       }
     };
-  }, [video, showResumePrompt, resumeTime, updatePosition, durationSeconds]);
+  }, [video, canRenderPlayer, resumeTime, updatePosition, durationSeconds]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        saveOnPause();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [saveOnPause]);
 
   useEffect(() => {
     if (!embedSrc) return;
     const timer = setTimeout(() => setIframeLoaded(true), 15000);
     return () => clearTimeout(timer);
-  }, [embedSrc]);
+  }, [embedSrc, canRenderPlayer]);
 
   useEffect(() => {
     if (!embedSrc) return;
@@ -353,6 +379,7 @@ function VideoPage() {
 
   const handleStartOver = useCallback(() => {
     setResumeTime(null);
+    setResumeVideoId(null);
     setShowResumePrompt(false);
     clearProgress();
   }, [clearProgress]);
@@ -405,7 +432,7 @@ function VideoPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-dark-navy">
       {/* Resume prompt modal */}
-      {showResumePrompt && (
+      {shouldShowResumePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-dark-navy rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fadein">
             <div className="flex flex-col items-center text-center gap-4">
@@ -442,7 +469,7 @@ function VideoPage() {
             ref={playerContainerRef}
             className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl"
           >
-            {embedSrc ? (
+            {embedSrc && canRenderPlayer ? (
               <>
                 <iframe
                   ref={iframeRef}
@@ -469,6 +496,10 @@ function VideoPage() {
                   </div>
                 )}
               </>
+            ) : embedSrc ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              </div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
                 <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>

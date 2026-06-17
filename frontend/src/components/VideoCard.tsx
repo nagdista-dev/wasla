@@ -10,6 +10,7 @@ import { useToast } from './Toast';
 import { useFavorites } from '../context/FavoritesContext';
 import { extractVideoId } from '../utils/videoUtils';
 import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
+import { useVideoProgress } from '../hooks/useVideoProgress';
 
 interface VideoCardProps {
   channel: Channel;
@@ -26,17 +27,6 @@ function formatViews(views?: number | string): string | undefined {
   return num.toString();
 }
 
-function formatDuration(duration?: string): string | undefined {
-  if (!duration) return undefined;
-  const total = parseInt(duration, 10);
-  if (isNaN(total)) return undefined;
-  const hrs = Math.floor(total / 3600);
-  const mins = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
 const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardProps) {
   const { t } = useLanguage();
   const { play } = usePlayer();
@@ -45,6 +35,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
   const { isFavorite, toggleFavorite } = useFavorites();
   const channelName = video.channelName || channel.name;
   const initial = channelName.charAt(0).toUpperCase();
+  const progress = useVideoProgress(video.link);
 
   const [isInWatchLater, setIsInWatchLater] = useState(() =>
     loadWatchLater().some((item) => item.video.link === video.link)
@@ -107,7 +98,17 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
       onClick={handlePlay}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { play(video); const kid = extractVideoId(video.link); if (kid) navigate(`/video/${kid}`, { state: { video } }); } }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          play(video, channel.id);
+          const kid = extractVideoId(video.link);
+          if (kid) {
+            navigate(`/video/${kid}`, {
+              state: { video: { ...video, channelName }, channelId: channel.id },
+            });
+          }
+        }
+      }}
     >
       <div className="relative overflow-hidden rounded-t-xl">
         <div className="aspect-video overflow-hidden">
@@ -123,14 +124,21 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
             <span className="h-2 w-2 rounded-full bg-white" />
             {t('videoCard.live')}
           </span>
-        ) : (
-          <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1 min-w-[48px] justify-center z-10">
-            <Clock className="h-3 w-3" />
-            {formatDuration(video.duration) || '—'}
-          </span>
-        )}
+        ) : null}
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+        {progress && (
+          <div
+            className="absolute bottom-0 left-0 right-0 z-10 h-1 bg-black/20"
+            aria-hidden="true"
+          >
+            <div
+              className="h-full bg-brand-coral transition-[width] duration-300 ease-out"
+              style={{ width: `${progress.watchedPercentage}%` }}
+            />
+          </div>
+        )}
 
         <div className="absolute top-2 right-2 z-10 flex gap-2">
           <button

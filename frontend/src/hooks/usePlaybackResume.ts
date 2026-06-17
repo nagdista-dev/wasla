@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { saveProgress, getProgress, removeProgress, type PlaybackProgress } from '../services/playbackProgressService';
 
-const SAVE_INTERVAL_MS = 10000;
+const SAVE_INTERVAL_MS = 4000;
 
 export function usePlaybackResume(videoId?: string) {
   const lastSavedRef = useRef<number>(0);
@@ -16,6 +16,7 @@ export function usePlaybackResume(videoId?: string) {
 
   const doSave = useCallback(async () => {
     if (!videoId || durationRef.current <= 0) return;
+    if (Date.now() - lastSavedRef.current < 1000) return;
     await saveProgress(videoId, currentTimeRef.current, durationRef.current);
     lastSavedRef.current = Date.now();
   }, [videoId]);
