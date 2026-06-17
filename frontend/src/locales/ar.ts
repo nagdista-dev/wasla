@@ -311,6 +311,23 @@ const ar: Record<string, string> = {
   'confirmAction.cancel': 'إلغاء',
   'confirmAction.confirm': 'تأكيد',
 
+  // Audio Page
+  'audioPage.title': 'وضع الصوت',
+  'audioPage.back': 'رجوع',
+  'audioPage.play': 'تشغيل',
+  'audioPage.pause': 'إيقاف',
+  'audioPage.seek': 'بحث',
+  'audioPage.volume': 'مستوى الصوت',
+  'audioPage.volumeSlider': 'شريط مستوى الصوت',
+  'audioPage.sleepTimer': 'مؤقت الإيقاف',
+  'audioPage.minutes': 'دقيقة',
+  'audioPage.clearTimer': 'إلغاء المؤقت',
+  'audioPage.sleepTimerSet': 'سيتوقف التشغيل بعد {minutes} دقائق',
+  'audioPage.skipBack': 'رجوع 10 ثوانٍ',
+  'audioPage.skipForward': 'تقدم 10 ثوانٍ',
+  'audioPage.listenInAudioMode': 'استمع في وضع الصوت',
+  'audioPage.playbackStopped': 'تم إيقاف التشغيل',
+
   // Mini Player
   'miniPlayer.close': 'إغلاق المشغل',
   'miniPlayer.couldNotLoad': 'تعذر تحميل الفيديو',

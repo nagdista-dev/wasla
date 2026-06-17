@@ -311,6 +311,23 @@ const en = {
   'confirmAction.cancel': 'Cancel',
   'confirmAction.confirm': 'Confirm',
 
+  // Audio Page
+  'audioPage.title': 'Audio Mode',
+  'audioPage.back': 'Back',
+  'audioPage.play': 'Play',
+  'audioPage.pause': 'Pause',
+  'audioPage.seek': 'Seek',
+  'audioPage.volume': 'Volume',
+  'audioPage.volumeSlider': 'Volume slider',
+  'audioPage.sleepTimer': 'Sleep Timer',
+  'audioPage.minutes': 'minutes',
+  'audioPage.clearTimer': 'Clear timer',
+  'audioPage.sleepTimerSet': 'Playback will stop in {minutes} minutes',
+  'audioPage.skipBack': 'Skip back 10 seconds',
+  'audioPage.skipForward': 'Skip forward 10 seconds',
+  'audioPage.listenInAudioMode': 'Listen in Audio Mode',
+  'audioPage.playbackStopped': 'Playback stopped',
+
   // Mini Player
   'miniPlayer.close': 'Close player',
   'miniPlayer.couldNotLoad': 'Could not load video',

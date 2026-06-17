@@ -23,19 +23,30 @@ declare global {
           playerVars?: Record<string, string | number>;
           events?: {
             onReady?: (event: { target: YTPlayer }) => void;
+            onStateChange?: (event: { data: number }) => void;
             onError?: (event: { data: number }) => void;
           };
         },
       ) => YTPlayer;
+      PlayerState: { PLAYING: number; PAUSED: number; ENDED: number; BUFFERING: number; CUED: number };
     };
     onYouTubeIframeAPIReady: () => void;
   }
 }
 
 interface YTPlayer {
-  getCurrentTime: () => number;
-  destroy: () => void;
+  playVideo: () => void;
+  pauseVideo: () => void;
+  stopVideo: () => void;
   seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
+  getCurrentTime: () => number;
+  getDuration: () => number;
+  setVolume: (volume: number) => void;
+  getVolume: () => number;
+  mute: () => void;
+  unMute: () => void;
+  destroy: () => void;
+  getPlayerState: () => number;
 }
 
 // ─── API loader (singleton) ───────────────────────────────────────────────────

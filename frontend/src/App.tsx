@@ -56,6 +56,7 @@ const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
 const CourseDashboardPage = lazy(() => import("./pages/CourseDashboardPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const VideoPage = lazy(() => import("./pages/VideoPage"));
+const AudioPage = lazy(() => import("./pages/AudioPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -444,6 +445,7 @@ function App() {
               <Route path="/channel/:channelId" element={<ChannelPage />} />
               <Route path="/playlist/:playlistId" element={<PlaylistCoursePage />} />
               <Route path="/video/:videoId" element={<VideoPage />} />
+              <Route path="/audio/:videoId" element={<AudioPage />} />
               <Route
                 path="/category/:categoryName"
                 element={<CategoryPage channels={channels} />}

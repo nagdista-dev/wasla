@@ -9,6 +9,7 @@ migrateStorage();
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './components/Toast'
 import { PlayerProvider } from './context/PlayerContext'
+import { AudioProvider } from './context/AudioContext'
 import { FavoritesProvider } from './context/FavoritesContext'
 import { CoursesProvider } from './context/CoursesContext'
 import { FilterProvider } from './context/FilterContext'
@@ -19,13 +20,15 @@ createRoot(document.getElementById('root')!).render(
       <ThemeProvider>
         <PlayerProvider>
           <ToastProvider>
-            <FavoritesProvider>
-              <CoursesProvider>
-                <FilterProvider>
-                  <App />
-                </FilterProvider>
-              </CoursesProvider>
-            </FavoritesProvider>
+            <AudioProvider>
+              <FavoritesProvider>
+                <CoursesProvider>
+                  <FilterProvider>
+                    <App />
+                  </FilterProvider>
+                </CoursesProvider>
+              </FavoritesProvider>
+            </AudioProvider>
           </ToastProvider>
         </PlayerProvider>
       </ThemeProvider>

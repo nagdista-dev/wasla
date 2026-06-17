@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Maximize2, Share2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Maximize2, Share2, ChevronDown, ChevronUp, Headphones } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -209,6 +209,11 @@ function VideoPage() {
     }
   }, [video, showToast, t]);
 
+  const handleAudioMode = useCallback(() => {
+    if (!video) return;
+    navigate(`/audio/${videoId}`, { state: { video, channelId: video.channelId } });
+  }, [video, videoId, navigate]);
+
   const handleFullscreen = useCallback(() => {
     if (!video) return;
     const id = extractVideoId(video.link) || videoId;
@@ -361,6 +366,15 @@ function VideoPage() {
               >
                 <Share2 className="h-4 w-4" />
                 {t('miniPlayer.share')}
+              </button>
+
+              <button
+                onClick={handleAudioMode}
+                className="flex items-center gap-2 rounded-xl px-4 py-3 sm:px-5 sm:py-2.5 text-sm sm:text-base font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px]"
+                aria-label={t('audioPage.listenInAudioMode')}
+              >
+                <Headphones className="h-4 w-4" />
+                {t('audioPage.listenInAudioMode')}
               </button>
 
               <button
