@@ -24,6 +24,7 @@ import {
   GraduationCap,
   MessageCircle,
   SlidersHorizontal,
+  Headphones,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
@@ -36,6 +37,7 @@ import type { Channel, Playlist } from "./types";
 import { loadChannels, saveChannels, loadPlaylists, savePlaylists } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
+import { useAudio } from "./context/AudioContext";
 import Sidebar from "./components/Sidebar";
 import FilterModal from "./components/FilterModal";
 import { useFilters } from "./context/FilterContext";
@@ -82,9 +84,11 @@ function StartupRedirect() {
 
 const Navigation = memo(function Navigation({ channels }: { channels: Channel[] }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { activeFilterCount, setShowFilterModal } = useFilters();
+  const { currentVideo: audioVideo, isPlaying: isAudioPlaying } = useAudio();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -152,6 +156,17 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
         >
           <Languages className="h-4 w-4" />
         </button>
+
+        {isAudioPlaying && audioVideo && (
+          <button
+            onClick={() => navigate(`/audio/${audioVideo._videoId}`, { state: { video: audioVideo } })}
+            className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 relative"
+            aria-label={t('audioPage.activeIndicator')}
+          >
+            <Headphones className="h-4 w-4 audio-waveform-icon" />
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-coral animate-ping" />
+          </button>
+        )}
 
         <button
           onClick={() => setMenuOpen(true)}

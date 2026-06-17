@@ -327,6 +327,7 @@ const en = {
   'audioPage.skipForward': 'Skip forward 10 seconds',
   'audioPage.listenInAudioMode': 'Listen in Audio Mode',
   'audioPage.playbackStopped': 'Playback stopped',
+  'audioPage.activeIndicator': 'Active audio - Click to open player',
 
   // Confirm Link Modal
   'confirmLink.title': 'Leaving Wasla',

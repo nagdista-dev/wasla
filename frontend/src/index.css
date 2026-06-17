@@ -413,3 +413,12 @@ html {
   color: #feb144;
   background-color: rgba(243, 115, 69, 0.2);
 }
+
+@keyframes audio-waveform {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.5); }
+}
+
+.audio-waveform-icon {
+  animation: audio-waveform 0.8s ease-in-out infinite;
+}

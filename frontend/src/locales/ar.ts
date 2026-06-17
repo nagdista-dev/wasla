@@ -327,6 +327,7 @@ const ar: Record<string, string> = {
   'audioPage.skipForward': 'تقدم 10 ثوانٍ',
   'audioPage.listenInAudioMode': 'استمع في وضع الصوت',
   'audioPage.playbackStopped': 'تم إيقاف التشغيل',
+  'audioPage.activeIndicator': 'صوت نشط - اضغط لفتح المشغل',
 
   // Confirm Link Modal
   'confirmLink.title': 'مغادرة وصلة',
