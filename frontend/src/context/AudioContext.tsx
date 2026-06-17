@@ -98,8 +98,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const sleepTimerRef = useRef<number | null>(null);
   const destroyedRef = useRef(false);
 
-  const pauseHandlerRef = useRef<() => void>(() => {});
-
   const clearTimePoll = useCallback(() => {
     if (timePollRef.current !== null) {
       clearInterval(timePollRef.current);
@@ -132,9 +130,50 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     playerReadyRef.current = false;
   }, [clearTimePoll]);
 
+  const fadeOutAudio = useCallback(() => {
+    const player = playerRef.current;
+    if (!player || !playerReadyRef.current) return;
+    try {
+      const currentVol = player.getVolume();
+      if (currentVol <= 0) {
+        player.pauseVideo();
+        setIsPlaying(false);
+        clearTimePoll();
+        return;
+      }
+      const steps = 10;
+      const stepMs = 30;
+      const volStep = currentVol / steps;
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        if (step >= steps) {
+          clearInterval(interval);
+          try {
+            player.pauseVideo();
+            player.setVolume(currentVol);
+          } catch { /* ignore */ }
+          setIsPlaying(false);
+          clearTimePoll();
+        } else {
+          try { player.setVolume(currentVol - volStep * step); } catch { /* ignore */ }
+        }
+      }, stepMs);
+    } catch {
+      setIsPlaying(false);
+      clearTimePoll();
+    }
+  }, [clearTimePoll]);
+
+  const fadeOutRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    fadeOutRef.current = fadeOutAudio;
+  }, [fadeOutAudio]);
+
   useEffect(() => {
     mediaManager.registerPauseHandler('audio', () => {
-      pauseHandlerRef.current();
+      fadeOutRef.current();
     });
     return () => mediaManager.unregisterPauseHandler('audio');
   }, [mediaManager]);
@@ -227,10 +266,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       } catch { /* ignore */ }
     }
   }, [clearTimePoll]);
-
-  useEffect(() => {
-    pauseHandlerRef.current = pauseAudio;
-  }, [pauseAudio]);
 
   const resumeAudio = useCallback(() => {
     if (playerRef.current && playerReadyRef.current) {
