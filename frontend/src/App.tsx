@@ -319,6 +319,21 @@ function App() {
     });
   }, []);
 
+  const handleImportChannelsJson = useCallback((entries: Channel[]) => {
+    setChannels(prev => {
+      const existingIds = new Set(prev.map(c => c.id));
+      const next = [...prev];
+      for (const entry of entries) {
+        if (!existingIds.has(entry.id)) {
+          next.push(entry);
+          existingIds.add(entry.id);
+        }
+      }
+      saveChannels(next);
+      return next;
+    });
+  }, []);
+
   const handleDeleteChannel = useCallback((id: string) => {
     setChannels(prev => {
       const next = prev.filter((channel) => channel.id !== id);
@@ -423,7 +438,7 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannels={() => setShowChannelModal(true)} />
+                  <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannels={() => setShowChannelModal(true)} onImportChannelsJson={handleImportChannelsJson} />
                 }
               />
               <Route path="/channel/:channelId" element={<ChannelPage />} />

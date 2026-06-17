@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
@@ -15,6 +15,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from '../components/Toast';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
+import { parseAndValidateChannelsJson } from '../utils/importChannels';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -67,7 +68,7 @@ function savePref(key: string, value: unknown) {
   } catch { /* noop */ }
 }
 
-export default function HomePage({ channels, onUpdate, onImportChannels }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannels?: () => void }) {
+export default function HomePage({ channels, onUpdate, onImportChannels, onImportChannelsJson }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannels?: () => void; onImportChannelsJson?: (channels: Channel[]) => void }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   usePlayer();
@@ -82,6 +83,8 @@ export default function HomePage({ channels, onUpdate, onImportChannels }: { cha
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [importingJson, setImportingJson] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const watchLaterCache = useMemo(() => loadWatchLater(), []);
 
   useEffect(() => { savePref('wasla_viewMode', viewMode); }, [viewMode]);
@@ -145,6 +148,53 @@ export default function HomePage({ channels, onUpdate, onImportChannels }: { cha
     savePref('wasla_videos_cache', newItems);
     if (force) setIsRefreshing(false);
   }, [channels, t]);
+
+  const handleJsonImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      showToast(t('home.invalidJsonFile') || 'Please select a .json file.', 'error');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast(t('home.fileTooLarge') || 'File is too large (max 5MB).', 'error');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setImportingJson(true);
+
+    try {
+      const text = await file.text();
+      const result = parseAndValidateChannelsJson(text);
+
+      if (result.channels.length > 0 && onImportChannelsJson) {
+        onImportChannelsJson(result.channels);
+      }
+
+      if (result.errors.length > 0 && result.channels.length === 0) {
+        showToast(result.errors[0], 'error');
+      } else if (result.errors.length > 0) {
+        showToast(
+          t('home.importedWithErrors') || `Imported ${result.channels.length} channels with ${result.errors.length} warnings.`,
+          'info',
+        );
+      } else {
+        showToast(
+          t('home.importSuccess') || `Successfully imported ${result.channels.length} channels.`,
+          'success',
+        );
+      }
+    } catch {
+      showToast(t('home.importFailed') || 'Failed to read file.', 'error');
+    } finally {
+      setImportingJson(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }, [onImportChannelsJson, showToast, t]);
 
   useEffect(() => {
     if (channels.length === 0) {
@@ -319,13 +369,32 @@ export default function HomePage({ channels, onUpdate, onImportChannels }: { cha
               <p className="mx-auto mt-3 max-w-md text-gray-500 dark:text-gray-400 leading-relaxed">
                 {t('home.addFirstChannelDesc')}
               </p>
-              <button
-                onClick={onImportChannels}
-                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-brand-coral px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-coral/30 hover:bg-brand-pink transition-all active:scale-95 min-h-[48px]"
-              >
-                <Play className="h-5 w-5" />
-                {t('home.importChannels') || 'Import Channels'}
-              </button>
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  onClick={onImportChannels}
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-coral px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-coral/30 hover:bg-brand-pink transition-all active:scale-95 min-h-[48px] w-full sm:w-auto justify-center"
+                >
+                  <Play className="h-5 w-5" />
+                  {t('home.importChannels') || 'Import Channels'}
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={importingJson}
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 px-8 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-300 hover:border-brand-coral hover:text-brand-coral transition-all active:scale-95 min-h-[48px] w-full sm:w-auto justify-center disabled:opacity-50"
+                >
+                  <Upload className="h-5 w-5" />
+                  {importingJson
+                    ? (t('home.importing') || 'Importing...')
+                    : (t('home.importFromJson') || 'Import from JSON')}
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleJsonImport}
+                className="hidden"
+              />
             </div>
           </div>
         ) : (
@@ -588,6 +657,21 @@ export default function HomePage({ channels, onUpdate, onImportChannels }: { cha
                     )}
             </div>
           </div>
+        </div>
+      )}
+
+      {channels.length > 0 && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importingJson}
+            className="inline-flex items-center gap-2 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-brand-coral hover:text-brand-coral transition-all active:scale-95 disabled:opacity-50"
+          >
+            <Upload className="h-4 w-4" />
+            {importingJson
+              ? (t('home.importing') || 'Importing...')
+              : (t('home.importFromJson') || 'Import from JSON')}
+          </button>
         </div>
       )}
 
