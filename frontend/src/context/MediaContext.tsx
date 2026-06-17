@@ -1,6 +1,8 @@
-import { createContext, useContext, useCallback, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 export type MediaType = 'video' | 'audio' | 'none';
+
+const CHANNEL = 'wasla-media-sync';
 
 interface MediaContextType {
   activeMedia: MediaType;
@@ -18,6 +20,7 @@ export function MediaProvider({ children }: { children: ReactNode }) {
     video: null,
     audio: null,
   });
+  const bcRef = useRef<BroadcastChannel | null>(null);
 
   const registerPauseHandler = useCallback((type: 'video' | 'audio', handler: () => void) => {
     pauseHandlersRef.current[type] = handler;
@@ -34,10 +37,34 @@ export function MediaProvider({ children }: { children: ReactNode }) {
       otherHandler();
     }
     setActiveMedia(type);
+    bcRef.current?.postMessage({ type: 'media-play', mediaType: type });
   }, []);
 
   const stopMedia = useCallback((type: 'video' | 'audio') => {
     setActiveMedia(prev => prev === type ? 'none' : prev);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const bc = new BroadcastChannel(CHANNEL);
+      bcRef.current = bc;
+      bc.onmessage = (event) => {
+        const data = event.data;
+        if (data?.type === 'media-play') {
+          const videoHandler = pauseHandlersRef.current.video;
+          if (videoHandler) videoHandler();
+          const audioHandler = pauseHandlersRef.current.audio;
+          if (audioHandler) audioHandler();
+          setActiveMedia('none');
+        }
+      };
+    } catch {
+      /* BroadcastChannel not supported — cross-tab sync unavailable */
+    }
+    return () => {
+      bcRef.current?.close();
+      bcRef.current = null;
+    };
   }, []);
 
   return (
