@@ -5,13 +5,22 @@ import { addRelativeTimeToVideos } from '../utils/dateUtils.js';
 const CACHE_DURATION = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 100;
 const FETCH_TIMEOUT = 10000;
+const MAX_RETRIES = 2;
+const RETRY_BASE_DELAY = 1000;
+const NEGATIVE_CACHE_TTL = 2 * 60 * 1000;
+
 const cache = new Map<string, { id: string; data: ChannelFeedData; timestamp: number }>();
 const pendingRequests = new Map<string, Promise<ChannelFeedData>>();
+const negativeCache = new Map<string, number>();
 
 const PLAYLIST_CACHE_DURATION = 5 * 60 * 1000;
 const PLAYLIST_MAX_CACHE_SIZE = 100;
 const playlistCache = new Map<string, { id: string; data: PlaylistSummary[]; timestamp: number }>();
 const pendingPlaylistRequests = new Map<string, Promise<PlaylistSummary[]>>();
+
+const DETAILS_CACHE = new Map<string, { data: import('../types/index.js').ChannelDetails; timestamp: number }>();
+const DETAILS_CACHE_DURATION = 5 * 60 * 1000;
+const DETAILS_MAX_CACHE_SIZE = 100;
 
 function getString(value: unknown): string | undefined {
   if (typeof value === 'string') return value;
@@ -44,6 +53,63 @@ function getDuration(value: unknown): string | undefined {
   if (Array.isArray(value)) return getString(value[0]?.$?.duration);
   const obj = value as { $?: { duration?: string } } | undefined;
   return getString(obj?.$?.duration);
+}
+
+/** Validate that a channel ID has the correct YouTube RSS format (starts with UC, 24+ chars) */
+function validateChannelId(channelId: string): boolean {
+  return /^UC[\w-]{22,}$/.test(channelId);
+}
+
+/** Check if a channel ID is in the negative cache (recently failed) */
+function isNegativeCached(channelId: string): boolean {
+  const entry = negativeCache.get(channelId);
+  if (!entry) return false;
+  if (Date.now() - entry > NEGATIVE_CACHE_TTL) {
+    negativeCache.delete(channelId);
+    return false;
+  }
+  return true;
+}
+
+/** Fetch a URL with retry and exponential backoff. Does NOT retry 404s for validated channel IDs. */
+async function fetchWithRetry(url: string, retries = MAX_RETRIES, context?: string): Promise<Response> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
+          Accept: 'application/xml, text/xml, */*',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) return response;
+
+      if (response.status === 404) {
+        throw new Error(`Failed to fetch RSS feed: 404 Not Found${context ? ` (${context})` : ''}`);
+      }
+
+      lastError = new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}${context ? ` (${context})` : ''}`);
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err instanceof Error && err.message.includes('404')) throw err;
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+
+    if (attempt < retries) {
+      const delay = Math.min(RETRY_BASE_DELAY * Math.pow(2, attempt), 4000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError || new Error(`Failed to fetch RSS feed after ${retries + 1} attempts${context ? ` (${context})` : ''}`);
 }
 
 /**
@@ -86,6 +152,14 @@ function watchUrl(videoId: string): string {
 }
 
 export async function fetchChannelData(channelId: string): Promise<ChannelFeedData> {
+  if (!validateChannelId(channelId)) {
+    throw new Error(`Invalid channel ID format: "${channelId}". Channel ID must start with "UC" and be at least 24 characters.`);
+  }
+
+  if (isNegativeCached(channelId)) {
+    throw new Error(`Channel ${channelId} is temporarily unavailable (previously failed)`);
+  }
+
   const cached = cache.get(channelId);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return {
@@ -120,30 +194,26 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
       timestamp: Date.now(),
     });
     return data;
+  } catch (error) {
+    negativeCache.set(channelId, Date.now());
+    console.error(`[rssService] Failed to fetch channel data for ${channelId}:`, error instanceof Error ? error.message : error);
+    throw error;
   } finally {
     pendingRequests.delete(channelId);
   }
 }
 
 async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
-  const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
-      Accept: 'application/xml, text/xml, */*',
-    },
-    signal: controller.signal,
-  });
-
-  clearTimeout(timeoutId);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
+  if (!validateChannelId(channelId)) {
+    throw new Error(`Invalid channel ID format: "${channelId}". Channel ID must start with "UC" and be at least 24 characters.`);
   }
+
+  const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+  const context = `channelId=${channelId}`;
+
+  console.debug(`[rssService] Fetching RSS for channel ${channelId}: ${url}`);
+
+  const response = await fetchWithRetry(url, MAX_RETRIES, context);
 
   const xmlText = await response.text();
   const parsed = await parseStringPromise(xmlText, {
@@ -152,20 +222,30 @@ async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
     trim: true,
   });
 
+  const channelName = getString(parsed?.feed?.title) || 'Unknown Channel';
   const entries = parsed?.feed?.entry;
-  if (!entries) {
-    throw new Error('No videos found in channel feed');
+  const entryList = entries ? (Array.isArray(entries) ? entries : [entries]) : [];
+
+  if (entryList.length === 0) {
+    console.warn(`[rssService] No entries in RSS feed for channel ${channelId}`);
+    return {
+      channelName,
+      videos: [],
+      latestVideo: {
+        title: '',
+        link: '',
+        publishedDate: new Date().toISOString(),
+        channelName,
+      },
+    };
   }
 
-  const entryList = Array.isArray(entries) ? entries : [entries];
-  const channelName = getString(parsed?.feed?.title) || 'Unknown Channel';
   const videos = entryList
     .map((entry: Record<string, unknown>) => {
       const mediaGroup = (entry['media:group'] || {}) as Record<string, unknown>;
       const mediaCommunity = (mediaGroup['media:community'] || {}) as Record<string, unknown>;
       const title = getString(entry.title) || 'Untitled';
       const videoId = getVideoId(entry);
-      // Always construct a valid watch URL; skip entries with no resolvable video ID
       const link = videoId ? watchUrl(videoId) : getLink(entry.link, `https://www.youtube.com/channel/${channelId}`);
 
       return {
@@ -179,11 +259,21 @@ async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
         description: getString(mediaGroup['media:description']) || undefined,
       };
     })
-    .filter((v) => v.link.includes('watch?v='))  // only keep real playable video links
+    .filter((v) => v.link.includes('watch?v='))
     .sort((a: VideoData, b: VideoData) => Date.parse(b.publishedDate) - Date.parse(a.publishedDate));
 
   if (videos.length === 0) {
-    throw new Error('No videos found in channel feed');
+    console.warn(`[rssService] No playable videos found in feed for channel ${channelId}`);
+    return {
+      channelName,
+      videos: [],
+      latestVideo: {
+        title: '',
+        link: '',
+        publishedDate: new Date().toISOString(),
+        channelName,
+      },
+    };
   }
 
   const videosWithRelativeTime = addRelativeTimeToVideos(videos);
@@ -196,24 +286,14 @@ async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
 }
 
 export async function fetchPlaylistData(playlistId: string): Promise<{ playlistName: string; channelName?: string; videos: VideoData[] }> {
-  const url = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
-      Accept: 'application/xml, text/xml, */*',
-    },
-    signal: controller.signal,
-  });
-
-  clearTimeout(timeoutId);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch playlist RSS feed: ${response.status} ${response.statusText}`);
+  if (!/^(PL|UU|LL|FL|RD|UL|OL)[\w-]{10,}$/.test(playlistId)) {
+    console.warn(`[rssService] Playlist ID "${playlistId}" does not match expected YouTube playlist format`);
   }
+
+  const url = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
+  const context = `playlistId=${playlistId}`;
+
+  const response = await fetchWithRetry(url, MAX_RETRIES, context);
 
   const xmlText = await response.text();
   const parsed = await parseStringPromise(xmlText, {
@@ -222,14 +302,15 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
     trim: true,
   });
 
-  const entries = parsed?.feed?.entry;
-  if (!entries) {
-    throw new Error('No videos found in playlist feed');
-  }
-
-  const entryList = Array.isArray(entries) ? entries : [entries];
   const playlistName = getString(parsed?.feed?.title) || 'Untitled Playlist';
   const channelName = getString(parsed?.feed?.author?.name) || getString(parsed?.feed?.author?.[0]?.name);
+  const entries = parsed?.feed?.entry;
+  const entryList = entries ? (Array.isArray(entries) ? entries : [entries]) : [];
+
+  if (entryList.length === 0) {
+    console.warn(`[rssService] No entries in RSS feed for playlist ${playlistId}`);
+    return { playlistName, channelName, videos: [] };
+  }
 
   const videos = entryList
     .map((entry: Record<string, unknown>) => {
@@ -237,7 +318,6 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
       const mediaCommunity = (mediaGroup['media:community'] || {}) as Record<string, unknown>;
       const title = getString(entry.title) || 'Untitled';
       const videoId = getVideoId(entry);
-      // Always construct a valid watch URL from the video ID
       const link = videoId ? watchUrl(videoId) : getLink(entry.link, '');
 
       return {
@@ -250,7 +330,7 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
         duration: getDuration(mediaGroup['media:content']),
       };
     })
-    .filter((v) => v.link.includes('watch?v='));  // only real playable videos
+    .filter((v) => v.link.includes('watch?v='));
 
   const videosWithRelativeTime = addRelativeTimeToVideos(videos);
 
@@ -264,6 +344,7 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
 export function clearAllCaches(): void {
   cache.clear();
   pendingRequests.clear();
+  negativeCache.clear();
   DETAILS_CACHE.clear();
   playlistCache.clear();
   pendingPlaylistRequests.clear();
@@ -448,30 +529,32 @@ function extractChannelIdFromJsonLd(data: Record<string, unknown>): string | nul
   return null;
 }
 
-const DETAILS_CACHE = new Map<string, { data: import('../types/index.js').ChannelDetails; timestamp: number }>();
-const DETAILS_CACHE_DURATION = 5 * 60 * 1000;
-const DETAILS_MAX_CACHE_SIZE = 100;
-
 export async function fetchChannelDetails(channelId: string, handle?: string): Promise<import('../types/index.js').ChannelDetails> {
   const cached = DETAILS_CACHE.get(channelId);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return { ...cached.data, videos: cached.data.videos.map((v) => ({ ...v })) };
   }
 
-  const [rssData, pageData] = await Promise.all([
+  const [rssResult, pageData] = await Promise.allSettled([
     fetchAndParseRSS(channelId),
     scrapeChannelPage(channelId, handle),
   ]);
 
+  const rssData = rssResult.status === 'fulfilled' ? rssResult.value : null;
+  const pageInfo = pageData.status === 'fulfilled' ? pageData.value : {};
+
+  if (!rssData) {
+    console.warn(`[rssService] RSS fetch failed for channel ${channelId}, using page data only`);
+  }
+
   const result: import('../types/index.js').ChannelDetails = {
-    channelName: rssData.channelName,
-    handle: pageData.handle || handle,
-    avatar: pageData.avatar,
-    banner: pageData.banner,
-    videos: rssData.videos,
+    channelName: rssData?.channelName || pageInfo.handle || handle || channelId,
+    handle: pageInfo.handle || handle,
+    avatar: pageInfo.avatar,
+    banner: pageInfo.banner,
+    videos: rssData?.videos || [],
   };
 
-  // Evict oldest entry if cache is full
   if (DETAILS_CACHE.size >= DETAILS_MAX_CACHE_SIZE) {
     const firstKey = DETAILS_CACHE.keys().next().value;
     if (firstKey) DETAILS_CACHE.delete(firstKey);
