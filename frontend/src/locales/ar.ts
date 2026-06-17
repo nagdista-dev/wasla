@@ -328,6 +328,12 @@ const ar: Record<string, string> = {
   'audioPage.listenInAudioMode': 'استمع في وضع الصوت',
   'audioPage.playbackStopped': 'تم إيقاف التشغيل',
 
+  // Confirm Link Modal
+  'confirmLink.title': 'مغادرة وصلة',
+  'confirmLink.message': 'أنت على وشك فتح رابط خارجي. هل تريد المتابعة؟',
+  'confirmLink.continue': 'متابعة',
+  'confirmLink.cancel': 'إلغاء',
+
   // Mini Player
   'miniPlayer.close': 'إغلاق المشغل',
   'miniPlayer.couldNotLoad': 'تعذر تحميل الفيديو',

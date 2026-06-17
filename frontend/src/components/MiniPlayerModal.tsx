@@ -7,6 +7,8 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useToast } from './Toast';
 import { extractVideoId, buildWatchUrl } from '../utils/videoUtils';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
+import { formatDescription } from '../utils/formatDescription';
+import ConfirmLinkModal from './ConfirmLinkModal';
 import { loadWatchLater, saveWatchLater } from '../storage';
 
 // ─── YouTube IFrame API types ─────────────────────────────────────────────────
@@ -94,65 +96,7 @@ function formatDuration(duration?: string): string | undefined {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-/**
- * Convert timestamp (HH:MM:SS or MM:SS) to seconds
- */
-function timestampToSeconds(timestamp: string): number {
-  const parts = timestamp.split(':').map(Number);
-  if (parts.length === 3) {
-    return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  } else if (parts.length === 2) {
-    return parts[0] * 60 + parts[1];
-  }
-  return 0;
-}
 
-/**
- * Format timestamp with leading zeros
- */
-function formatTimestamp(timestamp: string): string {
-  const parts = timestamp.split(':').map(Number);
-  if (parts.length === 3) {
-    return `${parts[0].toString().padStart(2, '0')}:${parts[1].toString().padStart(2, '0')}:${parts[2].toString().padStart(2, '0')}`;
-  } else if (parts.length === 2) {
-    return `${parts[0].toString().padStart(2, '0')}:${parts[1].toString().padStart(2, '0')}`;
-  }
-  return timestamp;
-}
-
-/**
- * Format the description text, preserving line breaks and converting
- * bare URLs to clickable links, hashtags to styled spans, email addresses
- * to styled spans, --- or === to divider lines, and timestamps to styled,
- * clickable spans.
- */
-function formatDescription(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(
-      /(https?:\/\/[^\s<]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-brand-coral hover:underline break-all">$1</a>'
-    )
-    .replace(
-      /(^|\s)(#[a-zA-Z0-9_\u0600-\u06FF]+)/g,
-      '$1<span class="text-brand-pink hover:text-brand-coral transition-colors cursor-default">$2</span>'
-    )
-    .replace(
-      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-      '<span class="text-brand-purple hover:text-brand-coral transition-colors cursor-default underline">$1</span>'
-    )
-    .replace(
-      /(^|\n)([\-\=]{3,})($|\n)/g,
-      '$1<hr class="border-gray-200 dark:border-white/10 my-2" />$3'
-    )
-    .replace(/\n/g, '<br/>')
-    .replace(/\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g, (match) => {
-      const seconds = timestampToSeconds(match);
-      return `<span class="timestamp-highlight cursor-pointer font-mono text-brand-coral hover:text-brand-pink transition-colors" data-seconds="${seconds}">${formatTimestamp(match)}</span>`;
-    });
-}
 
 // ─── Description Component (lazy-rendered, collapsible) ───────────────────────
 
@@ -163,6 +107,7 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsToggle, setNeedsToggle] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
+  const [pendingLink, setPendingLink] = useState<string | null>(null);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -175,8 +120,17 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
 
   const formattedHtml = formatDescription(description);
 
-  const handleTimestampClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
+    const link = target.closest('a');
+    if (link) {
+      const href = link.getAttribute('href');
+      if (href && !href.startsWith('mailto:') && !href.startsWith('#') && !href.includes('youtube.com') && !href.includes('youtu.be')) {
+        e.preventDefault();
+        setPendingLink(href);
+        return;
+      }
+    }
     const timestampSpan = target.closest('.timestamp-highlight') as HTMLElement;
     if (timestampSpan && onTimestampClick) {
       const seconds = parseInt(timestampSpan.dataset.seconds || '0', 10);
@@ -184,8 +138,15 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
     }
   };
 
+  const handleConfirmLink = () => {
+    if (pendingLink) {
+      window.open(pendingLink, '_blank', 'noopener,noreferrer');
+      setPendingLink(null);
+    }
+  };
+
   return (
-    <div className="relative" onClick={handleTimestampClick}>
+    <div className="relative" onClick={handleClick}>
       <div
         ref={contentRef}
         className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-line transition-all duration-300 ease-in-out overflow-hidden"
@@ -211,6 +172,13 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
             </>
           )}
         </button>
+      )}
+      {pendingLink && (
+        <ConfirmLinkModal
+          url={pendingLink}
+          onConfirm={handleConfirmLink}
+          onCancel={() => setPendingLink(null)}
+        />
       )}
     </div>
   );

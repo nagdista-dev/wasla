@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useToast } from '../components/Toast';
+import ConfirmLinkModal from '../components/ConfirmLinkModal';
 import { extractVideoId, buildWatchUrl } from '../utils/videoUtils';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { formatDescription } from '../utils/formatDescription';
@@ -40,6 +41,7 @@ function VideoDescription({ description }: { description: string }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsToggle, setNeedsToggle] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
+  const [pendingLink, setPendingLink] = useState<string | null>(null);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -52,6 +54,25 @@ function VideoDescription({ description }: { description: string }) {
 
   const formattedHtml = formatDescription(description);
 
+  const handleClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest('a');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href) return;
+    if (href.startsWith('mailto:') || href.startsWith('#')) return;
+    if (href.includes('youtube.com') || href.includes('youtu.be')) return;
+    e.preventDefault();
+    setPendingLink(href);
+  };
+
+  const handleConfirmLink = () => {
+    if (pendingLink) {
+      window.open(pendingLink, '_blank', 'noopener,noreferrer');
+      setPendingLink(null);
+    }
+  };
+
   return (
     <div className="relative">
       <div
@@ -60,6 +81,7 @@ function VideoDescription({ description }: { description: string }) {
         style={{
           maxHeight: expanded ? `${contentHeight ?? 9999}px` : `${DESCRIPTION_COLLAPSED_LINES * 1.625}em`,
         }}
+        onClick={handleClick}
         dangerouslySetInnerHTML={{ __html: formattedHtml }}
       />
       {needsToggle && (
@@ -79,6 +101,13 @@ function VideoDescription({ description }: { description: string }) {
             </>
           )}
         </button>
+      )}
+      {pendingLink && (
+        <ConfirmLinkModal
+          url={pendingLink}
+          onConfirm={handleConfirmLink}
+          onCancel={() => setPendingLink(null)}
+        />
       )}
     </div>
   );

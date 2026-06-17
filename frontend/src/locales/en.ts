@@ -328,6 +328,12 @@ const en = {
   'audioPage.listenInAudioMode': 'Listen in Audio Mode',
   'audioPage.playbackStopped': 'Playback stopped',
 
+  // Confirm Link Modal
+  'confirmLink.title': 'Leaving Wasla',
+  'confirmLink.message': 'You are about to open an external link. Do you want to continue?',
+  'confirmLink.continue': 'Continue',
+  'confirmLink.cancel': 'Cancel',
+
   // Mini Player
   'miniPlayer.close': 'Close player',
   'miniPlayer.couldNotLoad': 'Could not load video',

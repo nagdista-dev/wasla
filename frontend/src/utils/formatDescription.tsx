@@ -24,7 +24,7 @@ export function formatDescription(text: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(
-      /(https?:\/\/[^\s<]+)/g,
+      /(https?:\/\/[^\s<]*[^\s<.,;:!?)\]}>'"`]+)/g,
       '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-brand-coral hover:underline break-all">$1</a>'
     )
     .replace(
