@@ -157,7 +157,16 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
   }
 
   if (isNegativeCached(channelId)) {
-    throw new Error(`Channel ${channelId} is temporarily unavailable (previously failed)`);
+    return {
+      channelName: 'Unknown Channel',
+      videos: [],
+      latestVideo: {
+        title: '',
+        link: '',
+        publishedDate: new Date().toISOString(),
+        channelName: 'Unknown Channel',
+      },
+    };
   }
 
   const cached = cache.get(channelId);
@@ -180,24 +189,26 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
 
   try {
     const data = await promise;
-    if (cache.size >= MAX_CACHE_SIZE) {
-      const firstKey = cache.keys().next().value;
-      if (firstKey) cache.delete(firstKey);
+
+    if (data.videos.length === 0) {
+      negativeCache.set(channelId, Date.now());
+    } else {
+      if (cache.size >= MAX_CACHE_SIZE) {
+        const firstKey = cache.keys().next().value;
+        if (firstKey) cache.delete(firstKey);
+      }
+      cache.set(channelId, {
+        id: channelId,
+        data: {
+          channelName: data.channelName,
+          latestVideo: { ...data.latestVideo },
+          videos: data.videos.map((video) => ({ ...video })),
+        },
+        timestamp: Date.now(),
+      });
     }
-    cache.set(channelId, {
-      id: channelId,
-      data: {
-        channelName: data.channelName,
-        latestVideo: { ...data.latestVideo },
-        videos: data.videos.map((video) => ({ ...video })),
-      },
-      timestamp: Date.now(),
-    });
+
     return data;
-  } catch (error) {
-    negativeCache.set(channelId, Date.now());
-    console.error(`[rssService] Failed to fetch channel data for ${channelId}:`, error instanceof Error ? error.message : error);
-    throw error;
   } finally {
     pendingRequests.delete(channelId);
   }
@@ -213,7 +224,22 @@ async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {
 
   console.debug(`[rssService] Fetching RSS for channel ${channelId}: ${url}`);
 
-  const response = await fetchWithRetry(url, MAX_RETRIES, context);
+  let response: Response;
+  try {
+    response = await fetchWithRetry(url, MAX_RETRIES, context);
+  } catch (error) {
+    console.error(`[rssService] RSS fetch failed for channel ${channelId}:`, error instanceof Error ? error.message : error);
+    return {
+      channelName: 'Unknown Channel',
+      videos: [],
+      latestVideo: {
+        title: '',
+        link: '',
+        publishedDate: new Date().toISOString(),
+        channelName: 'Unknown Channel',
+      },
+    };
+  }
 
   const xmlText = await response.text();
   const parsed = await parseStringPromise(xmlText, {
