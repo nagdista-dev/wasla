@@ -6,6 +6,7 @@ import { useCourses } from '../context/CoursesContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useToast } from '../components/Toast';
 import { useMeta } from '../hooks/useMeta';
+import { extractVideoId } from '../utils/videoUtils';
 import EditCourseModal from '../components/EditCourseModal';
 import AddVideoModal from '../components/AddVideoModal';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
@@ -202,8 +203,12 @@ export default function CourseDetailPage() {
         channelName: '',
       };
       play(video);
+      const vidId = extractVideoId(video.link);
+      if (vidId) {
+        navigate(`/video/${vidId}`, { state: { video } });
+      }
     },
-    [play],
+    [play, navigate],
   );
 
   if (!course) {

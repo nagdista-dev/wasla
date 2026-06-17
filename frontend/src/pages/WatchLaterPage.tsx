@@ -7,6 +7,7 @@ import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from '../components/Toast';
 import { useMeta } from '../hooks/useMeta';
+import { extractVideoId } from '../utils/videoUtils';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import type { WatchLaterItem } from '../types';
 
@@ -52,6 +53,10 @@ export default function WatchLaterPage() {
 
   const handlePlay = (item: WatchLaterItem) => {
     play(item.video, item.channelId);
+    const vidId = extractVideoId(item.video.link);
+    if (vidId) {
+      navigate(`/video/${vidId}`, { state: { video: item.video, channelId: item.channelId } });
+    }
   };
 
   const handleNavigateToChannel = (channelId: string) => {

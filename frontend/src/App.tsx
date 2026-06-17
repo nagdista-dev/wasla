@@ -31,7 +31,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import AddChannelModal from "./components/AddChannelModal";
 import AddPlaylistModal from "./components/AddPlaylistModal";
 import MobileAppBanner from "./components/MobileAppBanner";
-import MiniPlayerModal from "./components/MiniPlayerModal";
+
 import type { Channel, Playlist } from "./types";
 import { loadChannels, saveChannels, loadPlaylists, savePlaylists } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
@@ -55,6 +55,7 @@ const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
 const CourseDashboardPage = lazy(() => import("./pages/CourseDashboardPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
+const VideoPage = lazy(() => import("./pages/VideoPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -427,6 +428,7 @@ function App() {
               />
               <Route path="/channel/:channelId" element={<ChannelPage />} />
               <Route path="/playlist/:playlistId" element={<PlaylistCoursePage />} />
+              <Route path="/video/:videoId" element={<VideoPage />} />
               <Route
                 path="/category/:categoryName"
                 element={<CategoryPage channels={channels} />}
@@ -508,7 +510,6 @@ function App() {
           />
         )}
         <MobileAppBanner />
-        <MiniPlayerModal />
         <FilterModal
           isOpen={showFilterModal}
           onClose={() => setShowFilterModal(false)}

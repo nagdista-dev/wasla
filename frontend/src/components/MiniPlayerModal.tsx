@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { BookmarkCheck, BookmarkPlus, ChevronDown, ChevronUp, Clock, ExternalLink, Eye, Heart, Maximize2, Share2, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -214,7 +213,6 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
-  const navigate = useNavigate();
   const playerRef = useRef<YTPlayer | null>(null);
   const playerReadyRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -403,7 +401,6 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
   if (!currentVideo) return null;
 
   const videoId = extractVideoId(currentVideo.link);
-  const channelInitial = (currentVideo.channelName || '?').charAt(0).toUpperCase();
   const formattedViews = formatViews(currentVideo.views);
   const formattedDuration = formatDuration(currentVideo.duration);
   const isFav = isFavorite(currentVideo.link);

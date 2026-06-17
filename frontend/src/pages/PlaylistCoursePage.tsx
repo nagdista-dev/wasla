@@ -6,6 +6,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
+import { extractVideoId } from '../utils/videoUtils';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import type { LatestVideo, Playlist, CourseProgress } from '../types';
 
@@ -168,6 +169,10 @@ export default function PlaylistCoursePage() {
 
   const handlePlayVideo = (video: LatestVideo) => {
     play(video);
+    const vidId = extractVideoId(video.link);
+    if (vidId) {
+      navigate(`/video/${vidId}`, { state: { video } });
+    }
   };
 
   const handleReplay = () => {

@@ -8,6 +8,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from './Toast';
 import { useFavorites } from '../context/FavoritesContext';
+import { extractVideoId } from '../utils/videoUtils';
 import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
 
 interface VideoCardProps {
@@ -53,6 +54,10 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     play(video, channel.id);
+    const vidId = extractVideoId(video.link);
+    if (vidId) {
+      navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
+    }
   };
 
   const handleWatchLater = (e: React.MouseEvent) => {
@@ -102,7 +107,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
       onClick={handlePlay}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') play(video); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { play(video); const kid = extractVideoId(video.link); if (kid) navigate(`/video/${kid}`, { state: { video } }); } }}
     >
       <div className="relative overflow-hidden rounded-t-xl">
         <div className="aspect-video overflow-hidden">

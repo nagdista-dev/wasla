@@ -9,6 +9,7 @@ import { formatRelativeTime } from '../utils/formatRelativeTime';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import EditFavoriteModal from '../components/EditFavoriteModal';
 import { useToast } from '../components/Toast';
+import { extractVideoId } from '../utils/videoUtils';
 import type { LatestVideo } from '../types';
 
 export default function FavoritesPage() {
@@ -32,6 +33,10 @@ export default function FavoritesPage() {
       channelName: fav.channelName || '',
     };
     play(video);
+    const vidId = extractVideoId(video.link);
+    if (vidId) {
+      navigate(`/video/${vidId}`, { state: { video } });
+    }
   };
 
   const handleRemove = (id: string) => {
