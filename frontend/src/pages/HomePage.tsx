@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
+import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import EditChannelModal from '../components/EditChannelModal';
@@ -16,7 +16,9 @@ import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from '../components/Toast';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import { parseAndValidateChannelsJson } from '../utils/importChannels';
+import { getAllFromIndex } from '../services/indexedDbService';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
+import type { WatchHistoryEntry } from '../services/watchHistoryService';
 
 type ChannelApiResponse = {
   success: boolean;
@@ -78,6 +80,13 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
+  const [continueWatching, setContinueWatching] = useState<WatchHistoryEntry[]>([]);
+
+  useEffect(() => {
+    getAllFromIndex<WatchHistoryEntry>('watchHistory', 'lastViewedAt', 'prev').then((entries) => {
+      setContinueWatching(entries.filter((e) => e.completionPercentage > 0 && e.completionPercentage < 100).slice(0, 6));
+    }).catch(() => {});
+  }, []);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -358,6 +367,53 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
                   : t('home.showing', { count: displayItems.length, total: items.length })}
               </span>
             )}
+          </div>
+        )}
+
+        {/* Continue Watching */}
+        {continueWatching.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <History className="h-5 w-5 text-brand-coral" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('watchHistory.continueWatching')}
+              </h2>
+            </div>
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {continueWatching.map((entry) => (
+                <div
+                  key={entry.videoId}
+                  onClick={() => navigate(`/video/${entry.videoId}`)}
+                  className="group cursor-pointer rounded-xl overflow-hidden bg-white shadow-sm ring-1 ring-gray-200 hover:shadow-md transition dark:bg-dark-navy dark:ring-gray-700"
+                >
+                  <div className="relative aspect-video overflow-hidden bg-black">
+                    <ThumbnailWithPlaceholder src={entry.thumbnail} alt={entry.title} />
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
+                      <div
+                        className="h-full bg-brand-coral transition-all group-hover:opacity-80"
+                        style={{ width: `${entry.completionPercentage}%` }}
+                      />
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-brand-coral shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Play className="h-4 w-4 pl-0.5" />
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white line-clamp-2 leading-snug">
+                      {entry.title}
+                    </p>
+                    <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                      {entry.channelName}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-brand-coral font-medium">
+                      {entry.completionPercentage}%
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

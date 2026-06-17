@@ -95,3 +95,25 @@ export interface Course {
   createdAt: number;
   updatedAt: number;
 }
+
+export interface WatchHistoryEntry {
+  videoId: string;
+  title: string;
+  channelId?: string;
+  channelName?: string;
+  thumbnail?: string;
+  watchDate: number;
+  lastViewedAt: number;
+  totalWatchTime: number;
+  completionPercentage: number;
+  duration?: string;
+  durationSeconds?: number;
+  link: string;
+}
+
+export interface PlaybackProgress {
+  videoId: string;
+  currentTime: number;
+  duration: number;
+  lastUpdated: number;
+}

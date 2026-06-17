@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Share2, ChevronDown, ChevronUp, Headphones } from 'lucide-react';
+import { Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Share2, ChevronDown, ChevronUp, Headphones, RotateCcw, Play } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useMediaManager } from '../context/MediaContext';
@@ -12,6 +12,8 @@ import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { formatDescription } from '../utils/formatDescription';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useMeta } from '../hooks/useMeta';
+import { usePlaybackResume } from '../hooks/usePlaybackResume';
+import { recordWatch } from '../services/watchHistoryService';
 import type { LatestVideo } from '../types';
 
 function formatViews(views?: number | string): string | undefined {
@@ -128,8 +130,16 @@ function VideoPage() {
   const [loading, setLoading] = useState(true);
   const [isInWatchLater, setIsInWatchLater] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const [resumeTime, setResumeTime] = useState<number | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
 
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const historyRecordedRef = useRef(false);
+
+  const {
+    loadProgress,
+    clearProgress,
+  } = usePlaybackResume(video ? extractVideoId(video.link) || videoId : undefined);
 
   useMeta({ title: video?.title || t('videoPage.loading') });
 
@@ -180,6 +190,32 @@ function VideoPage() {
     if (video) {
       setIsInWatchLater(loadWatchLater().some(item => item.video.link === video.link));
     }
+  }, [video]);
+
+  useEffect(() => {
+    if (!video) return;
+    const vidId = extractVideoId(video.link) || videoId;
+    if (!vidId) return;
+
+    if (!historyRecordedRef.current) {
+      historyRecordedRef.current = true;
+      recordWatch({
+        videoId: vidId,
+        title: video.title,
+        channelId: video.channelId,
+        channelName: video.channelName,
+        thumbnail: video.thumbnail,
+        duration: video.duration,
+        link: video.link,
+      });
+    }
+
+    loadProgress().then((progress) => {
+      if (progress && progress.currentTime > 5 && progress.currentTime < progress.duration - 5) {
+        setResumeTime(progress.currentTime);
+        setShowResumePrompt(true);
+      }
+    });
   }, [video]);
 
   useEffect(() => {
@@ -256,6 +292,16 @@ function VideoPage() {
     navigate(`/audio/${videoId}`, { state: { video, channelId: video.channelId } });
   }, [video, videoId, navigate]);
 
+  const handleResume = useCallback(() => {
+    setShowResumePrompt(false);
+  }, []);
+
+  const handleStartOver = useCallback(() => {
+    setResumeTime(null);
+    setShowResumePrompt(false);
+    clearProgress();
+  }, [clearProgress]);
+
   const handleChannelClick = useCallback(() => {
     if (!video?.channelId) return;
     navigate(`/channel/${video.channelId}`);
@@ -296,6 +342,10 @@ function VideoPage() {
   }
 
   const embedId = video ? (extractVideoId(video.link) || videoId) : videoId;
+  const startParam = resumeTime ? `&start=${Math.floor(resumeTime)}` : '';
+  const embedSrc = embedId
+    ? `https://www.youtube.com/embed/${embedId}?autoplay=1${startParam}`
+    : '';
   const isFav = video ? isFavorite(video.link) : false;
   const formattedViews = video ? formatViews(video.views) : undefined;
   const formattedDuration = video ? formatDuration(video.duration) : undefined;
@@ -313,9 +363,9 @@ function VideoPage() {
       >
         <div className="mx-auto max-w-5xl px-4 h-14 flex items-center gap-3">
           <div className="relative w-20 h-11 rounded-md overflow-hidden bg-black flex-shrink-0 shadow-sm">
-            {embedId ? (
+            {embedSrc ? (
               <iframe
-                src={`https://www.youtube.com/embed/${embedId}?autoplay=1&controls=0`}
+                src={`https://www.youtube.com/embed/${embedId}?autoplay=1&controls=0${startParam}`}
                 title={video?.title || 'YouTube video'}
                 className="absolute inset-0 w-full h-full pointer-events-none"
                 allow="autoplay; encrypted-media"
@@ -348,15 +398,46 @@ function VideoPage() {
         </div>
       </div>
 
+      {/* Resume prompt modal */}
+      {showResumePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-dark-navy rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fadein">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-brand-coral/10 flex items-center justify-center">
+                <RotateCcw className="h-7 w-7 text-brand-coral" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('watchHistory.resumePrompt')}
+              </h3>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={handleStartOver}
+                  className="flex-1 rounded-xl px-4 py-3 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
+                >
+                  {t('watchHistory.startOverButton')}
+                </button>
+                <button
+                  onClick={handleResume}
+                  className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold bg-brand-coral text-white hover:bg-brand-pink transition-all active:scale-95 shadow-sm shadow-brand-coral/20 flex items-center justify-center gap-2"
+                >
+                  <Play className="h-4 w-4 fill-current" />
+                  {t('watchHistory.resumeButton')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto max-w-5xl px-0 sm:px-4 lg:px-6 py-0 sm:py-6">
         {/* Video player */}
         <div
           ref={playerContainerRef}
           className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl"
         >
-          {embedId ? (
+          {embedSrc ? (
             <iframe
-              src={`https://www.youtube.com/embed/${embedId}?autoplay=1`}
+              src={embedSrc}
               title={video?.title || 'YouTube video'}
               className="absolute inset-0 w-full h-full"
               allow="autoplay; encrypted-media; fullscreen"

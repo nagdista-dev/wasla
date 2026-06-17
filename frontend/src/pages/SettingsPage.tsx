@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/Toast';
 import ConfirmActionModal from '../components/ConfirmActionModal';
+import { exportAll, importAll, isClientSide } from '../services/indexedDbService';
 import type { Channel, Playlist } from '../types';
 
 interface SettingsPageProps {
@@ -230,6 +231,45 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
     reader.readAsText(file);
   };
 
+  const exportWatchHistory = async () => {
+    if (!isClientSide()) {
+      showToast(t('watchHistory.invalidFile'), 'error');
+      return;
+    }
+    try {
+      const data = await exportAll();
+      const now = new Date().toISOString().slice(0, 10);
+      downloadJson(data, `watch-history-${now}.json`);
+      showToast(t('watchHistory.exportSuccess'), 'success');
+    } catch {
+      showToast(t('watchHistory.invalidFile'), 'error');
+    }
+  };
+
+  const importWatchHistory = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || resolving) return;
+    if (!isClientSide()) return;
+    setResolving(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          showToast(t('watchHistory.invalidFile'), 'error');
+          return;
+        }
+        await importAll(data as Record<string, unknown[]>);
+        showToast(t('watchHistory.importSuccess'), 'success');
+      } catch {
+        showToast(t('watchHistory.invalidFile'), 'error');
+      }
+      setResolving(false);
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="min-h-screen dark:bg-dark-navy">
       <div className="mx-auto max-w-4xl px-6 py-6">
@@ -375,6 +415,25 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
                     <Upload className="h-4 w-4" />
                     {t('settings.import')}
                     <input type="file" accept=".json" className="hidden" onChange={importCategoriesFile} disabled={resolving} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Watch History Export/Import */}
+              <div className="border-t border-gray-100 pt-4 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('watchHistory.exportTitle')}</h3>
+                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                  {t('watchHistory.exportDesc')}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={exportWatchHistory} className="flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-pink">
+                    <Download className="h-4 w-4" />
+                    {t('watchHistory.export')}
+                  </button>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-white/10">
+                    <Upload className="h-4 w-4" />
+                    {t('watchHistory.import')}
+                    <input type="file" accept=".json" className="hidden" onChange={importWatchHistory} disabled={resolving} />
                   </label>
                 </div>
               </div>

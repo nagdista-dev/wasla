@@ -25,6 +25,7 @@ import {
   MessageCircle,
   SlidersHorizontal,
   Headphones,
+  History,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
@@ -59,6 +60,7 @@ const CourseDashboardPage = lazy(() => import("./pages/CourseDashboardPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const VideoPage = lazy(() => import("./pages/VideoPage"));
 const AudioPage = lazy(() => import("./pages/AudioPage"));
+const WatchHistoryPage = lazy(() => import("./pages/WatchHistoryPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -101,6 +103,7 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
     { path: "/channels", label: t('nav.channels'), icon: Users },
     { path: "/playlists", label: t('nav.playlists'), icon: Heart },
     { path: "/watch-later", label: t('watchLater.title'), icon: BookmarkCheck },
+    { path: "/history", label: t('watchHistory.title'), icon: History },
     { path: "/how-to-use", label: t('nav.howToUse'), icon: BookOpen },
     { path: "/contact", label: t('contact.title'), icon: MessageCircle },
     { path: "/settings", label: t('nav.settings'), icon: Settings },
@@ -495,6 +498,10 @@ function App() {
               <Route
                 path="/watch-later"
                 element={<WatchLaterPage />}
+              />
+              <Route
+                path="/history"
+                element={<WatchHistoryPage />}
               />
               <Route
                 path="/how-to-use"
