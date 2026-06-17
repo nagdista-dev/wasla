@@ -129,16 +129,22 @@ function VideoPage() {
   const [video, setVideo] = useState<(LatestVideo & { channelId?: string }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInWatchLater, setIsInWatchLater] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
   const [resumeTime, setResumeTime] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const historyRecordedRef = useRef(false);
+  const trackingStartRef = useRef(0);
+  const initialOffsetRef = useRef(0);
+  const animFrameRef = useRef<number>(0);
 
   const {
     loadProgress,
     clearProgress,
+    updatePosition,
   } = usePlaybackResume(video ? extractVideoId(video.link) || videoId : undefined);
 
   useMeta({ title: video?.title || t('videoPage.loading') });
@@ -218,20 +224,69 @@ function VideoPage() {
     });
   }, [video]);
 
+  const durationSeconds = video ? (parseInt(video.duration || '0', 10) || 0) : 0;
+  const embedId = video ? (extractVideoId(video.link) || videoId) : videoId;
+  const startParam = resumeTime ? `&start=${Math.floor(resumeTime)}` : '';
+  const embedSrc = embedId
+    ? `https://www.youtube.com/embed/${embedId}?autoplay=1${startParam}`
+    : '';
+
   useEffect(() => {
-    const el = playerContainerRef.current;
-    if (!el) return;
+    if (!video || showResumePrompt || durationSeconds <= 0) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsSticky(!entry.isIntersecting);
-      },
-      { threshold: 0, rootMargin: '-80px 0px 0px 0px' }
-    );
+    trackingStartRef.current = Date.now();
+    initialOffsetRef.current = resumeTime ?? 0;
 
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+    const tick = () => {
+      const elapsed = (Date.now() - trackingStartRef.current) / 1000;
+      const currentTime = initialOffsetRef.current + elapsed;
+      const pct = (currentTime / durationSeconds) * 100;
+
+      updatePosition(currentTime, durationSeconds);
+
+      if (progressBarRef.current) {
+        progressBarRef.current.style.width = `${Math.min(pct, 100)}%`;
+      }
+
+      if (currentTime < durationSeconds) {
+        animFrameRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    animFrameRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = 0;
+      }
+    };
+  }, [video, showResumePrompt, resumeTime, updatePosition, durationSeconds]);
+
+  useEffect(() => {
+    if (!embedSrc) return;
+    const timer = setTimeout(() => setIframeLoaded(true), 15000);
+    return () => clearTimeout(timer);
+  }, [embedSrc]);
+
+  useEffect(() => {
+    if (!embedSrc) return;
+
+    const currentIframe = iframeRef.current;
+
+    mediaManager.registerVideoCleanup(() => {
+      if (currentIframe) {
+        currentIframe.src = 'about:blank';
+      }
+    });
+
+    return () => {
+      mediaManager.unregisterVideoCleanup();
+      if (currentIframe) {
+        currentIframe.src = 'about:blank';
+      }
+    };
+  }, [embedSrc, mediaManager]);
 
   const handleOpenOnYoutube = useCallback(() => {
     if (!video) return;
@@ -341,11 +396,6 @@ function VideoPage() {
     );
   }
 
-  const embedId = video ? (extractVideoId(video.link) || videoId) : videoId;
-  const startParam = resumeTime ? `&start=${Math.floor(resumeTime)}` : '';
-  const embedSrc = embedId
-    ? `https://www.youtube.com/embed/${embedId}?autoplay=1${startParam}`
-    : '';
   const isFav = video ? isFavorite(video.link) : false;
   const formattedViews = video ? formatViews(video.views) : undefined;
   const formattedDuration = video ? formatDuration(video.duration) : undefined;
@@ -354,50 +404,6 @@ function VideoPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-dark-navy">
-      {/* Sticky mini player bar */}
-      <div
-        className={`fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-dark-navy/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out ${
-          isSticky ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
-        }`}
-        style={{ top: '64px' }}
-      >
-        <div className="mx-auto max-w-5xl px-4 h-14 flex items-center gap-3">
-          <div className="relative w-20 h-11 rounded-md overflow-hidden bg-black flex-shrink-0 shadow-sm">
-            {embedSrc ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${embedId}?autoplay=1&controls=0${startParam}`}
-                title={video?.title || 'YouTube video'}
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                allow="autoplay; encrypted-media"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white text-xs">
-                {t('miniPlayer.couldNotLoad')}
-              </div>
-            )}
-          </div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white truncate flex-1 min-w-0">
-            {video?.title || ''}
-          </p>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              onClick={handleShare}
-              className="p-2 rounded-lg text-gray-500 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-              aria-label={t('miniPlayer.share')}
-            >
-              <Share2 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={handleAudioMode}
-              className="p-2 rounded-lg text-gray-500 hover:text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-              aria-label={t('audioPage.listenInAudioMode')}
-            >
-              <Headphones className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Resume prompt modal */}
       {showResumePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -430,33 +436,54 @@ function VideoPage() {
       )}
 
       <div className="mx-auto max-w-5xl px-0 sm:px-4 lg:px-6 py-0 sm:py-6">
-        {/* Video player */}
-        <div
-          ref={playerContainerRef}
-          className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl"
-        >
-          {embedSrc ? (
-            <iframe
-              src={embedSrc}
-              title={video?.title || 'YouTube video'}
-              className="absolute inset-0 w-full h-full"
-              allow="autoplay; encrypted-media; fullscreen"
-              allowFullScreen
-            />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
-              <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
-              {video?.link && (
-                <button
-                  onClick={() => { window.open(video.link, '_blank'); }}
-                  className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  {t('miniPlayer.openOnYoutube')}
-                </button>
-              )}
-            </div>
-          )}
+        {/* Video player - sticky */}
+        <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy">
+          <div
+            ref={playerContainerRef}
+            className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl"
+          >
+            {embedSrc ? (
+              <>
+                <iframe
+                  ref={iframeRef}
+                  key={embedSrc}
+                  src={embedSrc}
+                  title={video?.title || 'YouTube video'}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; encrypted-media; fullscreen"
+                  allowFullScreen
+                  onLoad={() => setIframeLoaded(true)}
+                />
+                {!iframeLoaded && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  </div>
+                )}
+                {durationSeconds > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-10">
+                    <div
+                      ref={progressBarRef}
+                      className="h-full bg-brand-coral transition-all duration-[250ms] ease-linear"
+                      style={{ width: '0%' }}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+                <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+                {video?.link && (
+                  <button
+                    onClick={() => { window.open(video.link, '_blank'); }}
+                    className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {t('miniPlayer.openOnYoutube')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {video ? (

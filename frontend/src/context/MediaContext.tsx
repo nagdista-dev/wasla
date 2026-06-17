@@ -10,6 +10,8 @@ interface MediaContextType {
   stopMedia: (type: 'video' | 'audio') => void;
   registerPauseHandler: (type: 'video' | 'audio', handler: () => void) => void;
   unregisterPauseHandler: (type: 'video' | 'audio') => void;
+  registerVideoCleanup: (cleanup: () => void) => void;
+  unregisterVideoCleanup: () => void;
 }
 
 const MediaContext = createContext<MediaContextType | undefined>(undefined);
@@ -20,6 +22,7 @@ export function MediaProvider({ children }: { children: ReactNode }) {
     video: null,
     audio: null,
   });
+  const videoCleanupRef = useRef<(() => void) | null>(null);
   const bcRef = useRef<BroadcastChannel | null>(null);
 
   const registerPauseHandler = useCallback((type: 'video' | 'audio', handler: () => void) => {
@@ -30,11 +33,26 @@ export function MediaProvider({ children }: { children: ReactNode }) {
     pauseHandlersRef.current[type] = null;
   }, []);
 
+  const registerVideoCleanup = useCallback((cleanup: () => void) => {
+    if (videoCleanupRef.current) {
+      videoCleanupRef.current();
+    }
+    videoCleanupRef.current = cleanup;
+  }, []);
+
+  const unregisterVideoCleanup = useCallback(() => {
+    videoCleanupRef.current = null;
+  }, []);
+
   const requestPlay = useCallback((type: 'video' | 'audio') => {
     const otherType = type === 'video' ? 'audio' : 'video';
     const otherHandler = pauseHandlersRef.current[otherType];
     if (otherHandler) {
       otherHandler();
+    }
+    if (type === 'audio' && videoCleanupRef.current) {
+      videoCleanupRef.current();
+      videoCleanupRef.current = null;
     }
     setActiveMedia(type);
     bcRef.current?.postMessage({ type: 'media-play', mediaType: type });
@@ -51,6 +69,10 @@ export function MediaProvider({ children }: { children: ReactNode }) {
       bc.onmessage = (event) => {
         const data = event.data;
         if (data?.type === 'media-play') {
+          if (videoCleanupRef.current) {
+            videoCleanupRef.current();
+            videoCleanupRef.current = null;
+          }
           const videoHandler = pauseHandlersRef.current.video;
           if (videoHandler) videoHandler();
           const audioHandler = pauseHandlersRef.current.audio;
@@ -68,7 +90,7 @@ export function MediaProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <MediaContext.Provider value={{ activeMedia, requestPlay, stopMedia, registerPauseHandler, unregisterPauseHandler }}>
+    <MediaContext.Provider value={{ activeMedia, requestPlay, stopMedia, registerPauseHandler, unregisterPauseHandler, registerVideoCleanup, unregisterVideoCleanup }}>
       {children}
     </MediaContext.Provider>
   );
