@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import type { LatestVideo } from '../types';
 import { normalizeVideo } from '../utils/videoUtils';
+import { useMediaManager } from './MediaContext';
 
 interface PlayerContextType {
   currentVideo: (LatestVideo & { _videoId: string; channelId?: string }) | null;
@@ -12,23 +13,28 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentVideo, setCurrentVideo] = useState<(LatestVideo & { _videoId: string; channelId?: string }) | null>(null);
+  const mediaManager = useMediaManager();
+  const closeRef = useRef<() => void>(() => {});
 
-  /**
-   * Unified playback entry point (Task 6).
-   * Normalizes every video to a consistent schema before storing it.
-   * Silently skips unresolvable videos instead of crashing.
-   */
+  const close = useCallback(() => setCurrentVideo(null), []);
+  closeRef.current = close;
+
+  useEffect(() => {
+    mediaManager.registerPauseHandler('video', () => {
+      closeRef.current();
+    });
+    return () => mediaManager.unregisterPauseHandler('video');
+  }, [mediaManager]);
+
   const play = useCallback((video: LatestVideo, channelId?: string) => {
     const normalized = normalizeVideo(video);
     if (!normalized) {
-      // Video ID could not be resolved — skip gracefully (Task 5)
       console.warn('[Wasla Player] Skipping unplayable video:', video.title, video.link);
       return;
     }
+    mediaManager.requestPlay('video');
     setCurrentVideo({ ...normalized, channelId });
-  }, []);
-
-  const close = useCallback(() => setCurrentVideo(null), []);
+  }, [mediaManager]);
 
   return (
     <PlayerContext.Provider value={{ currentVideo, play, close }}>

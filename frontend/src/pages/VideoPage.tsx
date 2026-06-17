@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Maximize2, Share2, ChevronDown, ChevronUp, Headphones } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
+import { useMediaManager } from '../context/MediaContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useToast } from '../components/Toast';
 import ConfirmLinkModal from '../components/ConfirmLinkModal';
@@ -119,6 +120,7 @@ function VideoPage() {
   const location = useLocation();
   const { t } = useLanguage();
   const { currentVideo } = usePlayer();
+  const mediaManager = useMediaManager();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
 
@@ -166,9 +168,10 @@ function VideoPage() {
 
     if (found) {
       setVideo(found);
+      mediaManager.requestPlay('video');
     }
     setLoading(false);
-  }, [videoId, currentVideo, location.state]);
+  }, [videoId, currentVideo, location.state, mediaManager]);
 
   useEffect(() => {
     if (video) {

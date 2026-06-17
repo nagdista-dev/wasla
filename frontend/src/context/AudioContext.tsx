@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
 import type { LatestVideo } from '../types';
 import { normalizeVideo } from '../utils/videoUtils';
+import { useMediaManager } from './MediaContext';
 
 declare global {
   interface Window {
@@ -88,12 +89,16 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null);
   const [sleepTimerEndTime, setSleepTimerEndTime] = useState<number | null>(null);
 
+  const mediaManager = useMediaManager();
+
   const playerRef = useRef<YTPlayer | null>(null);
   const playerReadyRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const timePollRef = useRef<number | null>(null);
   const sleepTimerRef = useRef<number | null>(null);
   const destroyedRef = useRef(false);
+
+  const pauseHandlerRef = useRef<() => void>(() => {});
 
   const clearTimePoll = useCallback(() => {
     if (timePollRef.current !== null) {
@@ -128,6 +133,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [clearTimePoll]);
 
   useEffect(() => {
+    mediaManager.registerPauseHandler('audio', () => {
+      pauseHandlerRef.current();
+    });
+    return () => mediaManager.unregisterPauseHandler('audio');
+  }, [mediaManager]);
+
+  useEffect(() => {
     return () => {
       destroyedRef.current = true;
       destroyPlayer();
@@ -140,6 +152,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!normalized) return;
 
     const videoId = normalized._videoId;
+
+    mediaManager.requestPlay('audio');
 
     destroyedRef.current = false;
     setCurrentVideo({ ...normalized, channelId });
@@ -188,6 +202,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
                 setIsPlaying(false);
                 clearTimePoll();
                 setCurrentVideo(null);
+                mediaManager.stopMedia('audio');
               }
             },
             onError: () => {
@@ -201,7 +216,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setIsPlaying(false);
       }
     });
-  }, [destroyPlayer, startTimePoll, clearTimePoll, volume]);
+  }, [destroyPlayer, startTimePoll, clearTimePoll, volume, mediaManager]);
 
   const pauseAudio = useCallback(() => {
     if (playerRef.current && playerReadyRef.current) {
@@ -212,6 +227,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       } catch { /* ignore */ }
     }
   }, [clearTimePoll]);
+
+  useEffect(() => {
+    pauseHandlerRef.current = pauseAudio;
+  }, [pauseAudio]);
 
   const resumeAudio = useCallback(() => {
     if (playerRef.current && playerReadyRef.current) {
@@ -255,7 +274,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setSleepTimerMinutes(null);
     setSleepTimerRemaining(null);
     setSleepTimerEndTime(null);
-  }, [destroyPlayer]);
+    mediaManager.stopMedia('audio');
+  }, [destroyPlayer, mediaManager]);
 
   const setSleepTimer = useCallback((minutes: number | null) => {
     if (sleepTimerRef.current !== null) {

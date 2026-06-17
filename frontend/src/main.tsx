@@ -8,6 +8,7 @@ import { LanguageProvider } from './context/LanguageContext'
 migrateStorage();
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './components/Toast'
+import { MediaProvider } from './context/MediaContext'
 import { PlayerProvider } from './context/PlayerContext'
 import { AudioProvider } from './context/AudioContext'
 import { FavoritesProvider } from './context/FavoritesContext'
@@ -18,19 +19,21 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
       <ThemeProvider>
-        <PlayerProvider>
-          <ToastProvider>
-            <AudioProvider>
-              <FavoritesProvider>
-                <CoursesProvider>
-                  <FilterProvider>
-                    <App />
-                  </FilterProvider>
-                </CoursesProvider>
-              </FavoritesProvider>
-            </AudioProvider>
-          </ToastProvider>
-        </PlayerProvider>
+        <MediaProvider>
+          <PlayerProvider>
+            <ToastProvider>
+              <AudioProvider>
+                <FavoritesProvider>
+                  <CoursesProvider>
+                    <FilterProvider>
+                      <App />
+                    </FilterProvider>
+                  </CoursesProvider>
+                </FavoritesProvider>
+              </AudioProvider>
+            </ToastProvider>
+          </PlayerProvider>
+        </MediaProvider>
       </ThemeProvider>
     </LanguageProvider>
   </StrictMode>,
