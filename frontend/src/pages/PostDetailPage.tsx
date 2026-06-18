@@ -78,5 +78,4 @@ export default function PostDetailPage() {
       </article>
     </div>
   );
-  }
 }
