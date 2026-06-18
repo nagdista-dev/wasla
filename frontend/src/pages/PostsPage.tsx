@@ -34,9 +34,6 @@ function PostPreview({ post }: { post: CommunityPost }) {
                 {formatRelativeTime(post.publishedAt, t)}
               </span>
             </div>
-            {post.title && (
-              <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-200">{post.title}</p>
-            )}
           </div>
         </div>
 

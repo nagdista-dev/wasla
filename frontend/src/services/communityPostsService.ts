@@ -70,6 +70,24 @@ function getNamespacedText(parent: Element, tagName: string): string {
   return node?.textContent?.trim() || '';
 }
 
+function deduplicateContent(content: string): string {
+  if (!content) return content;
+  
+  const sentences = content.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
+  const uniqueSentences: string[] = [];
+  const seen = new Set<string>();
+  
+  for (const sentence of sentences) {
+    const normalized = sentence.trim().toLowerCase();
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      uniqueSentences.push(sentence);
+    }
+  }
+  
+  return uniqueSentences.join('. ').trim();
+}
+
 function getThumbnail(item: Element, images: string[]): string | undefined {
   const mediaThumbnail = item.querySelector('thumbnail')?.getAttribute('url');
   const mediaContent = item.querySelector('content[url]')?.getAttribute('url');
@@ -118,15 +136,17 @@ function parseFeed(xml: string, channel: Channel, source: CommunityPost['source'
       const guid = getElementText(item, 'guid') || getElementText(item, 'id') || link || `${channel.id}:${title}:${published}`;
       const images = imagesFromHtml(rawContent);
 
-      if (!content && !title && images.length === 0) return null;
-      if (isVideoEntry(link || '', `${title} ${content}`)) return null;
+      if (!content && images.length === 0) return null;
+      if (isVideoEntry(link || '', content)) return null;
+
+      const deduplicatedContent = deduplicateContent(content);
 
       return {
         id: hash(`${channel.id}:${guid}`),
         channelId: channel.id,
         channelName: channel.name,
-        title: title && title !== content ? title : undefined,
-        content: content || title,
+        title: undefined,
+        content: deduplicatedContent,
         link: link || undefined,
         publishedAt: Number.isNaN(publishedDate.getTime()) ? new Date().toISOString() : publishedDate.toISOString(),
         thumbnail: getThumbnail(item, images),
@@ -153,19 +173,26 @@ async function fetchChannelPosts(channel: Channel): Promise<CommunityPost[]> {
   if (allPosts.length === 0) return [];
   
   const sortedPosts = allPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-  return [sortedPosts[0]];
+  return sortedPosts.slice(0, 2);
 }
 
 function mergePosts(posts: CommunityPost[]): CommunityPost[] {
-  const byChannel = new Map<string, CommunityPost>();
-
+  const byChannel = new Map<string, CommunityPost[]>();n
   for (const post of posts) {
-    if (!byChannel.has(post.channelId) || new Date(post.publishedAt) > new Date(byChannel.get(post.channelId)!.publishedAt)) {
-      byChannel.set(post.channelId, post);
+    if (!byChannel.has(post.channelId)) {
+      byChannel.set(post.channelId, []);
     }
+    const channelPosts = byChannel.get(post.channelId)!;
+    const exists = channelPosts.some(p => p.id === post.id);
+    if (!exists) {
+      channelPosts.push(post);
+    }
+    channelPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    byChannel.set(post.channelId, channelPosts.slice(0, 2));
   }
 
-  return Array.from(byChannel.values()).sort(
+  const allPosts = Array.from(byChannel.values()).flat();
+  return allPosts.sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
   );
 }

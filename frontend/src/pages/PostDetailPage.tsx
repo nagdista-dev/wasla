@@ -55,11 +55,6 @@ export default function PostDetailPage() {
                 <span>{new Date(post.publishedAt).toLocaleString()}</span>
               </div>
             </div>
-          </div>
-
-          {post.title && (
-            <h2 className="mt-5 text-lg font-semibold text-gray-900 dark:text-white">{post.title}</h2>
-          )}
 
           <p className="mt-4 whitespace-pre-line text-base leading-8 text-gray-800 dark:text-gray-200">
             {post.content}
