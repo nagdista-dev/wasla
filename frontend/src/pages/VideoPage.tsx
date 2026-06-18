@@ -191,7 +191,9 @@ function VideoPage() {
 
   useEffect(() => {
     if (video) {
-      setIsInWatchLater(loadWatchLater().some(item => item.video.link === video.link));
+      loadWatchLater().then((items) => {
+        setIsInWatchLater(items.some(item => item.video.link === video.link));
+      });
     }
   }, [video]);
 
@@ -324,15 +326,14 @@ function VideoPage() {
     }
   }, [video, videoId]);
 
-  const handleWatchLater = useCallback(() => {
+  const handleWatchLater = useCallback(async () => {
     if (!video) return;
+    const items = await loadWatchLater();
     if (isInWatchLater) {
-      const items = loadWatchLater();
-      saveWatchLater(items.filter(item => item.video.link !== video.link));
+      await saveWatchLater(items.filter(item => item.video.link !== video.link));
       setIsInWatchLater(false);
       showToast(t('watchLater.removed'), 'info');
     } else {
-      const items = loadWatchLater();
       items.push({
         id: `video_${Date.now()}`,
         video,
@@ -341,7 +342,7 @@ function VideoPage() {
         savedAt: Date.now(),
         watched: false,
       });
-      saveWatchLater(items);
+      await saveWatchLater(items);
       setIsInWatchLater(true);
       showToast(t('watchLater.saved'), 'success');
     }

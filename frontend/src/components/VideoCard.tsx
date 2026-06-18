@@ -1,9 +1,9 @@
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Clock, Edit3, Eye, BookmarkPlus, BookmarkCheck, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
-import type { Channel, LatestVideo } from '../types';
+import type { Channel, LatestVideo, WatchLaterItem } from '../types';
 import { usePlayer } from '../context/PlayerContext';
 import { loadWatchLater, saveWatchLater } from '../storage';
 import { useToast } from './Toast';
@@ -27,6 +27,18 @@ function formatViews(views?: number | string): string | undefined {
   return num.toString();
 }
 
+function syncHasWatchLater(videoLink: string): boolean {
+  try {
+    const stored = localStorage.getItem('wasla_watch_later');
+    if (!stored) return false;
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return false;
+    return parsed.some((item: WatchLaterItem) => item?.video?.link === videoLink);
+  } catch {
+    return false;
+  }
+}
+
 const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardProps) {
   const { t } = useLanguage();
   const { play } = usePlayer();
@@ -37,10 +49,14 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
   const initial = channelName.charAt(0).toUpperCase();
   const progress = useVideoProgress(video.link);
 
-  const [isInWatchLater, setIsInWatchLater] = useState(() =>
-    loadWatchLater().some((item) => item.video.link === video.link)
-  );
+  const [isInWatchLater, setIsInWatchLater] = useState(() => syncHasWatchLater(video.link));
   const isFav = isFavorite(video.link);
+
+  useEffect(() => {
+    loadWatchLater().then((items) => {
+      setIsInWatchLater(items.some((item) => item.video.link === video.link));
+    });
+  }, [video.link]);
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -51,15 +67,14 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
     }
   };
 
-  const handleWatchLater = (e: React.MouseEvent) => {
+  const handleWatchLater = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    const items = await loadWatchLater();
     if (isInWatchLater) {
-      const items = loadWatchLater();
-      saveWatchLater(items.filter((item) => item.video.link !== video.link));
+      await saveWatchLater(items.filter((item) => item.video.link !== video.link));
       setIsInWatchLater(false);
       showToast(t('watchLater.removed'), 'info');
     } else {
-      const items = loadWatchLater();
       items.push({
         id: `${channel.id}_${Date.now()}`,
         video,
@@ -68,7 +83,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
         savedAt: Date.now(),
         watched: false,
       });
-      saveWatchLater(items);
+      await saveWatchLater(items);
       setIsInWatchLater(true);
       showToast(t('watchLater.saved'), 'success');
     }

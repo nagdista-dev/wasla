@@ -11,7 +11,7 @@ import { useFilters } from '../context/FilterContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
-import { loadWatchLater, saveWatchLater } from '../storage';
+import { loadWatchLater, saveWatchLater, saveSetting, loadSetting } from '../storage';
 import { useToast } from '../components/Toast';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import { parseAndValidateChannelsJson } from '../utils/importChannels';
@@ -20,19 +20,13 @@ import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepo
 import type { Channel, ChannelLatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
 
-function loadPref<T>(key: string, fallback: T): T {
+function syncLoadPref<T>(key: string, fallback: T): T {
   try {
     const val = localStorage.getItem(key);
     return val !== null ? (JSON.parse(val) as T) : fallback;
   } catch {
     return fallback;
   }
-}
-
-function savePref(key: string, value: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* noop */ }
 }
 
 export default function HomePage({ channels, onUpdate, onImportChannels, onImportChannelsJson }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannels?: () => void; onImportChannelsJson?: (channels: Channel[]) => void }) {
@@ -44,8 +38,12 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
   const { selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly } = filters;
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(loadPref('wasla_viewMode', 'grid'));
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(syncLoadPref('wasla_viewMode', 'grid'));
   const [continueWatching, setContinueWatching] = useState<WatchHistoryEntry[]>([]);
+
+  useEffect(() => {
+    loadSetting<'grid' | 'list'>('wasla_viewMode').then((v) => { if (v) setViewMode(v); });
+  }, []);
 
   useEffect(() => {
     getAllFromIndex<WatchHistoryEntry>('watchHistory', 'lastViewedAt', 'prev').then((entries) => {
@@ -61,13 +59,17 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
   const [importingJson, setImportingJson] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<ChannelLatestVideo[]>([]);
-  const watchLaterCache = useMemo(() => loadWatchLater(), []);
+  const [watchLaterCache, setWatchLaterCache] = useState<import('../types').WatchLaterItem[]>([]);
+
+  useEffect(() => {
+    loadWatchLater().then(setWatchLaterCache);
+  }, []);
 
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
 
-  useEffect(() => { savePref('wasla_viewMode', viewMode); }, [viewMode]);
+  useEffect(() => { saveSetting('wasla_viewMode', viewMode); }, [viewMode]);
 
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
@@ -480,11 +482,13 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
                           />
                           <div className="absolute top-2 right-2 z-20">
                             <button
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
                                 const existing = watchLaterCache.find((item) => item.video.link === video.link);
                                 if (existing) {
-                                  saveWatchLater(watchLaterCache.filter((item) => item.video.link !== video.link));
+                                  const next = watchLaterCache.filter((item) => item.video.link !== video.link);
+                                  setWatchLaterCache(next);
+                                  await saveWatchLater(next);
                                   showToast(t('watchLater.removed'), 'info');
                                 } else {
                                   const newItems = [...watchLaterCache, {
@@ -495,7 +499,8 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
                                     savedAt: Date.now(),
                                     watched: false,
                                   }];
-                                  saveWatchLater(newItems);
+                                  setWatchLaterCache(newItems);
+                                  await saveWatchLater(newItems);
                                   showToast(t('watchLater.saved'), 'success');
                                 }
                               }}

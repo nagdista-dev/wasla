@@ -7,6 +7,7 @@ import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
+import { saveSetting, loadSetting } from '../storage';
 import type { Playlist } from '../types';
 
 interface PlaylistsPageProps {
@@ -15,7 +16,7 @@ interface PlaylistsPageProps {
   onUpdate: (id: string, name: string, description: string | undefined, categories: string[]) => void;
 }
 
-function loadPref<T>(key: string, fallback: T): T {
+function syncLoadPref<T>(key: string, fallback: T): T {
   try {
     const val = localStorage.getItem(key);
     return val !== null ? (JSON.parse(val) as T) : fallback;
@@ -24,23 +25,22 @@ function loadPref<T>(key: string, fallback: T): T {
   }
 }
 
-function savePref(key: string, value: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* noop */ }
-}
-
 export default function PlaylistsPage({ playlists, onDelete, onUpdate }: PlaylistsPageProps) {
   const { t } = useLanguage();
   useMeta({ title: t('playlists.title'), description: `${playlists.length} playlist${playlists.length !== 1 ? 's' : ''} saved.` });
-  const [searchText, setSearchText] = useState(loadPref<string>('wasla_playlists_search', ''));
+  const [searchText, setSearchText] = useState(syncLoadPref<string>('wasla_playlists_search', ''));
   const debouncedSearch = useDebounce(searchText, 300);
-  const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_playlists_category', ''));
+  const [selectedCategory, setSelectedCategory] = useState<string>(syncLoadPref<string>('wasla_playlists_category', ''));
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Playlist | null>(null);
 
-  useEffect(() => { savePref('wasla_playlists_search', searchText); }, [searchText]);
-  useEffect(() => { savePref('wasla_playlists_category', selectedCategory); }, [selectedCategory]);
+  useEffect(() => {
+    loadSetting<string>('wasla_playlists_search').then((v) => { if (v) setSearchText(v); });
+    loadSetting<string>('wasla_playlists_category').then((v) => { if (v) setSelectedCategory(v); });
+  }, []);
+
+  useEffect(() => { saveSetting('wasla_playlists_search', searchText); }, [searchText]);
+  useEffect(() => { saveSetting('wasla_playlists_category', selectedCategory); }, [selectedCategory]);
 
   const allCategories = Array.from(new Set(playlists.flatMap((p) => p.categories))).sort((a, b) => a.localeCompare(b));
 

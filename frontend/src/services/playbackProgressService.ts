@@ -30,12 +30,6 @@ function notifyProgressChanged(videoId: string, progress?: PlaybackProgress): vo
       detail: { videoId, progress },
     })
   );
-  try {
-    localStorage.setItem(
-      'wasla_playback_progress_sync',
-      JSON.stringify({ videoId, lastUpdated: Date.now() })
-    );
-  } catch { /* ignore */ }
 }
 
 export async function saveProgress(videoId: string, currentTime: number, duration: number): Promise<void> {

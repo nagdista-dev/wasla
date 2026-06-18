@@ -205,7 +205,9 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
   // Check watch later status when video changes
   useEffect(() => {
     if (currentVideo) {
-      setIsInWatchLater(loadWatchLater().some(item => item.video.link === currentVideo.link));
+      loadWatchLater().then((items) => {
+        setIsInWatchLater(items.some(item => item.video.link === currentVideo.link));
+      });
     }
   }, [currentVideo]);
 
@@ -332,15 +334,14 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
     }
   }, [currentVideo, showToast, t]);
 
-  const handleWatchLater = useCallback(() => {
+  const handleWatchLater = useCallback(async () => {
     if (!currentVideo) return;
+    const items = await loadWatchLater();
     if (isInWatchLater) {
-      const items = loadWatchLater();
-      saveWatchLater(items.filter(item => item.video.link !== currentVideo.link));
+      await saveWatchLater(items.filter(item => item.video.link !== currentVideo.link));
       setIsInWatchLater(false);
       showToast(t('watchLater.removed'), 'info');
     } else {
-      const items = loadWatchLater();
       items.push({
         id: `unknown_${Date.now()}`,
         video: currentVideo,
@@ -349,7 +350,7 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
         savedAt: Date.now(),
         watched: false,
       });
-      saveWatchLater(items);
+      await saveWatchLater(items);
       setIsInWatchLater(true);
       showToast(t('watchLater.saved'), 'success');
     }

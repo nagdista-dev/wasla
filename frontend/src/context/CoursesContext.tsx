@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { Course, CourseVideo } from '../types';
 import { loadCourses, saveCourses } from '../storage';
 
@@ -17,12 +17,30 @@ interface CoursesContextValue {
 
 const CoursesContext = createContext<CoursesContextValue | null>(null);
 
-export function CoursesProvider({ children }: { children: ReactNode }) {
-  const [courses, setCourses] = useState<Course[]>(loadCourses);
+function syncLoadCourses(): Course[] {
+  try {
+    const stored = localStorage.getItem('wasla_courses');
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((c) => c && c.id && c.name);
+  } catch {
+    return [];
+  }
+}
 
-  const persist = useCallback((next: Course[]) => {
+export function CoursesProvider({ children }: { children: ReactNode }) {
+  const [courses, setCourses] = useState<Course[]>(syncLoadCourses);
+
+  useEffect(() => {
+    loadCourses().then((items) => {
+      if (items.length > 0) setCourses(items);
+    });
+  }, []);
+
+  const persist = useCallback(async (next: Course[]) => {
     setCourses(next);
-    saveCourses(next);
+    await saveCourses(next);
   }, []);
 
   const getCourse = useCallback(
@@ -31,7 +49,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
   );
 
   const createCourse = useCallback(
-    (name: string, description?: string, category?: string) => {
+    (name: string, description?: string, category?: string): string => {
       const id = `course_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       const course: Course = {
         id,
@@ -42,10 +60,12 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
-      persist([...courses, course]);
+      const next = [...courses, course];
+      setCourses(next);
+      saveCourses(next);
       return id;
     },
-    [courses, persist],
+    [courses],
   );
 
   const updateCourse = useCallback(

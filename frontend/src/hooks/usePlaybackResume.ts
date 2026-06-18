@@ -40,17 +40,8 @@ export function usePlaybackResume(videoId?: string) {
 
   const saveBeforeUnload = useCallback(() => {
     if (!videoId || durationRef.current <= 0) return;
-    try {
-      localStorage.setItem(
-        `wasla_resume_${videoId}`,
-        JSON.stringify({
-          currentTime: currentTimeRef.current,
-          duration: durationRef.current,
-          lastUpdated: Date.now(),
-        })
-      );
-    } catch { /* ignore */ }
-  }, [videoId]);
+    doSave();
+  }, [videoId, doSave]);
 
   useEffect(() => {
     if (!videoId) return;
@@ -64,14 +55,6 @@ export function usePlaybackResume(videoId?: string) {
 
   const loadProgress = useCallback(async (): Promise<PlaybackProgress | null> => {
     if (!videoId) return null;
-    try {
-      const stored = localStorage.getItem(`wasla_resume_${videoId}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        localStorage.removeItem(`wasla_resume_${videoId}`);
-        return parsed;
-      }
-    } catch { /* ignore */ }
     const progress = await getProgress(videoId);
     return progress || null;
   }, [videoId]);
@@ -79,9 +62,6 @@ export function usePlaybackResume(videoId?: string) {
   const clearProgress = useCallback(async () => {
     if (!videoId) return;
     await removeProgress(videoId);
-    try {
-      localStorage.removeItem(`wasla_resume_${videoId}`);
-    } catch { /* ignore */ }
   }, [videoId]);
 
   return {

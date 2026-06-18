@@ -8,17 +8,27 @@ import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import { extractVideoId } from '../utils/videoUtils';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
+import { putItem } from '../services/indexedDbService';
 import type { LatestVideo, Playlist, CourseProgress } from '../types';
 
 const PROGRESS_KEY = 'wasla_playlist_progress';
+const PROGRESS_STORE = 'playlistProgress';
 
-function loadProgress(): Record<string, CourseProgress> {
+async function loadAllProgress(): Promise<Record<string, CourseProgress>> {
+  try {
+    const { getAll } = await import('../services/indexedDbService');
+    const all = await getAll<{ playlistId: string; progress: CourseProgress }>(PROGRESS_STORE);
+    const result: Record<string, CourseProgress> = {};
+    for (const entry of all) {
+      result[entry.playlistId] = entry.progress;
+    }
+    if (Object.keys(result).length > 0) return result;
+  } catch { /* fall through */ }
   try {
     const stored = localStorage.getItem(PROGRESS_KEY);
     if (!stored) return {};
     const parsed = JSON.parse(stored);
     if (typeof parsed !== 'object' || Array.isArray(parsed)) return {};
-    // migrate old format (string[]) to new format (CourseProgress)
     const migrated: Record<string, CourseProgress> = {};
     for (const [key, val] of Object.entries(parsed)) {
       if (Array.isArray(val)) {
@@ -35,7 +45,10 @@ function loadProgress(): Record<string, CourseProgress> {
   }
 }
 
-function saveProgress(progress: Record<string, CourseProgress>): void {
+async function saveProgressMap(progress: Record<string, CourseProgress>): Promise<void> {
+  for (const [playlistId, courseProgress] of Object.entries(progress)) {
+    await putItem(PROGRESS_STORE, { playlistId, progress: courseProgress });
+  }
   try {
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
   } catch { /* noop */ }
@@ -73,8 +86,12 @@ export default function PlaylistCoursePage() {
   const [channelName, setChannelName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [progress, setProgress] = useState<Record<string, CourseProgress>>(loadProgress);
+  const [progress, setProgress] = useState<Record<string, CourseProgress>>({});
   const [showCompletion, setShowCompletion] = useState(false);
+
+  useEffect(() => {
+    loadAllProgress().then(setProgress);
+  }, []);
 
   const playlistProgress = useMemo(() => {
     if (!playlistId) return { completedIds: [] as string[], startDate: undefined, completedDate: undefined };
@@ -102,7 +119,7 @@ export default function PlaylistCoursePage() {
         },
       };
       setProgress(updated);
-      saveProgress(updated);
+      saveProgressMap(updated);
       setTimeout(() => setShowCompletion(true), 600);
     }
   }, [isAllComplete]);
@@ -159,7 +176,7 @@ export default function PlaylistCoursePage() {
 
     const next = { ...progress, [playlistId]: newProgress };
     setProgress(next);
-    saveProgress(next);
+    saveProgressMap(next);
   };
 
   const isCompleted = (videoLink: string) => {
@@ -182,7 +199,7 @@ export default function PlaylistCoursePage() {
       [playlistId]: { completedIds: [], startDate: undefined, completedDate: undefined },
     };
     setProgress(next);
-    saveProgress(next);
+    saveProgressMap(next);
     setShowCompletion(false);
   };
 

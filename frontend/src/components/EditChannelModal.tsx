@@ -3,6 +3,7 @@ import { api } from '../api';
 import { X, Loader2, RefreshCcw } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from './Toast';
+import { saveSetting, loadSetting } from '../storage';
 import type { Channel } from '../types';
 
 type UpdateChannelResponse = {
@@ -55,9 +56,17 @@ const EditChannelModal = memo(function EditChannelModal({ channel, onClose, onUp
   const [isResolving, setIsResolving] = useState(false);
   const [resolvedId, setResolvedId] = useState<string | null>(channel.handle || null);
   const [prevCategories, setPrevCategories] = useState<string[]>(() => {
-    const stored = localStorage.getItem('wasla_prev_categories');
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem('wasla_prev_categories');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
   });
+
+  useEffect(() => {
+    loadSetting<string[]>('wasla_prev_categories').then((v) => { if (v && v.length > 0) setPrevCategories(v); });
+  }, []);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -105,10 +114,11 @@ const EditChannelModal = memo(function EditChannelModal({ channel, onClose, onUp
   const handleAddCategory = () => {
     if (categoryInput.trim()) {
       const newCat = categoryInput.trim();
-      const updated = Array.from(new Set([...categories, newCat]));
-      setCategories(updated);
-      setPrevCategories((prev) => Array.from(new Set([...prev, newCat])));
-      localStorage.setItem('wasla_prev_categories', JSON.stringify(Array.from(new Set([...prevCategories, newCat]))));
+      const updatedCats = Array.from(new Set([...categories, newCat]));
+      setCategories(updatedCats);
+      const updatedPrev = Array.from(new Set([...prevCategories, newCat]));
+      setPrevCategories(updatedPrev);
+      saveSetting('wasla_prev_categories', updatedPrev);
       setCategoryInput('');
     }
   };

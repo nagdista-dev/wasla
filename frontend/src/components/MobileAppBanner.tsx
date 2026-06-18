@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Smartphone, Download } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { saveSetting, loadSetting } from '../storage';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -18,12 +19,19 @@ export default function MobileAppBanner() {
     const installed = localStorage.getItem('wasla_installed');
     if (dismissed || installed) return;
 
+    loadSetting<string>('wasla_install_dismissed').then((v) => {
+      if (v === 'true') return;
+      loadSetting<string>('wasla_installed').then((v2) => {
+        if (v2 === 'true') return;
+      });
+    });
+
     const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (!isMobile) return;
 
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
     if (isStandalone) {
-      localStorage.setItem('wasla_installed', 'true');
+      saveSetting('wasla_installed', 'true');
       return;
     }
 
@@ -51,12 +59,12 @@ export default function MobileAppBanner() {
       await deferredPrompt.prompt();
       const result = await deferredPrompt.userChoice;
       if (result.outcome === 'accepted') {
-        localStorage.setItem('wasla_installed', 'true');
+        await saveSetting('wasla_installed', 'true');
       } else {
-        localStorage.setItem('wasla_install_dismissed', 'true');
+        await saveSetting('wasla_install_dismissed', 'true');
       }
     } catch {
-      localStorage.setItem('wasla_install_dismissed', 'true');
+      await saveSetting('wasla_install_dismissed', 'true');
     }
     setDeferredPrompt(null);
     setVisible(false);
@@ -64,7 +72,7 @@ export default function MobileAppBanner() {
 
   const handleNotNow = () => {
     setVisible(false);
-    localStorage.setItem('wasla_install_dismissed', 'true');
+    saveSetting('wasla_install_dismissed', 'true');
   };
 
   if (!visible) return null;

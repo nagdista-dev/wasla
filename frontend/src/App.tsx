@@ -44,6 +44,43 @@ import FilterModal from "./components/FilterModal";
 import { useFilters } from "./context/FilterContext";
 import logo from "./assets/logo.png";
 
+function syncLoadChannels(): Channel[] {
+  try {
+    const stored = localStorage.getItem('wasla_channels');
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    const seen = new Set<string>();
+    return parsed.filter((ch) => {
+      if (!ch || !ch.id || seen.has(ch.id)) return false;
+      seen.add(ch.id);
+      return true;
+    });
+  } catch {
+    return [];
+  }
+}
+
+function syncLoadPlaylists(): Playlist[] {
+  try {
+    const stored = localStorage.getItem('wasla_playlists');
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    const seenIds = new Set<string>();
+    const seenUrls = new Set<string>();
+    return parsed.filter((p) => {
+      if (!p || !p.id || seenIds.has(p.id)) return false;
+      if (p.url && seenUrls.has(p.url)) return false;
+      seenIds.add(p.id);
+      if (p.url) seenUrls.add(p.url);
+      return true;
+    });
+  } catch {
+    return [];
+  }
+}
+
 const HomePage = lazy(() => import("./pages/HomePage"));
 const ChannelPage = lazy(() => import("./pages/ChannelPage"));
 const PlaylistCoursePage = lazy(() => import("./pages/PlaylistCoursePage"));
@@ -75,10 +112,18 @@ function StartupRedirect() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const startPage = localStorage.getItem('wasla_start_page');
-    if (startPage && pathname === '/') {
-      navigate(startPage, { replace: true });
+    const syncStart = localStorage.getItem('wasla_start_page');
+    if (syncStart && pathname === '/') {
+      navigate(syncStart, { replace: true });
+      return;
     }
+    import('./storage').then(({ loadSetting }) => {
+      loadSetting<string>('wasla_start_page').then((startPage) => {
+        if (startPage && pathname === '/') {
+          navigate(startPage, { replace: true });
+        }
+      });
+    });
   }, []);
 
   return null;
@@ -302,12 +347,17 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
 function App() {
   const { isRTL } = useLanguage();
   const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, resetFilters, showFilterModal, setShowFilterModal } = useFilters();
-  const [channels, setChannels] = useState<Channel[]>(loadChannels);
-  const [playlists, setPlaylists] = useState<Playlist[]>(loadPlaylists);
+  const [channels, setChannels] = useState<Channel[]>(syncLoadChannels);
+  const [playlists, setPlaylists] = useState<Playlist[]>(syncLoadPlaylists);
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [splashFadeOut, setSplashFadeOut] = useState(false);
+
+  useEffect(() => {
+    loadChannels().then((items) => { if (items.length > 0) setChannels(items); });
+    loadPlaylists().then((items) => { if (items.length > 0) setPlaylists(items); });
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -317,14 +367,14 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const updateChannels = useCallback((nextChannels: Channel[]) => {
+  const updateChannels = useCallback(async (nextChannels: Channel[]) => {
     setChannels(nextChannels);
-    saveChannels(nextChannels);
+    await saveChannels(nextChannels);
   }, []);
 
-  const updatePlaylists = useCallback((nextPlaylists: Playlist[]) => {
+  const updatePlaylists = useCallback(async (nextPlaylists: Playlist[]) => {
     setPlaylists(nextPlaylists);
-    savePlaylists(nextPlaylists);
+    await savePlaylists(nextPlaylists);
   }, []);
 
   const handleAddChannel = useCallback((entry: Channel) => {

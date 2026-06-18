@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Clock, Eye, Play, Trash2, BookmarkCheck, BookmarkX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -20,13 +20,29 @@ function formatViews(views?: number | string): string | undefined {
   return num.toString();
 }
 
+function syncLoadWatchLater(): WatchLaterItem[] {
+  try {
+    const stored = localStorage.getItem('wasla_watch_later');
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item: WatchLaterItem) => item && item.id && item.video);
+  } catch {
+    return [];
+  }
+}
+
 export default function WatchLaterPage() {
   const { t } = useLanguage();
   const { play } = usePlayer();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [items, setItems] = useState<WatchLaterItem[]>(loadWatchLater);
+  const [items, setItems] = useState<WatchLaterItem[]>(syncLoadWatchLater);
   const [filter, setFilter] = useState<'all' | 'watched' | 'unwatched'>('all');
+
+  useEffect(() => {
+    loadWatchLater().then((loaded) => { if (loaded.length > 0) setItems(loaded); });
+  }, []);
 
   useMeta({ title: t('watchLater.title') });
 
@@ -36,18 +52,18 @@ export default function WatchLaterPage() {
     return items;
   }, [items, filter]);
 
-  const handleRemove = (item: WatchLaterItem) => {
+  const handleRemove = async (item: WatchLaterItem) => {
     const updated = items.filter((i) => i.id !== item.id);
-    saveWatchLater(updated);
+    await saveWatchLater(updated);
     setItems(updated);
     showToast(t('watchLater.removed'), 'info');
   };
 
-  const handleToggleWatched = (item: WatchLaterItem) => {
+  const handleToggleWatched = async (item: WatchLaterItem) => {
     const updated = items.map((i) =>
       i.id === item.id ? { ...i, watched: !i.watched } : i
     );
-    saveWatchLater(updated);
+    await saveWatchLater(updated);
     setItems(updated);
   };
 

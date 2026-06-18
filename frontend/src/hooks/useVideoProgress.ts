@@ -32,18 +32,11 @@ export function useVideoProgress(videoLink?: string) {
       setProgress(detail.progress ?? null);
     };
 
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== 'wasla_playback_progress_sync') return;
-      load();
-    };
-
     window.addEventListener(PLAYBACK_PROGRESS_EVENT, handleProgress);
-    window.addEventListener('storage', handleStorage);
 
     return () => {
       cancelled = true;
       window.removeEventListener(PLAYBACK_PROGRESS_EVENT, handleProgress);
-      window.removeEventListener('storage', handleStorage);
     };
   }, [videoId]);
 

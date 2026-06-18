@@ -1,5 +1,5 @@
 const DB_NAME = 'wasla_db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export interface StoreSchema {
   name: string;
@@ -35,6 +35,34 @@ const STORES: StoreSchema[] = [
   {
     name: 'appMetadata',
     keyPath: 'key',
+  },
+  {
+    name: 'appSettings',
+    keyPath: 'key',
+  },
+  {
+    name: 'channels',
+    keyPath: 'id',
+  },
+  {
+    name: 'playlists',
+    keyPath: 'id',
+  },
+  {
+    name: 'watchLater',
+    keyPath: 'id',
+  },
+  {
+    name: 'favorites',
+    keyPath: 'id',
+  },
+  {
+    name: 'courses',
+    keyPath: 'id',
+  },
+  {
+    name: 'playlistProgress',
+    keyPath: 'playlistId',
   },
 ];
 
@@ -183,12 +211,11 @@ export async function countItems(storeName: string): Promise<number> {
   });
 }
 
+const DATA_STORES = ['watchHistory', 'playbackProgress', 'homeVideoCache'];
+
 export async function exportAll(): Promise<Record<string, unknown[]>> {
-  const db = await openDb();
   const result: Record<string, unknown[]> = {};
-  const storeNames = Array.from(db.objectStoreNames);
-  for (const name of storeNames) {
-    if (name === 'appMetadata') continue;
+  for (const name of DATA_STORES) {
     result[name] = await getAll(name);
   }
   return result;
@@ -197,6 +224,7 @@ export async function exportAll(): Promise<Record<string, unknown[]>> {
 export async function importAll(data: Record<string, unknown[]>): Promise<void> {
   const db = await openDb();
   for (const [storeName, items] of Object.entries(data)) {
+    if (!DATA_STORES.includes(storeName)) continue;
     if (!db.objectStoreNames.contains(storeName)) continue;
     if (!Array.isArray(items) || items.length === 0) continue;
     await clearStore(storeName);

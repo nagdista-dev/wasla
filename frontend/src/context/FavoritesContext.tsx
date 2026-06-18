@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { FavoriteVideo, LatestVideo } from '../types';
 import { loadFavorites, saveFavorites } from '../storage';
 
@@ -12,12 +12,30 @@ interface FavoritesContextValue {
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
-export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const [favorites, setFavorites] = useState<FavoriteVideo[]>(loadFavorites);
+function syncLoadFavorites(): FavoriteVideo[] {
+  try {
+    const stored = localStorage.getItem('wasla_favorites');
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item) => item && item.id && item.videoUrl);
+  } catch {
+    return [];
+  }
+}
 
-  const persist = useCallback((next: FavoriteVideo[]) => {
+export function FavoritesProvider({ children }: { children: ReactNode }) {
+  const [favorites, setFavorites] = useState<FavoriteVideo[]>(syncLoadFavorites);
+
+  useEffect(() => {
+    loadFavorites().then((items) => {
+      if (items.length > 0) setFavorites(items);
+    });
+  }, []);
+
+  const persist = useCallback(async (next: FavoriteVideo[]) => {
     setFavorites(next);
-    saveFavorites(next);
+    await saveFavorites(next);
   }, []);
 
   const isFavorite = useCallback(

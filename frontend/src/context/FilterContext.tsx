@@ -1,5 +1,5 @@
 import { createContext, useContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { loadHiddenCategories, saveHiddenCategories } from '../storage';
+import { saveSetting, loadSetting, saveHiddenCategories, loadHiddenCategories } from '../storage';
 
 export type TimeRange = 'all' | 'hour' | 'today' | 'week' | 'month' | '3months' | 'year';
 export type SortBy = 'newest' | 'views' | 'channel' | 'category';
@@ -27,7 +27,7 @@ interface FilterContextType {
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
-function loadPref2<T>(key: string, fallback: T): T {
+function syncLoadPref<T>(key: string, fallback: T): T {
   try {
     const val = localStorage.getItem(key);
     return val !== null ? (JSON.parse(val) as T) : fallback;
@@ -36,25 +36,39 @@ function loadPref2<T>(key: string, fallback: T): T {
   }
 }
 
-function savePref2(key: string, value: unknown) {
+function syncLoadHiddenCategories(): string[] {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* noop */ }
+    const stored = localStorage.getItem('wasla_hidden_categories');
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((c): c is string => typeof c === 'string');
+  } catch {
+    return [];
+  }
 }
 
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [selectedCategory, setSelectedCategoryState] = useState<string>(() => loadPref2<string>('wasla_selected_category', ''));
-  const [timeRange, setTimeRangeState] = useState<TimeRange>(() => loadPref2<TimeRange>('wasla_time', 'all'));
-  const [sortBy, setSortByState] = useState<SortBy>(() => loadPref2<SortBy>('wasla_sort', 'newest'));
-  const [hiddenCategories, setHiddenCategoriesState] = useState<string[]>(() => loadHiddenCategories());
-  const [showLiveOnly, setShowLiveOnlyState] = useState<boolean>(() => loadPref2<boolean>('wasla_show_live_only', false));
+  const [selectedCategory, setSelectedCategoryState] = useState<string>(() => syncLoadPref<string>('wasla_selected_category', ''));
+  const [timeRange, setTimeRangeState] = useState<TimeRange>(() => syncLoadPref<TimeRange>('wasla_time', 'all'));
+  const [sortBy, setSortByState] = useState<SortBy>(() => syncLoadPref<SortBy>('wasla_sort', 'newest'));
+  const [hiddenCategories, setHiddenCategoriesState] = useState<string[]>(() => syncLoadHiddenCategories());
+  const [showLiveOnly, setShowLiveOnlyState] = useState<boolean>(() => syncLoadPref<boolean>('wasla_show_live_only', false));
   const [showFilterModal, setShowFilterModal] = useState(false);
 
-  useEffect(() => { savePref2('wasla_selected_category', selectedCategory); }, [selectedCategory]);
-  useEffect(() => { savePref2('wasla_time', timeRange); }, [timeRange]);
-  useEffect(() => { savePref2('wasla_sort', sortBy); }, [sortBy]);
+  useEffect(() => {
+    loadSetting<string>('wasla_selected_category').then((v) => { if (v !== undefined) setSelectedCategoryState(v); });
+    loadSetting<TimeRange>('wasla_time').then((v) => { if (v !== undefined) setTimeRangeState(v); });
+    loadSetting<SortBy>('wasla_sort').then((v) => { if (v !== undefined) setSortByState(v); });
+    loadSetting<boolean>('wasla_show_live_only').then((v) => { if (v !== undefined) setShowLiveOnlyState(v); });
+    loadHiddenCategories().then((v) => { if (v.length > 0) setHiddenCategoriesState(v); });
+  }, []);
+
+  useEffect(() => { saveSetting('wasla_selected_category', selectedCategory); }, [selectedCategory]);
+  useEffect(() => { saveSetting('wasla_time', timeRange); }, [timeRange]);
+  useEffect(() => { saveSetting('wasla_sort', sortBy); }, [sortBy]);
   useEffect(() => { saveHiddenCategories(hiddenCategories); }, [hiddenCategories]);
-  useEffect(() => { savePref2('wasla_show_live_only', showLiveOnly); }, [showLiveOnly]);
+  useEffect(() => { saveSetting('wasla_show_live_only', showLiveOnly); }, [showLiveOnly]);
 
   const setSelectedCategory = useCallback((value: string) => setSelectedCategoryState(value), []);
   const setTimeRange = useCallback((value: TimeRange) => setTimeRangeState(value), []);

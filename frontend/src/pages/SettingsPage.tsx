@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Settings, Download, Upload, Sun, Moon, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/Toast';
 import ConfirmActionModal from '../components/ConfirmActionModal';
 import { exportAll, importAll, isClientSide } from '../services/indexedDbService';
+import { loadSetting, saveSetting, deleteSetting } from '../storage';
 import type { Channel, Playlist } from '../types';
 
 interface SettingsPageProps {
@@ -62,6 +63,10 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
     return localStorage.getItem('wasla_start_page') || 'home';
   });
 
+  useEffect(() => {
+    loadSetting<string>('wasla_start_page').then((v) => { if (v) setStartPage(v); });
+  }, []);
+
   const allCategories = useMemo(
     () => Array.from(new Set([
       ...channels.flatMap((c) => c.categories),
@@ -73,27 +78,28 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
   const handleStartPageChange = (value: string) => {
     setStartPage(value);
     if (value === 'home') {
-      localStorage.removeItem('wasla_start_page');
+      deleteSetting('wasla_start_page');
     } else {
-      localStorage.setItem('wasla_start_page', getStartPagePath(value));
+      saveSetting('wasla_start_page', getStartPagePath(value));
     }
   };
 
   const resetDefaults = () => {
-    localStorage.removeItem('wasla_start_page');
-    localStorage.removeItem('wasla_theme');
-    localStorage.removeItem('wasla_language');
+    deleteSetting('wasla_start_page');
+    deleteSetting('wasla_theme');
+    deleteSetting('wasla_language');
     setStartPage('home');
     window.location.reload();
   };
 
   const handleResetClick = () => setShowResetConfirm(true);
 
-  const exportSettings = () => {
+  const exportSettings = async () => {
     const settings: Record<string, string | null> = {};
     const keys = ['wasla_language', 'wasla_theme', 'wasla_start_page'];
     for (const key of keys) {
-      settings[key] = localStorage.getItem(key);
+      const val = await loadSetting<string>(key);
+      settings[key] = val ?? localStorage.getItem(key);
     }
     downloadJson(settings, 'wasla_settings.json');
     showToast(t('settings.settingsExported'), 'success');
@@ -104,7 +110,7 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
     if (!file || resolving) return;
     setResolving(true);
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
         if (typeof data !== 'object' || data === null) {
@@ -114,7 +120,7 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
         const keys = ['wasla_language', 'wasla_theme', 'wasla_start_page'];
         for (const key of keys) {
           if (data[key] !== undefined && data[key] !== null) {
-            localStorage.setItem(key, data[key]);
+            await saveSetting(key, data[key]);
           }
         }
         showToast(t('settings.settingsImported'), 'success');

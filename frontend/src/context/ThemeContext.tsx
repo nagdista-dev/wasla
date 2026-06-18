@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { loadSetting, saveSetting } from '../storage';
 
 type Theme = 'light' | 'dark';
 
@@ -18,8 +19,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('wasla_theme', theme);
+    saveSetting('wasla_theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    loadSetting<Theme>('wasla_theme').then((saved) => {
+      if (saved) {
+        setTheme(saved);
+        document.documentElement.classList.toggle('dark', saved === 'dark');
+      }
+    });
+  }, []);
 
   const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
 

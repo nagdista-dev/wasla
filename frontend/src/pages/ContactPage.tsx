@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, Send, Check } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
+import { saveSetting, loadSetting } from '../storage';
 
 const DRAFT_KEY = 'wasla_contact_draft';
 const WHATSAPP_NUMBER = '201143044699';
@@ -16,8 +17,12 @@ export default function ContactPage() {
   useMeta({ title: t('contact.title') });
 
   useEffect(() => {
+    loadSetting<string>(DRAFT_KEY).then((v) => { if (v) setMessage(v); });
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
-      localStorage.setItem(DRAFT_KEY, message);
+      saveSetting(DRAFT_KEY, message);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     }, 1000);

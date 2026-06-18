@@ -7,6 +7,7 @@ import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
+import { saveSetting, loadSetting } from '../storage';
 import type { Channel } from '../types';
 
 interface ChannelsPageProps {
@@ -21,7 +22,7 @@ function getLetter(name: string): string {
   return /[A-Za-z]/.test(first) ? first : '#';
 }
 
-function loadPref<T>(key: string, fallback: T): T {
+function syncLoadPref<T>(key: string, fallback: T): T {
   try {
     const val = localStorage.getItem(key);
     return val !== null ? (JSON.parse(val) as T) : fallback;
@@ -30,19 +31,13 @@ function loadPref<T>(key: string, fallback: T): T {
   }
 }
 
-function savePref(key: string, value: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* noop */ }
-}
-
 export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFavorite }: ChannelsPageProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   useMeta({ title: t('channels.title'), description: `${channels.length} channel${channels.length !== 1 ? 's' : ''} in your collection.` });
-  const [searchText, setSearchText] = useState(loadPref<string>('wasla_channels_search', ''));
+  const [searchText, setSearchText] = useState(syncLoadPref<string>('wasla_channels_search', ''));
   const debouncedSearch = useDebounce(searchText, 300);
-  const [selectedCategory, setSelectedCategory] = useState<string>(loadPref<string>('wasla_channels_category', ''));
+  const [selectedCategory, setSelectedCategory] = useState<string>(syncLoadPref<string>('wasla_channels_category', ''));
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; channelId: string | null; channelName: string }>({
@@ -51,8 +46,13 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
     channelName: '',
   });
 
-  useEffect(() => { savePref('wasla_channels_category', selectedCategory); }, [selectedCategory]);
-  useEffect(() => { savePref('wasla_channels_search', searchText); }, [searchText]);
+  useEffect(() => {
+    loadSetting<string>('wasla_channels_category').then((v) => { if (v) setSelectedCategory(v); });
+    loadSetting<string>('wasla_channels_search').then((v) => { if (v) setSearchText(v); });
+  }, []);
+
+  useEffect(() => { saveSetting('wasla_channels_category', selectedCategory); }, [selectedCategory]);
+  useEffect(() => { saveSetting('wasla_channels_search', searchText); }, [searchText]);
 
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 

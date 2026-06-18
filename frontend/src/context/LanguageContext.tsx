@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import en from '../locales/en';
 import ar from '../locales/ar';
+import { loadSetting, saveSetting } from '../storage';
 
 type Language = 'en' | 'ar';
 
@@ -27,8 +28,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-    localStorage.setItem('wasla_language', language);
+    saveSetting('wasla_language', language);
   }, [language, isRTL]);
+
+  useEffect(() => {
+    loadSetting<Language>('wasla_language').then((saved) => {
+      if (saved) {
+        setLanguage(saved);
+        document.documentElement.lang = saved;
+        document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
+      }
+    });
+  }, []);
 
   const t = useCallback(
     (key: string, params?: Record<string, string | number>): string => {
