@@ -16,20 +16,17 @@ function PostPreview({ post }: { post: CommunityPost }) {
   const navigate = useNavigate();
   const previewImage = post.thumbnail || post.images[0];
 
-  const truncatedContent = post.content.length > 200 ? `${post.content.slice(0, 200)}...` : post.content;
-
   return (
     <article
-      className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700 h-72"
+      className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700"
     >
-      <button type="button" onClick={() => navigate(`/post/${post.id}`)} className="block w-full text-left rtl:text-right h-full">
+      <button type="button" onClick={() => navigate(`/post/${post.id}`)} className="block w-full text-left rtl:text-right">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-brand-coral/10 text-brand-coral">
             <MessageSquareText className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">{post.channelName}</h2>
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {formatRelativeTime(post.publishedAt, t)}
               </span>
@@ -37,15 +34,9 @@ function PostPreview({ post }: { post: CommunityPost }) {
           </div>
         </div>
 
-        <p className="mt-3 line-clamp-3 whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">
-          {truncatedContent}
+        <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">
+          {post.content}
         </p>
-
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs font-medium text-brand-coral">
-            {t('posts.readMore')}
-          </span>
-        </div>
 
         {previewImage && (
           <div className="mt-3 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-white/5">
