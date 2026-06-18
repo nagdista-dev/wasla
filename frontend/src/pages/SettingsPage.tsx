@@ -245,7 +245,7 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
     try {
       const data = await exportAll();
       const now = new Date().toISOString().slice(0, 10);
-      downloadJson(data, `watch-history-${now}.json`);
+      downloadJson(data, `wasla_watch_history_${now}.json`);
       showToast(t('watchHistory.exportSuccess'), 'success');
     } catch {
       showToast(t('watchHistory.invalidFile'), 'error');
