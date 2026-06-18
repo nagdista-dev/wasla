@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BookmarkCheck, BookmarkPlus, CheckCircle2, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, Upload, X } from 'lucide-react';
+import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditChannelModal from '../components/EditChannelModal';
 import VideoCard from '../components/VideoCard';
@@ -11,15 +11,14 @@ import { useFilters } from '../context/FilterContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
-import { loadWatchLater, saveWatchLater, saveSetting, loadSetting } from '../storage';
+import { saveSetting, loadSetting } from '../storage';
 import { useToast } from '../components/Toast';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import { parseAndValidateChannelsJson } from '../utils/importChannels';
 import { getAllFromIndex } from '../services/indexedDbService';
 import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepository';
-import { getAllProgress } from '../services/playbackProgressService';
 import { extractVideoId } from '../utils/videoUtils';
-import type { Channel, ChannelLatestVideo, LatestVideo, PlaybackProgress } from '../types';
+import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
 
 function syncLoadPref<T>(key: string, fallback: T): T {
@@ -64,22 +63,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
     onCloseSearch?.();
   }, [onCloseSearch]);
   const itemsRef = useRef<ChannelLatestVideo[]>([]);
-  const [watchLaterCache, setWatchLaterCache] = useState<import('../types').WatchLaterItem[]>([]);
-  const [progressMap, setProgressMap] = useState<Map<string, PlaybackProgress>>(new Map());
 
-  useEffect(() => {
-    loadWatchLater().then(setWatchLaterCache);
-  }, []);
-
-  useEffect(() => {
-    getAllProgress().then((entries) => {
-      const map = new Map<string, PlaybackProgress>();
-      for (const p of entries) {
-        map.set(p.videoId, p);
-      }
-      setProgressMap(map);
-    }).catch(() => {});
-  }, []);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -465,82 +449,21 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
                     ) : video ? (
                       <div className="animate-fadein">
                       <div
-                        className="group relative flex gap-4 rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md active:scale-[0.99] dark:bg-dark-navy dark:ring-gray-700 cursor-pointer overflow-hidden"
-                        onClick={() => navigate(`/channel/${channel.id}`)}
+                        className="group relative rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md active:scale-[0.99] dark:bg-dark-navy dark:ring-gray-700 cursor-pointer overflow-hidden"
+                        onClick={() => {
+                          const vidId = extractVideoId(video.link);
+                          if (vidId) navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
+                        }}
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/channel/${channel.id}`); }}
-                      >
-                        <div className="relative w-44 flex-shrink-0">
-                          <ThumbnailWithPlaceholder
-                            src={video.thumbnail}
-                            alt={video.title}
-                            className="h-full w-full"
-                          />
-                          {(() => {
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
                             const vidId = extractVideoId(video.link);
-                            const p = vidId ? progressMap.get(vidId) : undefined;
-                            if (!p || p.duration <= 0) return null;
-                            const wp = Math.min(100, Math.max(0, (p.currentTime / p.duration) * 100));
-                            return (
-                              <>
-                                {wp >= 90 ? (
-                                  <span className="absolute top-2 left-2 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1 z-10 shadow-lg">
-                                    <CheckCircle2 className="h-3 w-3" />
-                                    {t('videoCard.watched') || 'Watched'}
-                                  </span>
-                                ) : (
-                                  <span className="absolute top-2 left-2 bg-brand-coral/90 text-white text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1 z-10 shadow-lg backdrop-blur-sm">
-                                    <Play className="h-3 w-3" />
-                                    {t('videoCard.inProgress') || 'In progress'}
-                                  </span>
-                                )}
-                                <div className="absolute bottom-0 left-0 right-0 z-10 h-1 bg-black/20">
-                                  <div className="h-full bg-brand-coral transition-[width] duration-300 ease-out" style={{ width: `${wp}%` }} />
-                                </div>
-                              </>
-                            );
-                          })()}
-                          <div className="absolute top-2 right-2 z-20">
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                const existing = watchLaterCache.find((item) => item.video.link === video.link);
-                                if (existing) {
-                                  const next = watchLaterCache.filter((item) => item.video.link !== video.link);
-                                  setWatchLaterCache(next);
-                                  await saveWatchLater(next);
-                                  showToast(t('watchLater.removed'), 'info');
-                                } else {
-                                  const newItems = [...watchLaterCache, {
-                                    id: `${channel.id}_${Date.now()}`,
-                                    video,
-                                    channelName: video.channelName || channel.name,
-                                    channelId: channel.id,
-                                    savedAt: Date.now(),
-                                    watched: false,
-                                  }];
-                                  setWatchLaterCache(newItems);
-                                  await saveWatchLater(newItems);
-                                  showToast(t('watchLater.saved'), 'success');
-                                }
-                              }}
-                              className={`min-w-[44px] min-h-[44px] rounded-full backdrop-blur-sm flex items-center justify-center shadow-lg transition-all active:scale-95 ${
-                                watchLaterCache.some((item) => item.video.link === video.link)
-                                  ? 'bg-brand-coral text-white shadow-brand-coral/30'
-                                  : 'bg-white/90 text-gray-700 hover:bg-white dark:bg-gray-800/90 dark:text-gray-200'
-                              }`}
-                              aria-label={watchLaterCache.some((item) => item.video.link === video.link) ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
-                            >
-                              {watchLaterCache.some((item) => item.video.link === video.link) ? (
-                                <BookmarkCheck className="h-5 w-5" />
-                              ) : (
-                                <BookmarkPlus className="h-5 w-5" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0 py-3 pr-4 flex flex-col justify-between gap-2">
+                            if (vidId) navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
+                          }
+                        }}
+                      >
+                        <div className="px-4 py-3 flex flex-col gap-2">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <button
