@@ -139,6 +139,21 @@ export async function migrateStorageToIndexedDB(): Promise<void> {
   }
 
   await Promise.all(writes);
+
+  // Clean up migrated heavy data from localStorage
+  const LOCALSTORAGE_CLEANUP_KEYS = [
+    'wasla_channels',
+    'wasla_playlists',
+    'wasla_watch_later',
+    'wasla_favorites',
+    'wasla_courses',
+    'wasla_hidden_categories',
+    'wasla_playlist_progress',
+  ];
+  for (const key of LOCALSTORAGE_CLEANUP_KEYS) {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  }
+
   localStorage.setItem('wasla_migrated_to_indexeddb', 'true');
 }
 

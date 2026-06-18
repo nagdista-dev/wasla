@@ -49,9 +49,6 @@ async function saveProgressMap(progress: Record<string, CourseProgress>): Promis
   for (const [playlistId, courseProgress] of Object.entries(progress)) {
     await putItem(PROGRESS_STORE, { playlistId, progress: courseProgress });
   }
-  try {
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-  } catch { /* noop */ }
 }
 
 function getVideoId(link: string): string {

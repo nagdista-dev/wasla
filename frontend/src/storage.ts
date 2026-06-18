@@ -37,25 +37,11 @@ export async function loadChannels(): Promise<Channel[]> {
       });
     }
   } catch { /* fall through */ }
-  const stored = localStorage.getItem(CHANNELS_STORAGE_KEY);
-  if (!stored) return [];
-  try {
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
-    const seen = new Set<string>();
-    return parsed.filter((ch) => {
-      if (!ch || !ch.id || seen.has(ch.id)) return false;
-      seen.add(ch.id);
-      return true;
-    });
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function saveChannels(channels: Channel[]): Promise<void> {
   await replaceStoreItems(CHANNELS_STORE, channels);
-  localStorage.setItem(CHANNELS_STORAGE_KEY, JSON.stringify(channels));
 }
 
 export async function loadPlaylists(): Promise<Playlist[]> {
@@ -73,28 +59,11 @@ export async function loadPlaylists(): Promise<Playlist[]> {
       });
     }
   } catch { /* fall through */ }
-  const stored = localStorage.getItem(PLAYLISTS_STORAGE_KEY);
-  if (!stored) return [];
-  try {
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
-    const seenIds = new Set<string>();
-    const seenUrls = new Set<string>();
-    return parsed.filter((p) => {
-      if (!p || !p.id || seenIds.has(p.id)) return false;
-      if (p.url && seenUrls.has(p.url)) return false;
-      seenIds.add(p.id);
-      if (p.url) seenUrls.add(p.url);
-      return true;
-    });
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function savePlaylists(playlists: Playlist[]): Promise<void> {
   await replaceStoreItems(PLAYLISTS_STORE, playlists);
-  localStorage.setItem(PLAYLISTS_STORAGE_KEY, JSON.stringify(playlists));
 }
 
 export async function loadWatchLater(): Promise<WatchLaterItem[]> {
@@ -102,20 +71,11 @@ export async function loadWatchLater(): Promise<WatchLaterItem[]> {
     const items = await getAll<WatchLaterItem>(WATCH_LATER_STORE);
     if (items.length > 0) return items.filter((item) => item && item.id && item.video);
   } catch { /* fall through */ }
-  try {
-    const stored = localStorage.getItem(WATCH_LATER_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item) => item && item.id && item.video);
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function saveWatchLater(items: WatchLaterItem[]): Promise<void> {
   await replaceStoreItems(WATCH_LATER_STORE, items);
-  localStorage.setItem(WATCH_LATER_KEY, JSON.stringify(items));
 }
 
 export async function loadFavorites(): Promise<FavoriteVideo[]> {
@@ -123,20 +83,11 @@ export async function loadFavorites(): Promise<FavoriteVideo[]> {
     const items = await getAll<FavoriteVideo>(FAVORITES_STORE);
     if (items.length > 0) return items.filter((item) => item && item.id && item.videoUrl);
   } catch { /* fall through */ }
-  try {
-    const stored = localStorage.getItem(FAVORITES_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item) => item && item.id && item.videoUrl);
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function saveFavorites(items: FavoriteVideo[]): Promise<void> {
   await replaceStoreItems(FAVORITES_STORE, items);
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(items));
 }
 
 export async function loadCourses(): Promise<Course[]> {
@@ -144,20 +95,11 @@ export async function loadCourses(): Promise<Course[]> {
     const items = await getAll<Course>(COURSES_STORE);
     if (items.length > 0) return items.filter((c) => c && c.id && c.name);
   } catch { /* fall through */ }
-  try {
-    const stored = localStorage.getItem(COURSES_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((c) => c && c.id && c.name);
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function saveCourses(courses: Course[]): Promise<void> {
   await replaceStoreItems(COURSES_STORE, courses);
-  localStorage.setItem(COURSES_KEY, JSON.stringify(courses));
 }
 
 export async function loadHiddenCategories(): Promise<string[]> {
@@ -165,20 +107,11 @@ export async function loadHiddenCategories(): Promise<string[]> {
     const entry = await getItem<{ key: string; value: string[] }>(SETTINGS_STORE, HIDDEN_CATEGORIES_KEY);
     if (entry && Array.isArray(entry.value)) return entry.value.filter((c): c is string => typeof c === 'string');
   } catch { /* fall through */ }
-  try {
-    const stored = localStorage.getItem(HIDDEN_CATEGORIES_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((c): c is string => typeof c === 'string');
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export async function saveHiddenCategories(categories: string[]): Promise<void> {
   await putItem(SETTINGS_STORE, { key: HIDDEN_CATEGORIES_KEY, value: categories });
-  localStorage.setItem(HIDDEN_CATEGORIES_KEY, JSON.stringify(categories));
 }
 
 export async function loadSetting<T>(key: string): Promise<T | undefined> {
