@@ -27,6 +27,7 @@ import {
   SlidersHorizontal,
   Headphones,
   History,
+  Newspaper,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
@@ -99,6 +100,8 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 const VideoPage = lazy(() => import("./pages/VideoPage"));
 const AudioPage = lazy(() => import("./pages/AudioPage"));
 const WatchHistoryPage = lazy(() => import("./pages/WatchHistoryPage"));
+const PostsPage = lazy(() => import("./pages/PostsPage"));
+const PostDetailPage = lazy(() => import("./pages/PostDetailPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -125,7 +128,7 @@ function StartupRedirect() {
         }
       });
     });
-  }, []);
+  }, [navigate, pathname]);
 
   return null;
 }
@@ -140,12 +143,13 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    setMenuOpen(false);
+    queueMicrotask(() => setMenuOpen(false));
   }, [language]);
   const navItems = [
     { path: "/", label: t('nav.home'), icon: Home },
     { path: "/favorites", label: t('favorites.title'), icon: HeartHandshake },
     { path: "/courses", label: t('courses.title'), icon: GraduationCap },
+    { path: "/posts", label: t('posts.title'), icon: Newspaper },
     { path: "/channels", label: t('nav.channels'), icon: Users },
     { path: "/playlists", label: t('nav.playlists'), icon: Heart },
     { path: "/watch-later", label: t('watchLater.title'), icon: BookmarkCheck },
@@ -268,7 +272,7 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
         {/* Navigation */}
         <nav className="flex flex-col p-4 space-y-1 flex-shrink-0">
           {navItems.map((item) => {
-            const isActive = pathname === item.path;
+            const isActive = pathname === item.path || (item.path === '/posts' && pathname.startsWith('/posts/'));
 
             return (
               <Link
@@ -537,6 +541,14 @@ function App() {
                     onToggleFavorite={handleToggleFavorite}
                   />
                 }
+              />
+              <Route
+                path="/posts"
+                element={<PostsPage channels={channels} />}
+              />
+              <Route
+                path="/posts/:postId"
+                element={<PostDetailPage />}
               />
               <Route
                 path="/playlists"

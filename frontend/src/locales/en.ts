@@ -86,6 +86,24 @@ const en = {
   'channels.uncategorized': 'Uncategorized',
   'channels.count': '{count} of {total} channel',
 
+  // Posts Page
+  'posts.title': 'Posts',
+  'posts.post': 'post',
+  'posts.description': 'Latest community posts from your subscribed YouTube channels.',
+  'posts.count': '{count} posts from {channels} channels',
+  'posts.refresh': 'Refresh',
+  'posts.refreshing': 'Refreshing...',
+  'posts.loading': 'Loading posts...',
+  'posts.partialError': 'Some feeds could not be loaded',
+  'posts.noChannels': 'No channels yet',
+  'posts.noChannelsHint': 'Add YouTube channels to see their community posts here.',
+  'posts.empty': 'No community posts found',
+  'posts.emptyHint': 'These channels may not have posts, or RSSHub may be temporarily unavailable.',
+  'posts.imageCount': '{count} images',
+  'posts.backToPosts': 'Back to Posts',
+  'posts.notFound': 'Post not found',
+  'posts.notFoundHint': 'Refresh the posts feed and try opening the post again.',
+
   // Channel Page
   'channel.failedToLoad': 'Failed to load channel',
   'channel.notFound': 'Channel not found',

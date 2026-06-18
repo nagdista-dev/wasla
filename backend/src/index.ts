@@ -9,6 +9,8 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  /^http:\/\/localhost:\d+$/,
+  /^http:\/\/127\.0\.0\.1:\d+$/,
   "https://wasla-alpha.vercel.app",
   "https://wasla-backend-chi.vercel.app",
   /^https:\/\/wasla-[a-z0-9-]+\.vercel\.app$/,

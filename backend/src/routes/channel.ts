@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists } from '../services/rssService.js';
+import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists, fetchCommunityPostsXml } from '../services/rssService.js';
 import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse, ChannelPlaylistsResponse, PlaylistSummary } from '../types/index.js';
 
 const router = Router();
@@ -141,6 +141,25 @@ router.get('/resolve/:identifier', async (req: Request, res: Response) => {
   } catch (error) {
     console.error(`Error resolving channel ${req.params.identifier}:`, error);
     res.status(500).json({ success: false, error: 'Failed to resolve channel' });
+  }
+});
+
+router.get('/community/:channelId', async (req: Request, res: Response) => {
+  try {
+    const channelId = Array.isArray(req.params.channelId) ? req.params.channelId[0] : req.params.channelId;
+    if (!channelId) {
+      return res.status(400).json({ success: false, error: 'Channel ID is required' });
+    }
+
+    const data = await fetchCommunityPostsXml(channelId);
+    res.json({ success: true, ...data });
+  } catch (error) {
+    const channelId = Array.isArray(req.params.channelId) ? req.params.channelId[0] : req.params.channelId;
+    console.error(`Error fetching community posts for ${channelId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch community posts',
+    });
   }
 });
 

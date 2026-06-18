@@ -22,6 +22,8 @@ const DETAILS_CACHE = new Map<string, { data: import('../types/index.js').Channe
 const DETAILS_CACHE_DURATION = 5 * 60 * 1000;
 const DETAILS_MAX_CACHE_SIZE = 100;
 
+const COMMUNITY_POSTS_RSSHUB_INSTANCES = ['https://rsshub.app', 'https://rsshub.rssforever.com'];
+
 function getString(value: unknown): string | undefined {
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return getString(value[0]);
@@ -212,6 +214,29 @@ export async function fetchChannelData(channelId: string): Promise<ChannelFeedDa
   } finally {
     pendingRequests.delete(channelId);
   }
+}
+
+export async function fetchCommunityPostsXml(channelId: string): Promise<{ xml: string; source: string }> {
+  if (!validateChannelId(channelId)) {
+    throw new Error(`Invalid channel ID format: "${channelId}". Channel ID must start with "UC" and be at least 24 characters.`);
+  }
+
+  let lastError: Error | undefined;
+
+  for (const instance of COMMUNITY_POSTS_RSSHUB_INSTANCES) {
+    const url = `${instance}/youtube/community/${encodeURIComponent(channelId)}`;
+    try {
+      const response = await fetchWithRetry(url, 1, `community posts ${channelId}`);
+      return {
+        xml: await response.text(),
+        source: instance,
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  throw lastError || new Error(`Failed to fetch community posts for ${channelId}`);
 }
 
 async function fetchAndParseRSS(channelId: string): Promise<ChannelFeedData> {

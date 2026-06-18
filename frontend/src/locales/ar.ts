@@ -86,6 +86,24 @@ const ar: Record<string, string> = {
   'channels.uncategorized': 'بدون تصنيف',
   'channels.count': '{count} من {total} قناة',
 
+  // Posts Page
+  'posts.title': 'المنشورات',
+  'posts.post': 'منشور',
+  'posts.description': 'أحدث منشورات المجتمع من قنوات يوتيوب التي تتابعها.',
+  'posts.count': '{count} منشور من {channels} قناة',
+  'posts.refresh': 'تحديث',
+  'posts.refreshing': 'جارٍ التحديث...',
+  'posts.loading': 'جارٍ تحميل المنشورات...',
+  'posts.partialError': 'تعذر تحميل بعض الخلاصات',
+  'posts.noChannels': 'لا توجد قنوات بعد',
+  'posts.noChannelsHint': 'أضف قنوات يوتيوب لرؤية منشورات المجتمع هنا.',
+  'posts.empty': 'لم يتم العثور على منشورات مجتمع',
+  'posts.emptyHint': 'قد لا تحتوي هذه القنوات على منشورات، أو قد تكون RSSHub غير متاحة مؤقتاً.',
+  'posts.imageCount': '{count} صور',
+  'posts.backToPosts': 'العودة إلى المنشورات',
+  'posts.notFound': 'المنشور غير موجود',
+  'posts.notFoundHint': 'حدّث خلاصة المنشورات ثم حاول فتح المنشور مرة أخرى.',
+
   // Channel Page
   'channel.failedToLoad': 'فشل في تحميل القناة',
   'channel.notFound': 'القاة غير موجودة',

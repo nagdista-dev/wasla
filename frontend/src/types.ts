@@ -117,3 +117,17 @@ export interface PlaybackProgress {
   duration: number;
   lastUpdated: number;
 }
+
+export interface CommunityPost {
+  id: string;
+  channelId: string;
+  channelName: string;
+  title?: string;
+  content: string;
+  link?: string;
+  publishedAt: string;
+  thumbnail?: string;
+  images: string[];
+  source: 'rsshub' | 'rsshub-fallback';
+  fetchedAt: number;
+}

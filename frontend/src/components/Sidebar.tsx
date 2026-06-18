@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck, HeartHandshake, GraduationCap, MessageCircle, History } from 'lucide-react';
+import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck, HeartHandshake, GraduationCap, MessageCircle, History, Newspaper } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import type { Channel, Playlist } from '../types';
 
@@ -16,6 +16,7 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
     { path: '/', label: t('nav.home'), icon: Home },
     { path: '/favorites', label: t('favorites.title'), icon: HeartHandshake },
     { path: '/courses', label: t('courses.title'), icon: GraduationCap },
+    { path: '/posts', label: t('posts.title'), icon: Newspaper },
     { path: '/playlists', label: t('nav.playlists'), icon: Heart },
     { path: '/channels', label: t('nav.channels'), icon: Users },
     { path: '/watch-later', label: t('watchLater.title'), icon: BookmarkCheck },
@@ -50,7 +51,7 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
         </div>
         <nav className="px-4 py-2 space-y-1 flex-shrink-0">
           {navItems.map((item) => {
-            const isActive = pathname === item.path;
+            const isActive = pathname === item.path || (item.path === '/posts' && pathname.startsWith('/posts/'));
             return (
               <Link
                 key={item.path}
