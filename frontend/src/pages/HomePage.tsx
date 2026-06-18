@@ -19,7 +19,7 @@ import { getAllFromIndex } from '../services/indexedDbService';
 import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepository';
 import { getAllProgress } from '../services/playbackProgressService';
 import { extractVideoId } from '../utils/videoUtils';
-import type { Channel, ChannelLatestVideo, PlaybackProgress } from '../types';
+import type { Channel, ChannelLatestVideo, LatestVideo, PlaybackProgress } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
 
 function syncLoadPref<T>(key: string, fallback: T): T {
@@ -634,72 +634,141 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
                   </div>
                   <div className="flex-1 overflow-y-auto py-2 sm:py-3">
                     {!debouncedSearch ? (
-                      <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.searchChannels')}</p>
-                    ) : channels
-                      .map((ch) => {
+                      <div className="flex flex-col items-center justify-center py-12 gap-3">
+                        <Search className="h-10 w-10 text-gray-300 dark:text-gray-600" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.searchChannels')}</p>
+                      </div>
+                    ) : items.some((i) => i.loading) ? (
+                      <div className="space-y-2 px-3 sm:px-4">
+                        {[1,2,3].map((n) => (
+                          <div key={n} className="flex items-center gap-3 p-3 animate-fadein">
+                            <div className="w-20 flex-shrink-0 aspect-video rounded-lg skeleton-shimmer" />
+                            <div className="min-w-0 flex-1 space-y-2">
+                              <div className="h-4 w-3/4 rounded skeleton-shimmer" />
+                              <div className="h-3 w-1/2 rounded skeleton-shimmer" />
+                              <div className="h-3 w-1/4 rounded skeleton-shimmer" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (() => {
+                      const q = debouncedSearch.toLowerCase().trim();
+                      const results = channels.flatMap((ch) => {
                         const item = items.find((i) => i.channel.id === ch.id);
                         const video = item?.video;
                         const loading = item?.loading;
-                        return { channel: ch, video, loading };
-                      })
-                      .filter(({ channel, video }) => {
-                        const q = debouncedSearch.toLowerCase().trim();
-                        const name = channel.name.toLowerCase();
-                        const handle = channel.handle?.toLowerCase() || '';
+                        const name = ch.name.toLowerCase();
+                        const handle = ch.handle?.toLowerCase() || '';
                         const title = video?.title?.toLowerCase() || '';
-                        return name.includes(q) || handle.includes(q) || title.includes(q);
-                      })
-                      .map(({ channel, video, loading }) => (
-                        <button
-                          key={channel.id}
-                          onClick={() => { navigate(`/channel/${channel.id}`); setShowSearch(false); setSearchText(''); }}
-                          className="flex w-full items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 text-left transition hover:bg-gray-100 dark:hover:bg-white/10 border-b border-gray-100 dark:border-gray-800 last:border-0"
-                        >
-                          {video ? (
-                            <div className="w-16 sm:w-20 flex-shrink-0 aspect-video overflow-hidden rounded-lg">
-                              <ThumbnailWithPlaceholder
-                                src={video.thumbnail}
-                                alt=""
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-16 sm:w-20 flex-shrink-0 aspect-video rounded-lg bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center text-white font-bold text-sm">
-                              {channel.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-white leading-snug">
-                              {video?.title || channel.name}
-                            </p>
-                            <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
-                              {video?.channelName || channel.name}
-                              {loading && ' — ...'}
-                            </p>
-                            {channel.categories.length > 0 && (
-                              <div className="mt-1 flex items-center gap-1.5">
-                                {channel.categories.slice(0, 2).map((cat) => (
-                                  <span key={cat} className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-[10px] font-medium text-gray-500 dark:text-gray-400 truncate max-w-[80px]">
-                                    {cat}
+                        const matchesChannel = name.includes(q) || handle.includes(q);
+                        const matchesVideo = title.includes(q);
+                        const entries: { channel: Channel; video?: LatestVideo; loading?: boolean; matchType: 'channel' | 'video' }[] = [];
+                        if (matchesChannel && video) {
+                          entries.push({ channel: ch, video, loading, matchType: 'video' });
+                        } else if (matchesChannel) {
+                          entries.push({ channel: ch, video, loading, matchType: 'channel' });
+                        }
+                        if (matchesVideo && video && title.includes(q) && !name.includes(q)) {
+                          entries.push({ channel: ch, video, loading, matchType: 'video' });
+                        }
+                        return entries;
+                      });
+                      return results.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 gap-3">
+                          <Search className="h-10 w-10 text-gray-300 dark:text-gray-600" />
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.noVideosMatch')}</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2 px-3 sm:px-4">
+                          {results.map(({ channel, video, loading, matchType }, idx) => (
+                            <div
+                              key={`${channel.id}-${matchType}-${idx}`}
+                              onClick={() => {
+                                if (matchType === 'video' && video) {
+                                  const vidId = extractVideoId(video.link);
+                                  if (vidId) navigate(`/video/${vidId}`, { state: { video, channelId: channel.id } });
+                                } else {
+                                  navigate(`/channel/${channel.id}`);
+                                }
+                                setShowSearch(false);
+                                setSearchText('');
+                              }}
+                              className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-dark-navy border border-gray-200 dark:border-gray-700 hover:border-brand-coral/30 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer animate-fadein"
+                            >
+                              {video ? (
+                                <div className="w-20 flex-shrink-0 aspect-video overflow-hidden rounded-lg shadow-sm relative">
+                                  <ThumbnailWithPlaceholder src={video.thumbnail} alt="" className="group-hover:scale-105 transition-transform duration-300" />
+                                  {video.duration && (
+                                    <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1 py-0.5 rounded leading-none">
+                                      {(() => {
+                                        const s = parseInt(video.duration!, 10);
+                                        if (isNaN(s)) return null;
+                                        const m = Math.floor(s / 60);
+                                        const sec = s % 60;
+                                        return `${m}:${sec.toString().padStart(2, '0')}`;
+                                      })()}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="w-20 flex-shrink-0 aspect-video rounded-lg bg-gradient-to-br from-brand-pink via-brand-coral to-brand-yellow flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                  {channel.name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-white leading-snug group-hover:text-brand-coral transition-colors">
+                                  {video?.title || channel.name}
+                                </p>
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <span className="flex justify-center items-center h-5 w-5 rounded-full flex-shrink-0 text-[8px] font-bold text-white shadow-sm leading-none" style={{ lineHeight: 1, background: 'linear-gradient(135deg, #b51762, #e2436a, #f37345, #feb144)' }}>
+                                    {(video?.channelName || channel.name).charAt(0).toUpperCase()}
                                   </span>
-                                ))}
-                                {channel.categories.length > 2 && (
-                                  <span className="text-[10px] text-gray-400 dark:text-gray-500">+{channel.categories.length - 2}</span>
+                                  <span className="truncate text-xs text-gray-500 dark:text-gray-400">
+                                    {video?.channelName || channel.name}
+                                    {loading && ' — ...'}
+                                  </span>
+                                </div>
+                                {video && (
+                                  <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {formatRelativeTime(video.publishedDate, t)}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Eye className="h-3 w-3" />
+                                      {(() => {
+                                        const num = typeof video.views === 'string' ? parseInt(video.views, 10) : video.views!;
+                                        if (isNaN(num)) return '—';
+                                        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+                                        if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+                                        return num.toString();
+                                      })()}
+                                    </span>
+                                  </div>
+                                )}
+                                {channel.categories.length > 0 && (
+                                  <div className="mt-1.5 flex items-center gap-1.5">
+                                    {channel.categories.slice(0, 2).map((cat) => (
+                                      <span key={cat} className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/15 text-[10px] font-medium text-gray-500 dark:text-gray-400 truncate max-w-[80px]">
+                                        {cat}
+                                      </span>
+                                    ))}
+                                    {channel.categories.length > 2 && (
+                                      <span className="text-[10px] text-gray-400 dark:text-gray-500">+{channel.categories.length - 2}</span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    {debouncedSearch && channels.every((ch) => {
-                      const q = debouncedSearch.toLowerCase().trim();
-                      const name = ch.name.toLowerCase();
-                      const handle = ch.handle?.toLowerCase() || '';
-                      const item = items.find((i) => i.channel.id === ch.id);
-                      const title = item?.video?.title?.toLowerCase() || '';
-                      return !name.includes(q) && !handle.includes(q) && !title.includes(q);
-                    }) && (
-                      <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('home.noVideosMatch')}</p>
-                    )}
+                              {matchType === 'channel' && (
+                                <span className="flex-shrink-0 text-[10px] font-medium text-brand-coral bg-brand-coral/10 px-2 py-1 rounded-full">
+                                  {t('home.channel') || 'Channel'}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
             </div>
           </div>
         </div>
