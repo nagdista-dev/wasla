@@ -29,7 +29,7 @@ function syncLoadPref<T>(key: string, fallback: T): T {
   }
 }
 
-export default function HomePage({ channels, onUpdate, onImportChannels, onImportChannelsJson }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannels?: () => void; onImportChannelsJson?: (channels: Channel[]) => void }) {
+export default function HomePage({ channels, onUpdate, onImportChannelsJson }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannelsJson?: (channels: Channel[]) => void }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   usePlayer();
@@ -397,14 +397,7 @@ export default function HomePage({ channels, onUpdate, onImportChannels, onImpor
               <p className="mx-auto mt-3 max-w-md text-gray-500 dark:text-gray-400 leading-relaxed">
                 {t('home.addFirstChannelDesc')}
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <button
-                  onClick={onImportChannels}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-coral px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-coral/30 hover:bg-brand-pink transition-all active:scale-95 min-h-[48px] w-full sm:w-auto justify-center"
-                >
-                  <Play className="h-5 w-5" />
-                  {t('home.importChannels') || 'Import Channels'}
-                </button>
+              <div className="mt-8 flex justify-center">
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={importingJson}
