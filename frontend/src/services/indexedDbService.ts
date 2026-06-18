@@ -1,5 +1,5 @@
 const DB_NAME = 'wasla_db';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 export interface StoreSchema {
   name: string;
@@ -63,6 +63,21 @@ const STORES: StoreSchema[] = [
   {
     name: 'playlistProgress',
     keyPath: 'playlistId',
+  },
+  {
+    name: 'communityPosts',
+    keyPath: 'id',
+    indexes: [
+      { name: 'channelId', keyPath: 'channelId' },
+      { name: 'publishedAt', keyPath: 'publishedAt' },
+    ],
+  },
+  {
+    name: 'communityChannels',
+    keyPath: 'channelId',
+    indexes: [
+      { name: 'lastFetchTime', keyPath: 'lastFetchTime' },
+    ],
   },
 ];
 
@@ -131,23 +146,16 @@ export async function getAll<T>(storeName: string): Promise<T[]> {
 export async function getAllFromIndex<T>(
   storeName: string,
   indexName: string,
-  direction: IDBCursorDirection = 'prev'
+  key?: string | string[]
 ): Promise<T[]> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
     const index = store.index(indexName);
-    const results: T[] = [];
-    const request = index.openCursor(null, direction);
+    const request = key ? index.getAll(key) : index.getAll();
     request.onsuccess = () => {
-      const cursor = request.result;
-      if (cursor) {
-        results.push(cursor.value);
-        cursor.continue();
-      } else {
-        resolve(results);
-      }
+      resolve(request.result ?? []);
     };
     request.onerror = () => reject(request.error);
   });
@@ -211,7 +219,7 @@ export async function countItems(storeName: string): Promise<number> {
   });
 }
 
-const DATA_STORES = ['watchHistory', 'playbackProgress', 'homeVideoCache'];
+const DATA_STORES = ['watchHistory', 'playbackProgress', 'homeVideoCache', 'communityPosts', 'communityChannels'];
 
 export async function exportAll(): Promise<Record<string, unknown[]>> {
   const result: Record<string, unknown[]> = {};

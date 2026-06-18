@@ -359,9 +359,9 @@ const en = {
   'audioPage.activeIndicator': 'Active audio - Click to open player',
 
   // Confirm Link Modal
-  'confirmLink.title': 'Leaving Wasla',
-  'confirmLink.message': 'You are about to open an external link. Do you want to continue?',
-  'confirmLink.continue': 'Continue',
+  'confirmLink.title': 'Open YouTube Video',
+  'confirmLink.message': 'You are about to open this YouTube video in your browser. Do you want to continue?',
+  'confirmLink.continue': 'Open',
   'confirmLink.cancel': 'Cancel',
 
   // Mini Player

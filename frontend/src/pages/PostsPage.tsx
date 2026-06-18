@@ -6,6 +6,8 @@ import { fetchCommunityPosts, loadCachedCommunityPosts } from '../services/commu
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
+import { isYouTubeUrl } from '../utils/linkUtils';
+import ConfirmLinkModal from '../components/ConfirmLinkModal';
 
 interface PostsPageProps {
   channels: Channel[];
@@ -15,6 +17,26 @@ function PostPreview({ post }: { post: CommunityPost }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const previewImage = post.thumbnail || post.images[0];
+  const [pendingLink, setPendingLink] = useState<string | null>(null);
+
+  const handleLinkClick = (url: string) => {
+    if (isYouTubeUrl(url)) {
+      setPendingLink(url);
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleConfirm = () => {
+    if (pendingLink) {
+      window.open(pendingLink, '_blank', 'noopener,noreferrer');
+      setPendingLink(null);
+    }
+  };
+
+  const handleCancel = () => {
+    setPendingLink(null);
+  };
 
   return (
     <article
@@ -35,7 +57,28 @@ function PostPreview({ post }: { post: CommunityPost }) {
         </div>
 
         <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">
-          {post.content}
+          {post.content.split(/\s+/).map((word, index) => {
+            const urlRegex = /^(https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+            const isUrl = urlRegex.test(word);
+            if (isUrl) {
+              return (
+                <a
+                  key={index}
+                  href={word}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleLinkClick(word);
+                  }}
+                  className="text-brand-coral hover:text-brand-pink hover:underline font-medium transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {word}
+                </a>
+              );
+            }
+            return <span key={index}>{word} </span>;
+          })}
         </p>
 
         {previewImage && (
@@ -51,6 +94,14 @@ function PostPreview({ post }: { post: CommunityPost }) {
           </div>
         )}
       </button>
+
+      {pendingLink && (
+        <ConfirmLinkModal
+          url={pendingLink}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
+      )}
     </article>
   );
 }

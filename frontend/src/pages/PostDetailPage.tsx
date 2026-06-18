@@ -1,15 +1,38 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ArrowLeft, Calendar, MessageSquareText } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { getCachedCommunityPost } from '../services/communityPostsService';
+import type { CommunityPost } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
+import { isYouTubeUrl } from '../utils/linkUtils';
+import ConfirmLinkModal from '../components/ConfirmLinkModal';
 
 export default function PostDetailPage() {
   const { id } = useParams();
   const { t } = useLanguage();
-  const post = useMemo(() => (id ? getCachedCommunityPost(id) : undefined), [id]);
+  const [pendingLink, setPendingLink] = useState<string | null>(null);
+  
+  const post = useMemo(() => null as CommunityPost | null, [id]);
+
+  const handleLinkClick = (url: string) => {
+    if (isYouTubeUrl(url)) {
+      setPendingLink(url);
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleConfirm = () => {
+    if (pendingLink) {
+      window.open(pendingLink, '_blank', 'noopener,noreferrer');
+      setPendingLink(null);
+    }
+  };
+
+  const handleCancel = () => {
+    setPendingLink(null);
+  };
 
   useMeta({
     title: post ? `${post.channelName} ${t('posts.post')}` : t('posts.notFound'),
@@ -57,12 +80,33 @@ export default function PostDetailPage() {
             </div>
 
             <p className="mt-4 whitespace-pre-line text-base leading-8 text-gray-800 dark:text-gray-200">
-              {post.content}
+              {post.content.split(/\s+/).map((word: string, index: number) => {
+                const urlRegex = /^(https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+                const isUrl = urlRegex.test(word);
+                if (isUrl) {
+                  return (
+                    <a
+                      key={index}
+                      href={word}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleLinkClick(word);
+                      }}
+                      className="text-brand-coral hover:text-brand-pink hover:underline font-medium transition-colors"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {word}
+                    </a>
+                  );
+                }
+                return <span key={index}>{word} </span>;
+              })}
             </p>
 
             {post.images.length > 0 && (
               <div className="mt-6 grid gap-3">
-                {post.images.map((image) => (
+                {post.images.map((image: string) => (
                   <img
                     key={image}
                     src={image}
@@ -76,6 +120,14 @@ export default function PostDetailPage() {
           </div>
         </div>
       </article>
+
+      {pendingLink && (
+        <ConfirmLinkModal
+          url={pendingLink}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
+      )}
     </div>
   );
 }

@@ -359,9 +359,9 @@ const ar: Record<string, string> = {
   'audioPage.activeIndicator': 'صوت نشط - اضغط لفتح المشغل',
 
   // Confirm Link Modal
-  'confirmLink.title': 'مغادرة وصلة',
-  'confirmLink.message': 'أنت على وشك فتح رابط خارجي. هل تريد المتابعة؟',
-  'confirmLink.continue': 'متابعة',
+  'confirmLink.title': 'فتح فيديو يوتيوب',
+  'confirmLink.message': 'أنت على وشك فتح هذا الفيديو على يوتيوب في متصفحك. هل تريد المتابعة؟',
+  'confirmLink.continue': 'فتح',
   'confirmLink.cancel': 'إلغاء',
 
   // Mini Player

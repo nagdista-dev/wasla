@@ -61,7 +61,7 @@ export async function getEntry(videoId: string): Promise<WatchHistoryEntry | und
 
 export async function getAllHistory(): Promise<WatchHistoryEntry[]> {
   if (!isClientSide()) return [];
-  return getAllFromIndex<WatchHistoryEntry>(STORE, 'lastViewedAt', 'prev');
+  return getAllFromIndex<WatchHistoryEntry>(STORE, 'lastViewedAt');
 }
 
 export async function removeEntry(videoId: string): Promise<void> {

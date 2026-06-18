@@ -47,7 +47,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
   }, []);
 
   useEffect(() => {
-    getAllFromIndex<WatchHistoryEntry>('watchHistory', 'lastViewedAt', 'prev').then((entries) => {
+    getAllFromIndex<WatchHistoryEntry>('watchHistory', 'lastViewedAt').then((entries) => {
       setContinueWatching(entries.filter((e) => e.completionPercentage > 0 && e.completionPercentage < 100).slice(0, 6));
     }).catch(() => {});
   }, []);
