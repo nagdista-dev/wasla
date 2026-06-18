@@ -7,6 +7,9 @@ interface PlayerContextType {
   currentVideo: (LatestVideo & { _videoId: string; channelId?: string }) | null;
   play: (video: LatestVideo, channelId?: string) => void;
   close: () => void;
+  seekTo: (seconds: number) => void;
+  registerSeekHandler: (handler: (seconds: number) => void) => void;
+  unregisterSeekHandler: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -15,6 +18,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentVideo, setCurrentVideo] = useState<(LatestVideo & { _videoId: string; channelId?: string }) | null>(null);
   const mediaManager = useMediaManager();
   const closeRef = useRef<() => void>(() => {});
+  const seekHandlerRef = useRef<((seconds: number) => void) | null>(null);
 
   const close = useCallback(() => setCurrentVideo(null), []);
   closeRef.current = close;
@@ -36,8 +40,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setCurrentVideo({ ...normalized, channelId });
   }, [mediaManager]);
 
+  const seekTo = useCallback((seconds: number) => {
+    seekHandlerRef.current?.(seconds);
+  }, []);
+
+  const registerSeekHandler = useCallback((handler: (seconds: number) => void) => {
+    seekHandlerRef.current = handler;
+  }, []);
+
+  const unregisterSeekHandler = useCallback(() => {
+    seekHandlerRef.current = null;
+  }, []);
+
   return (
-    <PlayerContext.Provider value={{ currentVideo, play, close }}>
+    <PlayerContext.Provider value={{ currentVideo, play, close, seekTo, registerSeekHandler, unregisterSeekHandler }}>
       {children}
     </PlayerContext.Provider>
   );

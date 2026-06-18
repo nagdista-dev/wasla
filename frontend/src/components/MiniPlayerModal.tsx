@@ -188,7 +188,7 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
 
 const MiniPlayerModal = memo(function MiniPlayerModal() {
   const { t, isRTL } = useLanguage();
-  const { currentVideo, close } = usePlayer();
+  const { currentVideo, close, registerSeekHandler, unregisterSeekHandler } = usePlayer();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -333,6 +333,11 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
       showToast(t('miniPlayer.jumpFailed'), 'error');
     }
   }, [currentVideo, showToast, t]);
+
+  useEffect(() => {
+    registerSeekHandler(jumpToTimestamp);
+    return () => unregisterSeekHandler();
+  }, [jumpToTimestamp, registerSeekHandler, unregisterSeekHandler]);
 
   const handleWatchLater = useCallback(async () => {
     if (!currentVideo) return;

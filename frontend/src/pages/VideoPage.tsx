@@ -41,6 +41,7 @@ const DESCRIPTION_COLLAPSED_LINES = 3;
 
 function VideoDescription({ description }: { description: string }) {
   const { t } = useLanguage();
+  const { seekTo } = usePlayer();
   const [expanded, setExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsToggle, setNeedsToggle] = useState(false);
@@ -60,6 +61,14 @@ function VideoDescription({ description }: { description: string }) {
 
   const handleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
+    const timestampSpan = target.closest('[data-seconds]');
+    if (timestampSpan) {
+      const seconds = parseInt(timestampSpan.getAttribute('data-seconds') || '', 10);
+      if (!isNaN(seconds)) {
+        seekTo(seconds);
+        return;
+      }
+    }
     const link = target.closest('a');
     if (!link) return;
     const href = link.getAttribute('href');
