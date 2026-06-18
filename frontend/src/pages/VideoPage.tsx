@@ -440,13 +440,12 @@ function VideoPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-dark-navy">
-      <div className="mx-auto max-w-5xl px-0 sm:px-4 lg:px-6 py-0 sm:py-6">
-        {/* Video player - sticky */}
-        <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy">
-          <div
-            ref={playerContainerRef}
-            className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl"
-          >
+      {/* Video player - sticky, full width */}
+      <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy">
+        <div
+          ref={playerContainerRef}
+          className="relative aspect-video w-full bg-black overflow-hidden"
+        >
             {embedSrc && canRenderPlayer ? (
               <>
                 <iframe
@@ -495,8 +494,9 @@ function VideoPage() {
           </div>
         </div>
 
-        {video ? (
-          <div className="px-4 sm:px-0 py-4 sm:py-6 space-y-5 sm:space-y-6">
+        <div className="mx-auto max-w-5xl px-0 sm:px-4 lg:px-6 py-0 sm:py-6">
+          {video ? (
+            <div className="px-4 sm:px-0 py-4 sm:py-6 space-y-5 sm:space-y-6">
             {/* Title */}
             <h1 className="text-xl sm:text-2xl font-bold leading-snug text-gray-900 dark:text-white">
               {video.title}
@@ -651,6 +651,7 @@ function VideoPage() {
             <p className="text-gray-500 dark:text-gray-400">{t('videoPage.notFound') || 'Video not found'}</p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
