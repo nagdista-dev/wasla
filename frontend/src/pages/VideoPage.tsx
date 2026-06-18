@@ -651,7 +651,6 @@ function VideoPage() {
             <p className="text-gray-500 dark:text-gray-400">{t('videoPage.notFound') || 'Video not found'}</p>
           </div>
         )}
-        </div>
       </div>
     </div>
   );
