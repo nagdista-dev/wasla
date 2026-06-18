@@ -525,8 +525,8 @@ function VideoPage() {
               {video.title}
             </h1>
 
-            {/* Gradient divider */}
-            <div className="h-px w-full bg-gradient-to-r from-brand-coral via-brand-orange to-transparent" />
+            {/* Divider */}
+            <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
 
             {/* Channel + metadata row */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
