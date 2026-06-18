@@ -131,7 +131,7 @@ function VideoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { currentVideo } = usePlayer();
+  const { currentVideo, registerSeekHandler, unregisterSeekHandler } = usePlayer();
   const mediaManager = useMediaManager();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -251,7 +251,7 @@ function VideoPage() {
   const progressChecked = progressCheckedVideoId === embedId;
   const startParam = resumeTime && resumeVideoId === embedId && !shouldShowResumePrompt ? `&start=${Math.floor(resumeTime)}` : '';
   const embedSrc = embedId
-    ? `https://www.youtube.com/embed/${embedId}?autoplay=1${startParam}`
+    ? `https://www.youtube.com/embed/${embedId}?autoplay=1&enablejsapi=1${startParam}`
     : '';
   const canRenderPlayer = progressChecked && !shouldShowResumePrompt;
 
@@ -324,6 +324,21 @@ function VideoPage() {
       }
     };
   }, [embedSrc, mediaManager]);
+
+  const seekVideo = useCallback((seconds: number) => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(JSON.stringify({
+        event: 'command',
+        func: 'seekTo',
+        args: [seconds, true],
+      }), '*');
+    }
+  }, []);
+
+  useEffect(() => {
+    registerSeekHandler(seekVideo);
+    return () => unregisterSeekHandler();
+  }, [seekVideo, registerSeekHandler, unregisterSeekHandler]);
 
   const handleOpenOnYoutube = useCallback(() => {
     if (!video) return;
