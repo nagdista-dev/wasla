@@ -302,6 +302,8 @@ const ar: Record<string, string> = {
   'videoCard.editChannel': 'تعديل القناة',
   'videoCard.watchLater': 'مشاهدة لاحقاً',
   'videoCard.removeWatchLater': 'إزالة من المشاهدة لاحقاً',
+  'videoCard.watched': 'تمت المشاهدة',
+  'videoCard.inProgress': 'قيد المشاهدة',
 
   // Playlist Card
   'playlistCard.youtube': 'يوتيوب',

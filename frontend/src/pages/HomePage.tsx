@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BookmarkCheck, BookmarkPlus, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
+import { AlertCircle, BookmarkCheck, BookmarkPlus, CheckCircle2, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditChannelModal from '../components/EditChannelModal';
 import VideoCard from '../components/VideoCard';
@@ -17,7 +17,9 @@ import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import { parseAndValidateChannelsJson } from '../utils/importChannels';
 import { getAllFromIndex } from '../services/indexedDbService';
 import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepository';
-import type { Channel, ChannelLatestVideo } from '../types';
+import { getAllProgress } from '../services/playbackProgressService';
+import { extractVideoId } from '../utils/videoUtils';
+import type { Channel, ChannelLatestVideo, PlaybackProgress } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
 
 function syncLoadPref<T>(key: string, fallback: T): T {
@@ -60,9 +62,20 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<ChannelLatestVideo[]>([]);
   const [watchLaterCache, setWatchLaterCache] = useState<import('../types').WatchLaterItem[]>([]);
+  const [progressMap, setProgressMap] = useState<Map<string, PlaybackProgress>>(new Map());
 
   useEffect(() => {
     loadWatchLater().then(setWatchLaterCache);
+  }, []);
+
+  useEffect(() => {
+    getAllProgress().then((entries) => {
+      const map = new Map<string, PlaybackProgress>();
+      for (const p of entries) {
+        map.set(p.videoId, p);
+      }
+      setProgressMap(map);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -473,6 +486,30 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
                             alt={video.title}
                             className="h-full w-full"
                           />
+                          {(() => {
+                            const vidId = extractVideoId(video.link);
+                            const p = vidId ? progressMap.get(vidId) : undefined;
+                            if (!p || p.duration <= 0) return null;
+                            const wp = Math.min(100, Math.max(0, (p.currentTime / p.duration) * 100));
+                            return (
+                              <>
+                                {wp >= 90 ? (
+                                  <span className="absolute top-2 left-2 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1 z-10 shadow-lg">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    {t('videoCard.watched') || 'Watched'}
+                                  </span>
+                                ) : (
+                                  <span className="absolute top-2 left-2 bg-brand-coral/90 text-white text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1 z-10 shadow-lg backdrop-blur-sm">
+                                    <Play className="h-3 w-3" />
+                                    {t('videoCard.inProgress') || 'In progress'}
+                                  </span>
+                                )}
+                                <div className="absolute bottom-0 left-0 right-0 z-10 h-1 bg-black/20">
+                                  <div className="h-full bg-brand-coral transition-[width] duration-300 ease-out" style={{ width: `${wp}%` }} />
+                                </div>
+                              </>
+                            );
+                          })()}
                           <div className="absolute top-2 right-2 z-20">
                             <button
                               onClick={async (e) => {

@@ -302,6 +302,8 @@ const en = {
   'videoCard.editChannel': 'Edit channel',
   'videoCard.watchLater': 'Watch Later',
   'videoCard.removeWatchLater': 'Remove from Watch Later',
+  'videoCard.watched': 'Watched',
+  'videoCard.inProgress': 'In progress',
 
   // Playlist Card
   'playlistCard.youtube': 'YouTube',

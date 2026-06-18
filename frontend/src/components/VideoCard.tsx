@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from 'react';
-import { Clock, Edit3, Eye, BookmarkPlus, BookmarkCheck, Heart } from 'lucide-react';
+import { Clock, Edit3, Eye, BookmarkPlus, BookmarkCheck, Heart, CheckCircle2, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
@@ -138,6 +138,16 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
           <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 animate-pulse z-10">
             <span className="h-2 w-2 rounded-full bg-white" />
             {t('videoCard.live')}
+          </span>
+        ) : progress && progress.watchedPercentage >= 90 ? (
+          <span className="absolute top-2 left-2 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1 z-10 shadow-lg">
+            <CheckCircle2 className="h-3 w-3" />
+            {t('videoCard.watched') || 'Watched'}
+          </span>
+        ) : progress && progress.watchedPercentage > 0 ? (
+          <span className="absolute top-2 left-2 bg-brand-coral/90 text-white text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1 z-10 shadow-lg backdrop-blur-sm">
+            <Play className="h-3 w-3" />
+            {t('videoCard.inProgress') || 'In progress'}
           </span>
         ) : null}
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Share2, ChevronDown, ChevronUp, Headphones, RotateCcw, Play } from 'lucide-react';
+import { Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Share2, ChevronDown, ChevronUp, Headphones } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useMediaManager } from '../context/MediaContext';
@@ -140,7 +140,6 @@ function VideoPage() {
   const [loading, setLoading] = useState(true);
   const [isInWatchLater, setIsInWatchLater] = useState(false);
   const [resumeTime, setResumeTime] = useState<number | null>(null);
-  const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [resumeVideoId, setResumeVideoId] = useState<string | null>(null);
   const [progressCheckedVideoId, setProgressCheckedVideoId] = useState<string | null>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -155,7 +154,6 @@ function VideoPage() {
 
   const {
     loadProgress,
-    clearProgress,
     updatePosition,
     saveOnPause,
   } = usePlaybackResume(video ? extractVideoId(video.link) || videoId : undefined);
@@ -230,11 +228,9 @@ function VideoPage() {
       if (progress && progress.currentTime > 5 && progress.currentTime < progress.duration - 5) {
         setResumeTime(progress.currentTime);
         setResumeVideoId(vidId);
-        setShowResumePrompt(true);
       } else {
         setResumeTime(null);
         setResumeVideoId(null);
-        setShowResumePrompt(false);
       }
       setProgressCheckedVideoId(vidId);
     }).catch(() => {
@@ -247,13 +243,12 @@ function VideoPage() {
 
   const durationSeconds = video ? (parseInt(video.duration || '0', 10) || 0) : 0;
   const embedId = video ? (extractVideoId(video.link) || videoId) : videoId;
-  const shouldShowResumePrompt = showResumePrompt && resumeVideoId === embedId;
   const progressChecked = progressCheckedVideoId === embedId;
-  const startParam = resumeTime && resumeVideoId === embedId && !shouldShowResumePrompt ? `&start=${Math.floor(resumeTime)}` : '';
+  const startParam = resumeTime && resumeVideoId === embedId ? `&start=${Math.floor(resumeTime)}` : '';
   const embedSrc = embedId
     ? `https://www.youtube.com/embed/${embedId}?autoplay=1&enablejsapi=1${startParam}`
     : '';
-  const canRenderPlayer = progressChecked && !shouldShowResumePrompt;
+  const canRenderPlayer = progressChecked;
 
   useEffect(() => {
     if (!video || !canRenderPlayer || durationSeconds <= 0) return;
@@ -398,17 +393,6 @@ function VideoPage() {
     navigate(`/audio/${videoId}`, { state: { video, channelId: video.channelId } });
   }, [video, videoId, navigate]);
 
-  const handleResume = useCallback(() => {
-    setShowResumePrompt(false);
-  }, []);
-
-  const handleStartOver = useCallback(() => {
-    setResumeTime(null);
-    setResumeVideoId(null);
-    setShowResumePrompt(false);
-    clearProgress();
-  }, [clearProgress]);
-
   const handleChannelClick = useCallback(() => {
     if (!video?.channelId) return;
     navigate(`/channel/${video.channelId}`);
@@ -456,37 +440,6 @@ function VideoPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-dark-navy">
-      {/* Resume prompt modal */}
-      {shouldShowResumePrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-dark-navy rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fadein">
-            <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-brand-coral/10 flex items-center justify-center">
-                <RotateCcw className="h-7 w-7 text-brand-coral" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('watchHistory.resumePrompt')}
-              </h3>
-              <div className="flex gap-3 w-full">
-                <button
-                  onClick={handleStartOver}
-                  className="flex-1 rounded-xl px-4 py-3 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95"
-                >
-                  {t('watchHistory.startOverButton')}
-                </button>
-                <button
-                  onClick={handleResume}
-                  className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold bg-brand-coral text-white hover:bg-brand-pink transition-all active:scale-95 shadow-sm shadow-brand-coral/20 flex items-center justify-center gap-2"
-                >
-                  <Play className="h-4 w-4 fill-current" />
-                  {t('watchHistory.resumeButton')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="mx-auto max-w-5xl px-0 sm:px-4 lg:px-6 py-0 sm:py-6">
         {/* Video player - sticky */}
         <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy">
