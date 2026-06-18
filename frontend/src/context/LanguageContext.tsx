@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import en from '../locales/en';
 import ar from '../locales/ar';
-import { loadSetting, saveSetting } from '../storage';
+import { loadSetting, saveSetting, readStoredValue } from '../storage';
 
 type Language = 'en' | 'ar';
 
@@ -18,8 +18,8 @@ const translations: Record<Language, Record<string, string>> = { en, ar };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
-    const saved = localStorage.getItem('wasla_language') as Language | null;
-    if (saved) return saved;
+    const saved = readStoredValue<Language>('wasla_language');
+    if (saved === 'en' || saved === 'ar') return saved;
     return 'ar';
   });
 

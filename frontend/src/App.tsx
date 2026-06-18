@@ -35,7 +35,7 @@ import AddPlaylistModal from "./components/AddPlaylistModal";
 import MobileAppBanner from "./components/MobileAppBanner";
 
 import type { Channel, Playlist } from "./types";
-import { loadChannels, saveChannels, loadPlaylists, savePlaylists } from "./storage";
+import { loadChannels, saveChannels, loadPlaylists, savePlaylists, readStoredValue } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
 import { useAudio } from "./context/AudioContext";
@@ -112,7 +112,7 @@ function StartupRedirect() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const syncStart = localStorage.getItem('wasla_start_page');
+    const syncStart = readStoredValue<string>('wasla_start_page');
     if (syncStart && pathname === '/') {
       navigate(syncStart, { replace: true });
       return;

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { loadSetting, saveSetting } from '../storage';
+import { loadSetting, saveSetting, readStoredValue } from '../storage';
 
 type Theme = 'light' | 'dark';
 
@@ -12,8 +12,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('wasla_theme') as Theme | null;
-    if (saved) return saved;
+    const saved = readStoredValue<Theme>('wasla_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
     return 'dark';
   });
 

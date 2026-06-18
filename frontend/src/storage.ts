@@ -15,6 +15,16 @@ const WATCH_LATER_STORE = 'watchLater';
 const FAVORITES_STORE = 'favorites';
 const COURSES_STORE = 'courses';
 
+export function readStoredValue<T = string>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return localStorage.getItem(key) as T | null;
+  }
+}
+
 export async function loadChannels(): Promise<Channel[]> {
   try {
     const items = await getAll<Channel>(CHANNELS_STORE);

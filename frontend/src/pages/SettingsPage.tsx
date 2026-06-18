@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/Toast';
 import ConfirmActionModal from '../components/ConfirmActionModal';
 import { exportAll, importAll, isClientSide } from '../services/indexedDbService';
-import { loadSetting, saveSetting, deleteSetting } from '../storage';
+import { loadSetting, saveSetting, deleteSetting, readStoredValue } from '../storage';
 import type { Channel, Playlist } from '../types';
 
 interface SettingsPageProps {
@@ -60,7 +60,7 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const [startPage, setStartPage] = useState<string>(() => {
-    return localStorage.getItem('wasla_start_page') || 'home';
+    return readStoredValue<string>('wasla_start_page') || 'home';
   });
 
   useEffect(() => {

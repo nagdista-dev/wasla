@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, Send, Check } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
-import { saveSetting, loadSetting } from '../storage';
+import { saveSetting, loadSetting, readStoredValue } from '../storage';
 
 const DRAFT_KEY = 'wasla_contact_draft';
 const WHATSAPP_NUMBER = '201143044699';
@@ -10,7 +10,7 @@ const WHATSAPP_NUMBER = '201143044699';
 export default function ContactPage() {
   const { t } = useLanguage();
   const [message, setMessage] = useState(() => {
-    try { return localStorage.getItem(DRAFT_KEY) || ''; } catch { return ''; }
+    try { return readStoredValue<string>(DRAFT_KEY) || ''; } catch { return ''; }
   });
   const [saved, setSaved] = useState(false);
 

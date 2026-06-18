@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Smartphone, Download } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { saveSetting, loadSetting } from '../storage';
+import { saveSetting, loadSetting, readStoredValue } from '../storage';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -15,8 +15,8 @@ export default function MobileAppBanner() {
   const [installResolved, setInstallResolved] = useState(false);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem('wasla_install_dismissed');
-    const installed = localStorage.getItem('wasla_installed');
+    const dismissed = readStoredValue<string>('wasla_install_dismissed');
+    const installed = readStoredValue<string>('wasla_installed');
     if (dismissed || installed) return;
 
     loadSetting<string>('wasla_install_dismissed').then((v) => {
