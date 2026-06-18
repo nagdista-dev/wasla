@@ -272,7 +272,7 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
         {/* Navigation */}
         <nav className="flex flex-col p-4 space-y-1 flex-shrink-0">
           {navItems.map((item) => {
-            const isActive = pathname === item.path || (item.path === '/posts' && pathname.startsWith('/posts/'));
+            const isActive = pathname === item.path || (item.path === '/posts' && (pathname.startsWith('/posts/') || pathname.startsWith('/post/')));
 
             return (
               <Link
@@ -547,7 +547,7 @@ function App() {
                 element={<PostsPage channels={channels} />}
               />
               <Route
-                path="/posts/:postId"
+                path="/post/:id"
                 element={<PostDetailPage />}
               />
               <Route

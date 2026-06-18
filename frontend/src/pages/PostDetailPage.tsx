@@ -7,9 +7,9 @@ import { useMeta } from '../hooks/useMeta';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
 export default function PostDetailPage() {
-  const { postId } = useParams();
+  const { id } = useParams();
   const { t } = useLanguage();
-  const post = useMemo(() => (postId ? getCachedCommunityPost(postId) : undefined), [postId]);
+  const post = useMemo(() => (id ? getCachedCommunityPost(id) : undefined), [id]);
 
   useMeta({
     title: post ? `${post.channelName} ${t('posts.post')}` : t('posts.notFound'),

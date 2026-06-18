@@ -22,7 +22,7 @@ function PostPreview({ post }: { post: CommunityPost }) {
     <article
       className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700 h-72"
     >
-      <button type="button" onClick={() => navigate(`/posts/${post.id}`)} className="block w-full text-left rtl:text-right h-full">
+      <button type="button" onClick={() => navigate(`/post/${post.id}`)} className="block w-full text-left rtl:text-right h-full">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-brand-coral/10 text-brand-coral">
             <MessageSquareText className="h-5 w-5" />
