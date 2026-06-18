@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BookmarkCheck, BookmarkPlus, CheckCircle2, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
+import { AlertCircle, BookmarkCheck, BookmarkPlus, CheckCircle2, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditChannelModal from '../components/EditChannelModal';
 import VideoCard from '../components/VideoCard';
@@ -31,12 +31,12 @@ function syncLoadPref<T>(key: string, fallback: T): T {
   }
 }
 
-export default function HomePage({ channels, onUpdate, onImportChannelsJson }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannelsJson?: (channels: Channel[]) => void }) {
+export default function HomePage({ channels, onUpdate, onImportChannelsJson, showSearch, onCloseSearch }: { channels: Channel[]; onUpdate?: (id: string, name: string, categories: string[]) => void; onImportChannelsJson?: (channels: Channel[]) => void; showSearch?: boolean; onCloseSearch?: () => void }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   usePlayer();
   const { showToast } = useToast();
-  const { filters, setShowFilterModal, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowLiveOnly } = useFilters();
+  const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowLiveOnly } = useFilters();
   const { selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly } = filters;
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
@@ -53,13 +53,16 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
     }).catch(() => {});
   }, []);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
-  const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState('');
   const debouncedSearch = useDebounce(searchText, 300);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasLoadedCache, setHasLoadedCache] = useState(false);
   const [importingJson, setImportingJson] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleCloseSearch = useCallback(() => {
+    setSearchText('');
+    onCloseSearch?.();
+  }, [onCloseSearch]);
   const itemsRef = useRef<ChannelLatestVideo[]>([]);
   const [watchLaterCache, setWatchLaterCache] = useState<import('../types').WatchLaterItem[]>([]);
   const [progressMap, setProgressMap] = useState<Map<string, PlaybackProgress>>(new Map());
@@ -292,22 +295,10 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
     <div className="min-h-screen dark:bg-dark-navy overflow-visible">
       <div className="sticky top-16 z-20 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 shadow-sm">
         <div className="flex items-center gap-2 px-4 md:px-6 py-3">
-          <button onClick={() => setShowSearch(true)}
-            className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10"
-            aria-label={t('home.search')}>
-            <Search className="h-5 w-5" />
-          </button>
           <button type="button" onClick={() => fetchLatestVideos()} disabled={isRefreshing}
             className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
             aria-label={t('home.refresh')}>
             <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={() => setShowFilterModal(true)}
-            className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 relative"
-            aria-label={t('filterModal.filter')}
-          >
-            <SlidersHorizontal className="h-5 w-5" />
           </button>
           <div className="flex-1" />
           <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
@@ -613,7 +604,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
 
             {showSearch && (
               <div className="fixed inset-0 z-[60] flex items-start justify-center p-2 pt-16 sm:p-4 sm:pt-20">
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowSearch(false); setSearchText(''); }} />
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseSearch} />
                 <div className="relative z-10 w-full sm:max-w-2xl max-h-[80vh] sm:max-h-[70vh] flex flex-col rounded-xl bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700">
                   <div className="flex items-center gap-3 border-b border-gray-200 px-3 py-3 sm:px-4 sm:py-4 dark:border-gray-700">
                     <Search className="h-5 w-5 flex-0 text-gray-400" />
@@ -626,7 +617,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
                       autoFocus
                     />
                     <button
-                      onClick={() => { setShowSearch(false); setSearchText(''); }}
+                      onClick={handleCloseSearch}
                       className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
                     >
                       <X className="h-5 w-5" />
@@ -690,8 +681,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
                                 } else {
                                   navigate(`/channel/${channel.id}`);
                                 }
-                                setShowSearch(false);
-                                setSearchText('');
+                                handleCloseSearch();
                               }}
                               className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-dark-navy border border-gray-200 dark:border-gray-700 hover:border-brand-coral/30 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer animate-fadein"
                             >

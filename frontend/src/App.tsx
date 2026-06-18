@@ -23,6 +23,7 @@ import {
   HeartHandshake,
   GraduationCap,
   MessageCircle,
+  Search,
   SlidersHorizontal,
   Headphones,
   History,
@@ -129,7 +130,7 @@ function StartupRedirect() {
   return null;
 }
 
-const Navigation = memo(function Navigation({ channels }: { channels: Channel[] }) {
+const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channels: Channel[]; onOpenSearch?: () => void }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { language, setLanguage, isRTL, t } = useLanguage();
@@ -173,6 +174,13 @@ const Navigation = memo(function Navigation({ channels }: { channels: Channel[] 
       </Link>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={onOpenSearch}
+          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+          aria-label={t('home.search')}
+        >
+          <Search className="h-4 w-4" />
+        </button>
         <button
           onClick={() => setShowFilterModal(true)}
           className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 relative"
@@ -351,6 +359,7 @@ function App() {
   const [playlists, setPlaylists] = useState<Playlist[]>(syncLoadPlaylists);
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [splashFadeOut, setSplashFadeOut] = useState(false);
 
@@ -484,7 +493,7 @@ function App() {
         <ScrollToTop />
         <StartupRedirect />
         {/* Mobile navigation */}
-        <Navigation channels={channels} />
+        <Navigation channels={channels} onOpenSearch={() => setShowSearch(true)} />
         {/* Desktop sidebar */}
         <Sidebar channels={channels} playlists={playlists} />
         <div className={`flex flex-col flex-1 min-h-screen pt-16 overflow-visible ${
@@ -507,7 +516,7 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannelsJson={handleImportChannelsJson} />
+                  <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannelsJson={handleImportChannelsJson} showSearch={showSearch} onCloseSearch={() => setShowSearch(false)} />
                 }
               />
               <Route path="/channel/:channelId" element={<ChannelPage />} />
