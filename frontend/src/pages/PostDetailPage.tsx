@@ -56,25 +56,26 @@ export default function PostDetailPage() {
               </div>
             </div>
 
-          <p className="mt-4 whitespace-pre-line text-base leading-8 text-gray-800 dark:text-gray-200">
-            {post.content}
-          </p>
+            <p className="mt-4 whitespace-pre-line text-base leading-8 text-gray-800 dark:text-gray-200">
+              {post.content}
+            </p>
 
-          {post.images.length > 0 && (
-            <div className="mt-6 grid gap-3">
-              {post.images.map((image) => (
-                <img
-                  key={image}
-                  src={image}
-                  alt=""
-                  className="max-h-[640px] w-full rounded-lg border border-gray-200 object-contain dark:border-gray-700"
-                  loading="lazy"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </article>
-    </div>
-  );
+            {post.images.length > 0 && (
+              <div className="mt-6 grid gap-3">
+                {post.images.map((image) => (
+                  <img
+                    key={image}
+                    src={image}
+                    alt=""
+                    className="max-h-[640px] w-full rounded-lg border border-gray-200 object-contain dark:border-gray-700"
+                    loading="lazy"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </article>
+      </div>
+    );
+  }
 }
