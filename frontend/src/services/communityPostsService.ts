@@ -177,7 +177,7 @@ async function fetchChannelPosts(channel: Channel): Promise<CommunityPost[]> {
 }
 
 function mergePosts(posts: CommunityPost[]): CommunityPost[] {
-  const byChannel = new Map<string, CommunityPost[]>();n
+  const byChannel = new Map<string, CommunityPost[]>();
   for (const post of posts) {
     if (!byChannel.has(post.channelId)) {
       byChannel.set(post.channelId, []);
