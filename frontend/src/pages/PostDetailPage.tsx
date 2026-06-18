@@ -73,9 +73,9 @@ export default function PostDetailPage() {
                 ))}
               </div>
             )}
-          </div>
-        </article>
+        </div>
       </div>
-    );
+    </article>
+  );
   }
 }
