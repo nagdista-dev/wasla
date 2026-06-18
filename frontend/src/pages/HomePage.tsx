@@ -668,7 +668,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
         </div>
       )}
 
-      {channels.length > 0 && (
+      {channels.length > 0 && items.length > 0 && hasLoadedCache && !isRefreshing && !items.some(i => i.loading) && !items.some(i => i.video) && (
         <div className="mt-8 flex justify-center">
           <button
             onClick={() => fileInputRef.current?.click()}
