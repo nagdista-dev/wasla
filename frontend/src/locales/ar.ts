@@ -57,6 +57,9 @@ const ar: Record<string, string> = {
   'home.noVideosMatch': 'لا توجد فيديوهات تطابق بحثك.',
   'home.searchChannels': 'ابحث عن القنوات...',
   'home.channelsInFeed': '{count} قنوات في خلاصتك.',
+  'home.importChannels': 'استيراد القنوات',
+  'home.importFromJson': 'استيراد من ملف JSON',
+  'home.importing': 'جارٍ الاستيراد...',
 
   // Channels Page
   'channels.title': 'القنوات',
@@ -547,7 +550,10 @@ const ar: Record<string, string> = {
   'loadingScreen.benefit27': 'العثور على المحتوى الذي يتناسب مع أسلوب تعلمك',
   'loadingScreen.benefit28': 'إنشاء فئات مخصصة لتحسين التنظيم',
   'loadingScreen.benefit29': 'الوصول إلى محتواك في أي وقت وأي مكان',
-  'loadingScreen.benefit30': 'تحويل عادات مشاهدتك مع توصيات ذكية'
+  'loadingScreen.benefit30': 'تحويل عادات مشاهدتك مع توصيات ذكية',
+
+  // Video Page
+  'videoPage.notFound': 'الفيديو غير موجود'
 };
 
 export default ar;

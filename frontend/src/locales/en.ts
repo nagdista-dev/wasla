@@ -57,6 +57,12 @@ const en = {
   'home.noVideosMatch': 'No videos match your search.',
   'home.searchChannels': 'Search channels...',
   'home.channelsInFeed': '{count} channels in your feed.',
+  'home.importChannels': 'Import Channels',
+  'home.importFromJson': 'Import from JSON',
+  'home.importing': 'Importing...',
+  'home.invalidJsonFile': 'Please select a .json file.',
+  'home.fileTooLarge': 'File is too large (max 5MB).',
+  'home.importFailed': 'Failed to read file.',
 
   // Channels Page
   'channels.title': 'Channels',
@@ -546,7 +552,10 @@ const en = {
   'loadingScreen.benefit27': 'Find content that matches your learning style',
   'loadingScreen.benefit28': 'Create custom categories for better organization',
   'loadingScreen.benefit29': 'Access your content anytime, anywhere',
-  'loadingScreen.benefit30': 'Transform your viewing habits with smart recommendations'
+  'loadingScreen.benefit30': 'Transform your viewing habits with smart recommendations',
+
+  // Video Page
+  'videoPage.notFound': 'Video not found'
 };
 
 export type TranslationKeys = keyof typeof en;
