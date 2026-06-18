@@ -100,6 +100,7 @@ const ar: Record<string, string> = {
   'posts.empty': 'لم يتم العثور على منشورات مجتمع',
   'posts.emptyHint': 'قد لا تحتوي هذه القنوات على منشورات، أو قد تكون RSSHub غير متاحة مؤقتاً.',
   'posts.imageCount': '{count} صور',
+  'posts.readMore': 'اقرأ المزيد',
   'posts.backToPosts': 'العودة إلى المنشورات',
   'posts.notFound': 'المنشور غير موجود',
   'posts.notFoundHint': 'حدّث خلاصة المنشورات ثم حاول فتح المنشور مرة أخرى.',

@@ -144,25 +144,28 @@ async function fetchChannelPosts(channel: Channel): Promise<CommunityPost[]> {
     throw new Error(response.data.error || 'Failed to fetch channel posts');
   }
 
-  return parseFeed(
+  const allPosts = parseFeed(
     response.data.xml,
     channel,
     response.data.source === 'https://rsshub.app' ? 'rsshub' : 'rsshub-fallback',
   );
+  
+  if (allPosts.length === 0) return [];
+  
+  const sortedPosts = allPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  return [sortedPosts[0]];
 }
 
 function mergePosts(posts: CommunityPost[]): CommunityPost[] {
-  const byId = new Map<string, CommunityPost>();
-  const seenFallback = new Set<string>();
+  const byChannel = new Map<string, CommunityPost>();
 
   for (const post of posts) {
-    const fallbackKey = `${post.channelId}:${post.link || ''}:${post.publishedAt}:${post.content.slice(0, 80)}`;
-    if (byId.has(post.id) || seenFallback.has(fallbackKey)) continue;
-    byId.set(post.id, post);
-    seenFallback.add(fallbackKey);
+    if (!byChannel.has(post.channelId) || new Date(post.publishedAt) > new Date(byChannel.get(post.channelId)!.publishedAt)) {
+      byChannel.set(post.channelId, post);
+    }
   }
 
-  return Array.from(byId.values()).sort(
+  return Array.from(byChannel.values()).sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
   );
 }

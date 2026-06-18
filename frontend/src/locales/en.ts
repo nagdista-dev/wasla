@@ -100,6 +100,7 @@ const en = {
   'posts.empty': 'No community posts found',
   'posts.emptyHint': 'These channels may not have posts, or RSSHub may be temporarily unavailable.',
   'posts.imageCount': '{count} images',
+  'posts.readMore': 'Read more',
   'posts.backToPosts': 'Back to Posts',
   'posts.notFound': 'Post not found',
   'posts.notFoundHint': 'Refresh the posts feed and try opening the post again.',
