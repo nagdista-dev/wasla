@@ -60,6 +60,11 @@ const ar: Record<string, string> = {
   'home.importChannels': 'استيراد القنوات',
   'home.importFromJson': 'استيراد من ملف JSON',
   'home.importing': 'جارٍ الاستيراد...',
+  'home.invalidJsonFile': 'يرجى اختيار ملف .json.',
+  'home.fileTooLarge': 'الملف كبير جدًا (الحد الأقصى 5 ميجابايت).',
+  'home.importFailed': 'فشل قراءة الملف.',
+  'home.importedWithErrors': 'تم استيراد بعض القنوات مع تحذيرات.',
+  'home.importSuccess': 'تم استيراد القنوات بنجاح.',
 
   // Channels Page
   'channels.title': 'القنوات',

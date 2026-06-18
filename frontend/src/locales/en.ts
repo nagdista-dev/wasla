@@ -63,6 +63,8 @@ const en = {
   'home.invalidJsonFile': 'Please select a .json file.',
   'home.fileTooLarge': 'File is too large (max 5MB).',
   'home.importFailed': 'Failed to read file.',
+  'home.importedWithErrors': 'Some channels were imported with warnings.',
+  'home.importSuccess': 'Channels imported successfully.',
 
   // Channels Page
   'channels.title': 'Channels',
