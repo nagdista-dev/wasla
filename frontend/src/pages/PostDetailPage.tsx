@@ -132,13 +132,7 @@ export default function PostDetailPage() {
   }
 
   const contentElements = useMemo(
-    () => renderContentWithLinks(post.content, (url) => {
-      if (isYouTubeUrl(url)) {
-        setPendingLink(url);
-      } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-    }),
+    () => renderContentWithLinks(post.content, handleLinkClick),
     [post.content]
   );
 
