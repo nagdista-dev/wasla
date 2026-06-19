@@ -113,14 +113,18 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onAppl
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex items-center justify-center p-0 ${closing ? 'animate-fadeout' : 'animate-fadein'}`}
+      className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center ${closing ? 'animate-fadeout' : 'animate-fadein'}`}
       style={{ animationDuration: '0.2s' }}
     >
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCancel} />
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative z-10 w-full h-screen max-h-screen flex flex-col rounded-none bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700 ${closing ? 'animate-slide-down' : 'animate-slide-up-fullscreen'}`}
+        className={`relative z-10 w-full sm:max-w-lg sm:w-full sm:mx-4 flex flex-col bg-white shadow-2xl dark:bg-dark-navy dark:ring-1 dark:ring-gray-700 ${
+          closing
+            ? 'animate-slide-down'
+            : 'animate-slide-up-fullscreen'
+        } sm:max-h-[85vh] sm:rounded-2xl max-h-screen h-screen sm:h-auto`}
         role="dialog"
         aria-modal="true"
         aria-label={t('filterModal.title')}

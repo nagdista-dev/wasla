@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, Upload, X } from 'lucide-react';
+import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, Search, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditChannelModal from '../components/EditChannelModal';
 import VideoCard from '../components/VideoCard';
@@ -35,7 +35,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
   const { t } = useLanguage();
   usePlayer();
   const { showToast } = useToast();
-  const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowLiveOnly } = useFilters();
+  const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowLiveOnly, setShowFilterModal, activeFilterCount } = useFilters();
   const { selectedCategory, timeRange, sortBy, hiddenCategories, showLiveOnly } = filters;
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
@@ -283,6 +283,16 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
             className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
             aria-label={t('home.refresh')}>
             <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <button type="button" onClick={() => setShowFilterModal(true)}
+            className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 relative"
+            aria-label={t('filterModal.filter')}>
+            <SlidersHorizontal className="h-5 w-5" />
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-brand-coral text-[10px] font-bold text-white leading-none px-1 shadow-sm">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
           <div className="flex-1" />
           <button type="button" onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}

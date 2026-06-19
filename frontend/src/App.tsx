@@ -24,7 +24,6 @@ import {
   GraduationCap,
   MessageCircle,
   Search,
-  SlidersHorizontal,
   Headphones,
   History,
   Newspaper,
@@ -138,7 +137,6 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
   const navigate = useNavigate();
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { activeFilterCount, setShowFilterModal } = useFilters();
   const { currentVideo: audioVideo, isPlaying: isAudioPlaying } = useAudio();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -178,27 +176,13 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
       </Link>
 
       <div className="flex items-center">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onOpenSearch}
-            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
-            aria-label={t('home.search')}
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => setShowFilterModal(true)}
-            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90 relative"
-            aria-label={t('filterModal.filter')}
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-            {activeFilterCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-brand-coral text-[10px] font-bold text-white leading-none px-1 shadow-sm">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-        </div>
+        <button
+          onClick={onOpenSearch}
+          className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
+          aria-label={t('home.search')}
+        >
+          <Search className="h-5 w-5" />
+        </button>
 
         <div className="mx-2 h-6 w-px bg-gray-200/70 dark:bg-gray-700/50" />
 
