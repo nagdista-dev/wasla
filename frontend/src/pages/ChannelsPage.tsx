@@ -181,11 +181,11 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                   </span>
                   <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
                 </div>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {grouped.get(letter)!.map((channel) => (
                     <div
                       key={channel.id}
-                      className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700"
+                      className="flex flex-col rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700"
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-pink to-brand-yellow text-sm font-bold text-white">
@@ -225,7 +225,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
                           ))}
                         </div>
                       )}
-                      <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700/50">
+                      <div className="mt-auto flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700/50">
                         <button
                           type="button"
                           onClick={() => navigate(`/channel/${channel.id}`)}
