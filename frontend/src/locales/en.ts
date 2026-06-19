@@ -596,7 +596,13 @@ const en = {
   'loadingScreen.benefit30': 'Transform your viewing habits with smart recommendations',
 
   // Video Page
-  'videoPage.notFound': 'Video not found'
+  'videoPage.notFound': 'Video not found',
+
+  // 404 Page
+  'notFound.title': 'Page not found',
+  'notFound.description': "Oops! The page you're looking for doesn't exist or has been moved.",
+  'notFound.goHome': 'Go to Home',
+  'notFound.redirecting': 'Redirecting to home in {countdown}s...'
 };
 
 export type TranslationKeys = keyof typeof en;

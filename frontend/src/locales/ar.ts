@@ -597,7 +597,13 @@ const ar: Record<string, string> = {
   'loadingScreen.benefit30': 'تحويل عادات مشاهدتك مع توصيات ذكية',
 
   // Video Page
-  'videoPage.notFound': 'الفيديو غير موجود'
+  'videoPage.notFound': 'الفيديو غير موجود',
+
+  // 404 Page
+  'notFound.title': 'الصفحة غير موجودة',
+  'notFound.description': 'عذراً! الصفحة التي تبحث عنها غير موجودة أو تم نقلها.',
+  'notFound.goHome': 'العودة إلى الرئيسية',
+  'notFound.redirecting': 'سيتم إعادة التوجيه إلى الصفحة الرئيسية بعد {countdown} ثانية...'
 };
 
 export default ar;

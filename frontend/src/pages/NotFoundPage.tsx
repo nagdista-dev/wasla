@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Home } from 'lucide-react';
 
 function NotFoundPage() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(10);
 
@@ -40,19 +40,19 @@ function NotFoundPage() {
     <div className="relative flex min-h-[80dvh] flex-col items-center justify-center overflow-hidden px-4">
       {/* Background floating circles */}
       <motion.div
-        className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full opacity-10"
+        className={`pointer-events-none absolute -top-20 ${isRTL ? '-left-20' : '-right-20'} h-72 w-72 rounded-full opacity-10`}
         style={{ background: 'linear-gradient(135deg, #f37345, #feb144)' }}
         animate={{ y: [0, -20, 0], scale: [1, 1.05, 1] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full opacity-10"
+        className={`pointer-events-none absolute -bottom-16 ${isRTL ? '-right-16' : '-left-16'} h-56 w-56 rounded-full opacity-10`}
         style={{ background: 'linear-gradient(135deg, #b51762, #e2436a)' }}
         animate={{ y: [0, 24, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="pointer-events-none absolute top-1/3 left-1/4 h-32 w-32 rounded-full opacity-5"
+        className={`pointer-events-none absolute top-1/3 ${isRTL ? 'right-1/4' : 'left-1/4'} h-32 w-32 rounded-full opacity-5`}
         style={{ background: 'linear-gradient(135deg, #e2436a, #f37345)' }}
         animate={{ y: [0, -16, 0], x: [0, 12, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
@@ -109,10 +109,10 @@ function NotFoundPage() {
         {/* Message */}
         <motion.div variants={itemVariants} className="space-y-2">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
-            {t('notFound.title') || 'Page not found'}
+            {t('notFound.title')}
           </h1>
           <p className="mx-auto max-w-sm text-sm leading-relaxed text-gray-500 dark:text-gray-400 sm:text-base">
-            {t('notFound.description') || "Oops! The page you're looking for doesn't exist or has been moved."}
+            {t('notFound.description')}
           </p>
         </motion.div>
 
@@ -124,10 +124,10 @@ function NotFoundPage() {
             style={{ background: 'linear-gradient(135deg, #e2436a, #f37345)' }}
           >
             <Home className="h-4 w-4" />
-            {t('notFound.goHome') || 'Go to Home'}
+            {t('notFound.goHome')}
           </button>
           <span className="text-xs text-gray-400 dark:text-gray-500">
-            {t('notFound.redirecting') || `Redirecting to home in ${countdown}s...`}
+            {t('notFound.redirecting', { countdown })}
           </span>
         </motion.div>
       </motion.div>
