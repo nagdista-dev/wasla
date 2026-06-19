@@ -372,6 +372,12 @@ const en = {
   'confirmLink.continue': 'Open',
   'confirmLink.cancel': 'Cancel',
 
+  // Post Card
+  'postCard.watchOnYoutube': 'Watch on YouTube',
+  'postCard.externalRedirect': 'You are about to be redirected to YouTube. The app will open this content in your browser.',
+  'postCard.confirmRedirect': 'Confirm',
+  'postCard.cancelRedirect': 'Cancel',
+
   // Mini Player
   'miniPlayer.close': 'Close player',
   'miniPlayer.couldNotLoad': 'Could not load video',

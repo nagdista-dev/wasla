@@ -52,8 +52,11 @@ const ConfirmLinkModal = memo(function ConfirmLinkModal({ url, onConfirm, onCanc
           <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-2">
             {t('confirmLink.title')}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-1">
             {t('confirmLink.message')}
+          </p>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 text-center mb-4 font-medium">
+            {t('postCard.externalRedirect')}
           </p>
 
           <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-3 mb-6 border border-gray-100 dark:border-white/10">
@@ -67,13 +70,13 @@ const ConfirmLinkModal = memo(function ConfirmLinkModal({ url, onConfirm, onCanc
               onClick={onCancel}
               className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 border border-gray-200 hover:bg-gray-200 dark:text-gray-300 dark:bg-white/10 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px]"
             >
-              {t('confirmLink.cancel')}
+              {t('postCard.cancelRedirect')}
             </button>
             <button
               onClick={onConfirm}
               className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white bg-brand-coral hover:bg-red-700 transition-all active:scale-95 min-h-[44px] shadow-sm"
             >
-              {t('confirmLink.continue')}
+              {t('postCard.confirmRedirect')}
             </button>
           </div>
         </div>

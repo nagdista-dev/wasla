@@ -372,6 +372,12 @@ const ar: Record<string, string> = {
   'confirmLink.continue': 'فتح',
   'confirmLink.cancel': 'إلغاء',
 
+  // Post Card
+  'postCard.watchOnYoutube': 'مشاهدة على يوتيوب',
+  'postCard.externalRedirect': 'سيتم تحويلك إلى يوتيوب. سيتم فتح هذا المحتوى في متصفحك.',
+  'postCard.confirmRedirect': 'تأكيد',
+  'postCard.cancelRedirect': 'إلغاء',
+
   // Mini Player
   'miniPlayer.close': 'إغلاق المشغل',
   'miniPlayer.couldNotLoad': 'تعذر تحميل الفيديو',

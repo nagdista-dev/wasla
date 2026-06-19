@@ -1,11 +1,20 @@
 import { memo, useMemo, useState } from 'react';
-import { ImageIcon, Clock, ChevronRight } from 'lucide-react';
+import { ImageIcon, Clock, ChevronRight, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { CommunityPost } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { isYouTubeUrl } from '../utils/linkUtils';
 import ConfirmLinkModal from './ConfirmLinkModal';
+import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
+
+function getYouTubeUrl(post: CommunityPost): string | null {
+  if (post.link && isYouTubeUrl(post.link)) {
+    return post.link;
+  }
+  if (post.link) return post.link;
+  return `https://www.youtube.com/channel/${post.channelId}`;
+}
 
 function renderContentWithLinks(content: string, onLinkClick: (url: string) => void) {
   const urlRegex = /^(https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
@@ -40,6 +49,7 @@ function PostCard({ post }: { post: CommunityPost }) {
   const previewImage = post.thumbnail || post.images[0];
   const [pendingLink, setPendingLink] = useState<string | null>(null);
   const channelInitial = (post.channelName || '?').charAt(0).toUpperCase();
+  const youtubeUrl = useMemo(() => getYouTubeUrl(post), [post]);
 
   const contentElements = useMemo(
     () => renderContentWithLinks(post.content, (url) => {
@@ -63,26 +73,37 @@ function PostCard({ post }: { post: CommunityPost }) {
     setPendingLink(null);
   };
 
+  const handleYoutubeClick = () => {
+    if (youtubeUrl) {
+      setPendingLink(youtubeUrl);
+    }
+  };
+
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition-all duration-200 hover:shadow-md hover:ring-brand-coral/30 dark:bg-dark-navy dark:ring-gray-700 dark:hover:ring-brand-coral/40">
       <div className="h-1 w-full flex-shrink-0 bg-gradient-to-r from-brand-pink via-brand-coral to-brand-yellow opacity-60" />
 
-      {previewImage && (
-        <div className="relative aspect-video overflow-hidden bg-gray-50 dark:bg-white/[0.03]">
-          <img
-            src={previewImage}
-            alt=""
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-            loading="lazy"
-          />
-          {post.images.length > 1 && (
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-              <ImageIcon className="h-3 w-3" />
-              {post.images.length}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="relative aspect-video overflow-hidden bg-gray-50 dark:bg-white/[0.03]">
+        {previewImage ? (
+          <>
+            <ThumbnailWithPlaceholder
+              src={previewImage}
+              alt=""
+              className="group-hover:scale-[1.02]"
+            />
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10">
+            <ImageIcon className="h-10 w-10 text-gray-300 dark:text-gray-600" />
+          </div>
+        )}
+        {post.images.length > 1 && previewImage && (
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+            <ImageIcon className="h-3 w-3" />
+            {post.images.length}
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-center gap-2">
@@ -136,6 +157,17 @@ function PostCard({ post }: { post: CommunityPost }) {
             {t('posts.readMore')}
             <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
           </button>
+          {youtubeUrl && (
+            <button
+              type="button"
+              onClick={handleYoutubeClick}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-all active:scale-95"
+              aria-label={t('postCard.watchOnYoutube')}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              {t('postCard.watchOnYoutube')}
+            </button>
+          )}
         </div>
       </div>
 
