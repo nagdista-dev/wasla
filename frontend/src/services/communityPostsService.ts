@@ -5,6 +5,7 @@ import { getItem, putItem, replaceStoreItems, getAllFromIndex } from './indexedD
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const MAX_POSTS_PER_CHANNEL = 2;
 const VIDEO_URL_PATTERN = /(?:youtube\.com\/(?:watch|shorts|live)|youtu\.be\/)/i;
+const LOCALSTORAGE_CACHE_KEY = 'wasla_posts_cache_v1';
 
 interface ChannelMetadata {
   channelId: string;
@@ -62,11 +63,11 @@ function getNamespacedText(parent: Element, tagName: string): string {
 
 function deduplicateContent(content: string): string {
   if (!content) return content;
-  
+
   const sentences = content.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
   const uniqueSentences: string[] = [];
   const seen = new Set<string>();
-  
+
   for (const sentence of sentences) {
     const normalized = sentence.trim().toLowerCase();
     if (!seen.has(normalized)) {
@@ -74,7 +75,7 @@ function deduplicateContent(content: string): string {
       uniqueSentences.push(sentence);
     }
   }
-  
+
   return uniqueSentences.join('. ').trim();
 }
 
@@ -191,9 +192,9 @@ async function fetchChannelPosts(channel: Channel): Promise<CommunityPost[]> {
     channel,
     response.data.source === 'https://rsshub.app' ? 'rsshub' : 'rsshub-fallback',
   );
-  
+
   if (allPosts.length === 0) return [];
-  
+
   const sortedPosts = allPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   return sortedPosts.slice(0, MAX_POSTS_PER_CHANNEL);
 }
@@ -218,13 +219,13 @@ async function addPosts(channelId: string, posts: CommunityPost[]): Promise<void
   const existingPosts = await getChannelPosts(channelId);
   const existingMap = new Map(existingPosts.map(p => [p.id, p]));
   const newPosts: CachedPost[] = [];
-  
+
   for (const post of posts) {
     if (!existingMap.has(post.id)) {
       newPosts.push(normalizePost(post));
     }
   }
-  
+
   if (newPosts.length > 0) {
     const updatedPosts = [...existingPosts, ...newPosts]
       .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
@@ -234,50 +235,90 @@ async function addPosts(channelId: string, posts: CommunityPost[]): Promise<void
 }
 
 export function loadCachedCommunityPosts(): CommunityPost[] {
-  return [];
+  try {
+    const cached = localStorage.getItem(LOCALSTORAGE_CACHE_KEY);
+    if (!cached) return [];
+    const parsed = JSON.parse(cached);
+    if (!Array.isArray(parsed)) return [];
+    const now = Date.now();
+    return parsed.filter(post => now - post.fetchedAt < CACHE_TTL_MS * 2);
+  } catch {
+    return [];
+  }
+}
+
+function saveCachedCommunityPosts(posts: CommunityPost[]): void {
+  try {
+    localStorage.setItem(LOCALSTORAGE_CACHE_KEY, JSON.stringify(posts));
+  } catch {
+    // localStorage might be full; silently ignore
+  }
+}
+
+export function getPostById(id: string): CommunityPost | null {
+  const cached = loadCachedCommunityPosts();
+  return cached.find(post => post.id === id) || null;
 }
 
 export async function fetchCommunityPosts(channels: Channel[], options?: { force?: boolean }): Promise<FetchResult> {
-  const errors: string[] = [];
+  const results = await Promise.allSettled(
+    channels.map(async (channel) => {
+      try {
+        const metadata = await getChannelMetadata(channel.id);
+        const existingPosts = await getChannelPosts(channel.id);
+        const now = Date.now();
+
+        if (!options?.force && metadata && now - metadata.lastFetchTime < CACHE_TTL_MS && existingPosts.length > 0) {
+          return { posts: existingPosts.map(denormalizePost), channelId: channel.id, error: null };
+        }
+
+        const freshPosts = await fetchChannelPosts(channel);
+        if (freshPosts.length > 0) {
+          await addPosts(channel.id, freshPosts);
+          const latestPost = freshPosts[0];
+          const meta = {
+            channelId: channel.id,
+            lastFetchTime: now,
+            lastPostId: latestPost.id,
+            lastPostPublishedAt: latestPost.publishedAt,
+          };
+          await setChannelMetadata(meta);
+          return { posts: freshPosts, channelId: channel.id, error: null };
+        }
+
+        return { posts: [], channelId: channel.id, error: null };
+      } catch (error) {
+        const errorMsg = `${channel.name}: ${error instanceof Error ? error.message : 'Failed to fetch'}`;
+        let cachedPosts: CommunityPost[] = [];
+        try {
+          cachedPosts = (await getChannelPosts(channel.id)).map(denormalizePost);
+        } catch {
+          // ignore cache read errors
+        }
+        return { posts: cachedPosts, channelId: channel.id, error: errorMsg };
+      }
+    })
+  );
+
   const allPosts: CommunityPost[] = [];
-  const updatedChannels: ChannelMetadata[] = [];
-  
-  for (const channel of channels) {
-    try {
-      const metadata = await getChannelMetadata(channel.id);
-      const existingPosts = await getChannelPosts(channel.id);
-      const now = Date.now();
-      
-      if (!options?.force && metadata && now - metadata.lastFetchTime < CACHE_TTL_MS && existingPosts.length > 0) {
-        allPosts.push(...existingPosts.map(denormalizePost));
-        updatedChannels.push(metadata);
-        continue;
+  const errors: string[] = [];
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      allPosts.push(...result.value.posts);
+      if (result.value.error) {
+        errors.push(result.value.error);
       }
-      
-      const freshPosts = await fetchChannelPosts(channel);
-      if (freshPosts.length > 0) {
-        await addPosts(channel.id, freshPosts);
-        allPosts.push(...freshPosts);
-        
-        const latestPost = freshPosts[0];
-        await setChannelMetadata({
-          channelId: channel.id,
-          lastFetchTime: now,
-          lastPostId: latestPost.id,
-          lastPostPublishedAt: latestPost.publishedAt,
-        });
-        updatedChannels.push({ channelId: channel.id, lastFetchTime: now, lastPostId: latestPost.id, lastPostPublishedAt: latestPost.publishedAt });
-      }
-    } catch (error) {
-      errors.push(`${channel.name}: ${error instanceof Error ? error.message : 'Failed to fetch'}`);
-      const metadata = await getChannelMetadata(channel.id);
-      if (metadata) {
-        allPosts.push(...(await getChannelPosts(channel.id)).map(denormalizePost));
-        updatedChannels.push(metadata);
-      }
+    } else {
+      errors.push(result.reason?.message || 'Unknown error');
     }
   }
-  
-  const fromCache = updatedChannels.length === channels.length && errors.length === 0;
+
+  if (allPosts.length > 0) {
+    saveCachedCommunityPosts(allPosts);
+  }
+
+  const fromCache = results.every(r => r.status === 'fulfilled' && !r.value.error);
+
   return { posts: allPosts, errors, fromCache };
 }

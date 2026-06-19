@@ -102,6 +102,7 @@ const en = {
   'posts.imageCount': '{count} images',
   'posts.readMore': 'Read more',
   'posts.backToPosts': 'Back to Posts',
+  'posts.networkError': 'Could not load posts. Check your internet connection.',
   'posts.notFound': 'Post not found',
   'posts.notFoundHint': 'Refresh the posts feed and try opening the post again.',
 

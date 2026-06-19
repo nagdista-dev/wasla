@@ -102,6 +102,7 @@ const ar: Record<string, string> = {
   'posts.imageCount': '{count} صور',
   'posts.readMore': 'اقرأ المزيد',
   'posts.backToPosts': 'العودة إلى المنشورات',
+  'posts.networkError': 'تعذر تحميل المنشورات. تحقق من اتصالك بالإنترنت.',
   'posts.notFound': 'المنشور غير موجود',
   'posts.notFoundHint': 'حدّث خلاصة المنشورات ثم حاول فتح المنشور مرة أخرى.',
 

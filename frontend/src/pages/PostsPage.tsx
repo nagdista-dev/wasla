@@ -1,109 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ImageIcon, Loader2, MessageSquareText, RefreshCcw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, Loader2, RefreshCcw, WifiOff } from 'lucide-react';
 import type { Channel, CommunityPost } from '../types';
 import { fetchCommunityPosts, loadCachedCommunityPosts } from '../services/communityPostsService';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
-import { formatRelativeTime } from '../utils/formatRelativeTime';
-import { isYouTubeUrl } from '../utils/linkUtils';
-import ConfirmLinkModal from '../components/ConfirmLinkModal';
+import PostCard from '../components/PostCard';
 
 interface PostsPageProps {
   channels: Channel[];
-}
-
-function PostPreview({ post }: { post: CommunityPost }) {
-  const { t } = useLanguage();
-  const navigate = useNavigate();
-  const previewImage = post.thumbnail || post.images[0];
-  const [pendingLink, setPendingLink] = useState<string | null>(null);
-
-  const handleLinkClick = (url: string) => {
-    if (isYouTubeUrl(url)) {
-      setPendingLink(url);
-    } else {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  const handleConfirm = () => {
-    if (pendingLink) {
-      window.open(pendingLink, '_blank', 'noopener,noreferrer');
-      setPendingLink(null);
-    }
-  };
-
-  const handleCancel = () => {
-    setPendingLink(null);
-  };
-
-  return (
-    <article
-      className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md dark:bg-dark-navy dark:ring-gray-700"
-    >
-      <button type="button" onClick={() => navigate(`/post/${post.id}`)} className="block w-full text-left rtl:text-right">
-        <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-brand-coral/10 text-brand-coral">
-            <MessageSquareText className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {formatRelativeTime(post.publishedAt, t)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">
-          {post.content.split(/\s+/).map((word, index) => {
-            const urlRegex = /^(https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
-            const isUrl = urlRegex.test(word);
-            if (isUrl) {
-              return (
-                <a
-                  key={index}
-                  href={word}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLinkClick(word);
-                  }}
-                  className="text-brand-coral hover:text-brand-pink hover:underline font-medium transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {word}
-                </a>
-              );
-            }
-            return <span key={index}>{word} </span>;
-          })}
-        </p>
-
-        {previewImage && (
-          <div className="mt-3 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-white/5">
-            <img src={previewImage} alt="" className="max-h-32 w-full object-cover" loading="lazy" />
-          </div>
-        )}
-
-        {post.images.length > 1 && (
-          <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
-            <ImageIcon className="h-4 w-4" />
-            {t('posts.imageCount', { count: post.images.length })}
-          </div>
-        )}
-      </button>
-
-      {pendingLink && (
-        <ConfirmLinkModal
-          url={pendingLink}
-          onConfirm={handleConfirm}
-          onCancel={handleCancel}
-        />
-      )}
-    </article>
-  );
 }
 
 export default function PostsPage({ channels }: PostsPageProps) {
@@ -112,6 +16,8 @@ export default function PostsPage({ channels }: PostsPageProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [networkError, setNetworkError] = useState(false);
+  const mountedRef = useRef(true);
 
   useMeta({ title: t('posts.title'), description: t('posts.description') });
 
@@ -123,18 +29,31 @@ export default function PostsPage({ channels }: PostsPageProps) {
   const loadPosts = useCallback(async (force = false) => {
     if (force) setRefreshing(true);
     else setLoading(true);
+
     try {
       const result = await fetchCommunityPosts(channels, { force });
+      if (!mountedRef.current) return;
       setPosts(result.posts);
       setErrors(result.errors);
+      setNetworkError(result.errors.length === channels.length);
+    } catch {
+      if (!mountedRef.current) return;
+      setNetworkError(true);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (mountedRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, [channels]);
 
   useEffect(() => {
-    void Promise.resolve().then(() => loadPosts(false));
+    mountedRef.current = true;
+    const timer = setTimeout(() => loadPosts(false), 0);
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(timer);
+    };
   }, [loadPosts]);
 
   return (
@@ -159,40 +78,61 @@ export default function PostsPage({ channels }: PostsPageProps) {
         </div>
 
         {errors.length > 0 && (
-          <div className="mb-5 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-900/60 dark:bg-yellow-950/30 dark:text-yellow-100">
+          <div className="mb-5 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-900/60 dark:bg-yellow-950/30 dark:text-yellow-100">
             <div className="mb-2 flex items-center gap-2 font-semibold">
-              <AlertCircle className="h-4 w-4" />
-              {t('posts.partialError')}
+              {networkError ? <WifiOff className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+              {networkError ? t('posts.networkError') || 'Network error' : t('posts.partialError')}
             </div>
             <ul className="space-y-1">
               {errors.slice(0, 4).map((error) => (
                 <li key={error}>{error}</li>
               ))}
             </ul>
+            {networkError && posts.length > 0 && (
+              <p className="mt-2 text-yellow-800 dark:text-yellow-200">
+                Showing cached posts while offline
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => loadPosts(true)}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-coral hover:text-brand-pink transition-colors"
+            >
+              <RefreshCcw className="h-3.5 w-3.5" />
+              Retry
+            </button>
           </div>
         )}
 
         {channels.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
+          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('posts.noChannels')}</p>
             <p className="mt-2 text-gray-600 dark:text-gray-400">{t('posts.noChannelsHint')}</p>
           </div>
         ) : loading && subscribedPosts.length === 0 ? (
           <div className="flex min-h-[320px] items-center justify-center">
-            <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              {t('posts.loading')}
+            <div className="flex flex-col items-center gap-3 text-gray-600 dark:text-gray-300">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="text-sm font-medium">{t('posts.loading')}</span>
             </div>
           </div>
-        ) : subscribedPosts.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
+        ) : subscribedPosts.length === 0 && !loading ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('posts.empty')}</p>
             <p className="mt-2 text-gray-600 dark:text-gray-400">{t('posts.emptyHint')}</p>
+            <button
+              type="button"
+              onClick={() => loadPosts(true)}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-coral px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-pink"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Retry
+            </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {subscribedPosts.map((post) => (
-              <PostPreview key={post.id} post={post} />
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         )}
