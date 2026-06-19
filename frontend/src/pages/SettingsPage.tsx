@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/Toast';
-import ConfirmActionModal from '../components/ConfirmActionModal';
 import { exportAll, importAll, isClientSide } from '../services/indexedDbService';
 import { loadSetting, saveSetting, deleteSetting, readStoredValue } from '../storage';
 import type { Channel, Playlist } from '../types';
@@ -57,7 +56,7 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
   const { showToast } = useToast();
   const [resolving, setResolving] = useState(false);
 
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
 
   const [startPage, setStartPage] = useState<string>(() => {
     return readStoredValue<string>('wasla_start_page') || 'home';
@@ -92,7 +91,7 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
     window.location.reload();
   };
 
-  const handleResetClick = () => setShowResetConfirm(true);
+  const handleResetClick = () => resetDefaults();
 
   const exportSettings = async () => {
     const settings: Record<string, string | null> = {};
@@ -479,14 +478,6 @@ export default function SettingsPage({ channels, playlists, onUpdate, onUpdatePl
         </div>
       </div>
 
-      <ConfirmActionModal
-        isOpen={showResetConfirm}
-        onClose={() => setShowResetConfirm(false)}
-        onConfirm={resetDefaults}
-        title={t('settings.confirmResetTitle')}
-        description={t('settings.confirmResetDesc')}
-        confirmLabel={t('settings.resetDefaults')}
-      />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import { getAllHistory, removeEntry, clearAllHistory, searchHistory, type WatchH
 import { removeProgress } from '../services/playbackProgressService';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useToast } from '../components/Toast';
-import ConfirmActionModal from '../components/ConfirmActionModal';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 
 export default function WatchHistoryPage() {
@@ -18,7 +17,7 @@ export default function WatchHistoryPage() {
   const [history, setHistory] = useState<WatchHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
 
   useMeta({ title: t('watchHistory.title') });
 
@@ -56,9 +55,7 @@ export default function WatchHistoryPage() {
 
   const handleClearAll = async () => {
     await clearAllHistory();
-    setHistory([]);
-    setShowClearConfirm(false);
-    showToast(t('watchHistory.clearAll'), 'info');
+    setEntries([]);
   };
 
   const handlePlay = (entry: WatchHistoryEntry) => {
@@ -103,7 +100,7 @@ export default function WatchHistoryPage() {
 
           {history.length > 0 && (
             <button
-              onClick={() => setShowClearConfirm(true)}
+              onClick={handleClearAll}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 transition"
             >
               <Trash2 className="h-4 w-4" />
@@ -245,17 +242,6 @@ export default function WatchHistoryPage() {
           </div>
         )}
 
-        {/* Clear all confirmation modal */}
-        {showClearConfirm && (
-          <ConfirmActionModal
-            isOpen={showClearConfirm}
-            onClose={() => setShowClearConfirm(false)}
-            onConfirm={handleClearAll}
-            title={t('watchHistory.clearAll')}
-            description={t('watchHistory.clearAllConfirm')}
-            confirmLabel={t('watchHistory.clearAll')}
-          />
-        )}
       </div>
     </div>
   );
