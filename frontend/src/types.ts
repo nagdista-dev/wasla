@@ -122,6 +122,7 @@ export interface CommunityPost {
   id: string;
   channelId: string;
   channelName: string;
+  channelCategories: string[];
   title?: string;
   content: string;
   link?: string;

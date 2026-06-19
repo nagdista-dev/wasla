@@ -18,6 +18,7 @@ interface CachedPost {
   id: string;
   channelId: string;
   channelName: string;
+  channelCategories: string[];
   title?: string;
   content: string;
   link?: string;
@@ -33,6 +34,8 @@ interface FetchResult {
   errors: string[];
   fromCache: boolean;
 }
+
+type OnChannelPosts = (channelId: string, posts: CommunityPost[], error?: string) => void;
 
 function textFromHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -103,6 +106,7 @@ function normalizePost(post: CommunityPost): CachedPost {
     id: post.id,
     channelId: post.channelId,
     channelName: post.channelName,
+    channelCategories: post.channelCategories,
     title: post.title,
     content: post.content,
     link: post.link,
@@ -114,11 +118,12 @@ function normalizePost(post: CommunityPost): CachedPost {
   };
 }
 
-function denormalizePost(post: CachedPost): CommunityPost {
+function denormalizePost(post: CachedPost): CommunityPost & { _sortTime?: number } {
   return {
     id: post.id,
     channelId: post.channelId,
     channelName: post.channelName,
+    channelCategories: post.channelCategories,
     title: post.title,
     content: post.content,
     link: post.link,
@@ -168,6 +173,7 @@ function parseFeed(xml: string, channel: Channel, source: CommunityPost['source'
         id: hash(`${channel.id}:${guid}`),
         channelId: channel.id,
         channelName: channel.name,
+        channelCategories: channel.categories || [],
         title: undefined,
         content: deduplicatedContent,
         link: link || undefined,
@@ -241,7 +247,8 @@ export function loadCachedCommunityPosts(): CommunityPost[] {
     const parsed = JSON.parse(cached);
     if (!Array.isArray(parsed)) return [];
     const now = Date.now();
-    return parsed.filter(post => now - post.fetchedAt < CACHE_TTL_MS * 2);
+    const posts = parsed.filter((post: CommunityPost) => now - post.fetchedAt < CACHE_TTL_MS * 2);
+    return posts.sort((a: CommunityPost, b: CommunityPost) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   } catch {
     return [];
   }
@@ -260,7 +267,59 @@ export function getPostById(id: string): CommunityPost | null {
   return cached.find(post => post.id === id) || null;
 }
 
+function sortPostsByDate(posts: CommunityPost[]): CommunityPost[] {
+  return [...posts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+}
+
+export async function fetchCommunityPostsProgressive(
+  channels: Channel[],
+  onChannelPosts: OnChannelPosts,
+  options?: { force?: boolean }
+): Promise<void> {
+  const promises = channels.map(async (channel) => {
+    try {
+      const metadata = await getChannelMetadata(channel.id);
+      const existingPosts = await getChannelPosts(channel.id);
+      const now = Date.now();
+
+      if (!options?.force && metadata && now - metadata.lastFetchTime < CACHE_TTL_MS && existingPosts.length > 0) {
+        onChannelPosts(channel.id, existingPosts.map(denormalizePost));
+        return;
+      }
+
+      const freshPosts = await fetchChannelPosts(channel);
+      if (freshPosts.length > 0) {
+        await addPosts(channel.id, freshPosts);
+        const latestPost = freshPosts[0];
+        await setChannelMetadata({
+          channelId: channel.id,
+          lastFetchTime: now,
+          lastPostId: latestPost.id,
+          lastPostPublishedAt: latestPost.publishedAt,
+        });
+        onChannelPosts(channel.id, freshPosts);
+      } else {
+        onChannelPosts(channel.id, []);
+      }
+    } catch (error) {
+      const errorMsg = `${channel.name}: ${error instanceof Error ? error.message : 'Failed to fetch'}`;
+      let cachedPosts: CommunityPost[] = [];
+      try {
+        cachedPosts = (await getChannelPosts(channel.id)).map(denormalizePost);
+      } catch {
+        // ignore cache read errors
+      }
+      onChannelPosts(channel.id, cachedPosts, errorMsg);
+    }
+  });
+
+  await Promise.allSettled(promises);
+}
+
 export async function fetchCommunityPosts(channels: Channel[], options?: { force?: boolean }): Promise<FetchResult> {
+  const errors: string[] = [];
+  const allPosts: CommunityPost[] = [];
+
   const results = await Promise.allSettled(
     channels.map(async (channel) => {
       try {
@@ -300,9 +359,6 @@ export async function fetchCommunityPosts(channels: Channel[], options?: { force
     })
   );
 
-  const allPosts: CommunityPost[] = [];
-  const errors: string[] = [];
-
   for (const result of results) {
     if (result.status === 'fulfilled') {
       allPosts.push(...result.value.posts);
@@ -314,11 +370,13 @@ export async function fetchCommunityPosts(channels: Channel[], options?: { force
     }
   }
 
-  if (allPosts.length > 0) {
-    saveCachedCommunityPosts(allPosts);
+  const sorted = sortPostsByDate(allPosts);
+
+  if (sorted.length > 0) {
+    saveCachedCommunityPosts(sorted);
   }
 
   const fromCache = results.every(r => r.status === 'fulfilled' && !r.value.error);
 
-  return { posts: allPosts, errors, fromCache };
+  return { posts: sorted, errors, fromCache };
 }

@@ -183,6 +183,20 @@ export default function PostDetailPage() {
               </div>
             </div>
 
+            {post.channelCategories.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {post.channelCategories.map((cat) => (
+                  <Link
+                    key={cat}
+                    to={`/category/${encodeURIComponent(cat)}`}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/15 text-xs font-medium text-gray-600 dark:text-gray-200 border border-gray-200 dark:border-white/20 truncate max-w-[160px] hover:bg-brand-coral/10 hover:text-brand-coral hover:border-brand-coral/30 transition-colors"
+                  >
+                    {cat}
+                  </Link>
+                ))}
+              </div>
+            )}
+
             {post.content && (
               <div className="mt-6 whitespace-pre-line text-base leading-8 text-gray-800 dark:text-gray-200">
                 {contentElements}

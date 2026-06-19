@@ -1,19 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Loader2, RefreshCcw, WifiOff } from 'lucide-react';
 import type { Channel, CommunityPost } from '../types';
-import { fetchCommunityPosts, loadCachedCommunityPosts } from '../services/communityPostsService';
+import { fetchCommunityPostsProgressive, loadCachedCommunityPosts } from '../services/communityPostsService';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import PostCard from '../components/PostCard';
+import PostCardSkeleton from '../components/PostCardSkeleton';
 
 interface PostsPageProps {
   channels: Channel[];
 }
 
+function sortPostsByDate(posts: CommunityPost[]): CommunityPost[] {
+  return [...posts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+}
+
 export default function PostsPage({ channels }: PostsPageProps) {
   const { t } = useLanguage();
-  const [posts, setPosts] = useState<CommunityPost[]>(() => loadCachedCommunityPosts());
-  const [loading, setLoading] = useState(true);
+  const [allPosts, setAllPosts] = useState<CommunityPost[]>(() => {
+    const cached = loadCachedCommunityPosts();
+    return sortPostsByDate(cached);
+  });
+  const [loadingChannels, setLoadingChannels] = useState<Set<string>>(new Set());
+  const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [networkError, setNetworkError] = useState(false);
@@ -21,31 +30,72 @@ export default function PostsPage({ channels }: PostsPageProps) {
 
   useMeta({ title: t('posts.title'), description: t('posts.description') });
 
-  const subscribedPosts = useMemo(() => {
-    const channelIds = new Set(channels.map((channel) => channel.id));
-    return posts.filter((post) => channelIds.has(post.channelId));
-  }, [channels, posts]);
+  const channelIdSet = useMemo(() => new Set(channels.map(c => c.id)), [channels]);
+
+  const subscribedPosts = useMemo(
+    () => sortPostsByDate(allPosts.filter(post => channelIdSet.has(post.channelId))),
+    [allPosts, channelIdSet]
+  );
+
+  const channelsToLoad = useMemo(
+    () => channels.filter(ch => {
+      const cached = loadCachedCommunityPosts();
+      return !cached.some(p => p.channelId === ch.id);
+    }),
+    [channels]
+  );
 
   const loadPosts = useCallback(async (force = false) => {
-    if (force) setRefreshing(true);
-    else setLoading(true);
+    if (force) {
+      setRefreshing(true);
+      setErrors([]);
+      setNetworkError(false);
+    }
+
+    const targetChannels = force ? channels : channelsToLoad;
+    if (targetChannels.length === 0) {
+      setInitialLoading(false);
+      return;
+    }
+
+    setLoadingChannels(new Set(targetChannels.map(c => c.id)));
 
     try {
-      const result = await fetchCommunityPosts(channels, { force });
-      if (!mountedRef.current) return;
-      setPosts(result.posts);
-      setErrors(result.errors);
-      setNetworkError(result.errors.length === channels.length);
+      await fetchCommunityPostsProgressive(
+        targetChannels,
+        (channelId, posts, error) => {
+          if (!mountedRef.current) return;
+
+          setAllPosts(prev => {
+            const existing = prev.filter(p => p.channelId !== channelId);
+            const merged = sortPostsByDate([...existing, ...posts]);
+            return merged;
+          });
+
+          setLoadingChannels(prev => {
+            const next = new Set(prev);
+            next.delete(channelId);
+            return next;
+          });
+
+          if (error) {
+            setErrors(prev => prev.includes(error) ? prev : [...prev, error]);
+          }
+        },
+        { force }
+      );
     } catch {
-      if (!mountedRef.current) return;
-      setNetworkError(true);
+      if (mountedRef.current) {
+        setNetworkError(true);
+      }
     } finally {
       if (mountedRef.current) {
-        setLoading(false);
+        setInitialLoading(false);
         setRefreshing(false);
+        setLoadingChannels(new Set());
       }
     }
-  }, [channels]);
+  }, [channels, channelsToLoad]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -55,6 +105,11 @@ export default function PostsPage({ channels }: PostsPageProps) {
       clearTimeout(timer);
     };
   }, [loadPosts]);
+
+  const allErrors = errors;
+  const hasNetworkError = networkError;
+  const pendingChannels = loadingChannels;
+  const skeletonCount = Math.min(pendingChannels.size, 3);
 
   return (
     <div className="min-h-screen p-4 dark:bg-dark-navy sm:p-6">
@@ -77,18 +132,18 @@ export default function PostsPage({ channels }: PostsPageProps) {
           </button>
         </div>
 
-        {errors.length > 0 && (
+        {allErrors.length > 0 && (
           <div className="mb-5 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-900/60 dark:bg-yellow-950/30 dark:text-yellow-100">
             <div className="mb-2 flex items-center gap-2 font-semibold">
-              {networkError ? <WifiOff className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              {networkError ? t('posts.networkError') || 'Network error' : t('posts.partialError')}
+              {hasNetworkError ? <WifiOff className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+              {hasNetworkError ? t('posts.networkError') : t('posts.partialError')}
             </div>
             <ul className="space-y-1">
-              {errors.slice(0, 4).map((error) => (
+              {allErrors.slice(0, 4).map((error) => (
                 <li key={error}>{error}</li>
               ))}
             </ul>
-            {networkError && posts.length > 0 && (
+            {hasNetworkError && subscribedPosts.length > 0 && (
               <p className="mt-2 text-yellow-800 dark:text-yellow-200">
                 Showing cached posts while offline
               </p>
@@ -109,14 +164,13 @@ export default function PostsPage({ channels }: PostsPageProps) {
             <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('posts.noChannels')}</p>
             <p className="mt-2 text-gray-600 dark:text-gray-400">{t('posts.noChannelsHint')}</p>
           </div>
-        ) : loading && subscribedPosts.length === 0 ? (
-          <div className="flex min-h-[320px] items-center justify-center">
-            <div className="flex flex-col items-center gap-3 text-gray-600 dark:text-gray-300">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="text-sm font-medium">{t('posts.loading')}</span>
-            </div>
+        ) : initialLoading && subscribedPosts.length === 0 && pendingChannels.size === 0 ? (
+          <div className="space-y-5">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <PostCardSkeleton key={i} />
+            ))}
           </div>
-        ) : subscribedPosts.length === 0 && !loading ? (
+        ) : subscribedPosts.length === 0 && pendingChannels.size === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('posts.empty')}</p>
             <p className="mt-2 text-gray-600 dark:text-gray-400">{t('posts.emptyHint')}</p>
@@ -134,6 +188,17 @@ export default function PostsPage({ channels }: PostsPageProps) {
             {subscribedPosts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
+            {pendingChannels.size > 0 && (
+              <>
+                {Array.from({ length: skeletonCount }).map((_, i) => (
+                  <PostCardSkeleton key={`skel-${i}`} />
+                ))}
+                <div className="flex items-center justify-center py-4 text-sm text-gray-400 dark:text-gray-500">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Loading {pendingChannels.size} more channel{pendingChannels.size > 1 ? 's' : ''}...
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
