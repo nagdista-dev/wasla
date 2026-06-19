@@ -462,8 +462,8 @@ function VideoPage() {
       <div className="min-h-screen bg-white dark:bg-dark-navy">
         <div className="mx-auto w-full max-w-7xl px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
           <div className="lg:grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] lg:gap-6 xl:gap-8">
-            <div className="relative aspect-video w-full bg-black rounded-none lg:rounded-xl overflow-hidden shadow-2xl skeleton-shimmer" />
-            <div className="px-4 lg:px-0 py-4 lg:py-0 space-y-5 sm:space-y-6">
+            <div className="relative aspect-video w-full bg-black rounded-none lg:rounded-xl overflow-hidden shadow-2xl skeleton-shimmer lg:order-2" />
+            <div className="px-4 lg:px-0 py-4 lg:py-0 space-y-5 sm:space-y-6 lg:order-1">
               <div className="h-8 w-3/4 rounded skeleton-shimmer" />
               <div className="h-4 w-48 rounded skeleton-shimmer" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -498,12 +498,12 @@ function VideoPage() {
       <div className="mx-auto w-full max-w-7xl px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
         <div className="lg:grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] lg:gap-6 xl:gap-8">
 
-          <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy lg:sticky lg:top-[calc(64px+1.5rem)] lg:self-start">
+          <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy lg:sticky lg:top-[calc(64px+1.5rem)] lg:self-start lg:order-2">
             {player}
           </div>
 
           {video ? (
-            <div className="px-4 sm:px-0 lg:px-0 py-4 sm:py-6 space-y-5 sm:space-y-6">
+            <div className="px-4 sm:px-0 lg:px-0 py-4 sm:py-6 space-y-5 sm:space-y-6 lg:order-1">
               <h1 className="text-xl sm:text-2xl font-bold leading-snug text-gray-900 dark:text-white">
                 {video.title}
               </h1>
