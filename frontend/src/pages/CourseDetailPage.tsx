@@ -213,7 +213,7 @@ export default function CourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12 text-center">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-12 text-center">
         <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300 dark:text-gray-600" />
         <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('courses.notFound')}</p>
         <button
@@ -229,7 +229,7 @@ export default function CourseDetailPage() {
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
-      <div className="mx-auto max-w-3xl px-6 py-6">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-6">
         <button
           onClick={() => navigate('/courses')}
           className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"

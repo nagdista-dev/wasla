@@ -48,7 +48,7 @@ export default function HowToUsePage() {
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
-      <div className="mx-auto max-w-4xl px-6 py-8">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-8">
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
             {t('howToUse.title')}

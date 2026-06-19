@@ -112,8 +112,8 @@ export default function PostsPage({ channels }: PostsPageProps) {
   const skeletonCount = Math.min(pendingChannels.size, 3);
 
   return (
-    <div className="min-h-screen p-4 dark:bg-dark-navy sm:p-6">
-      <div className="mx-auto max-w-3xl">
+    <div className="min-h-screen dark:bg-dark-navy">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-4 sm:py-6">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">{t('posts.title')}</h1>
@@ -165,8 +165,8 @@ export default function PostsPage({ channels }: PostsPageProps) {
             <p className="mt-2 text-gray-600 dark:text-gray-400">{t('posts.noChannelsHint')}</p>
           </div>
         ) : initialLoading && subscribedPosts.length === 0 && pendingChannels.size === 0 ? (
-          <div className="space-y-5">
-            {Array.from({ length: 3 }).map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
               <PostCardSkeleton key={i} />
             ))}
           </div>
@@ -184,22 +184,26 @@ export default function PostsPage({ channels }: PostsPageProps) {
             </button>
           </div>
         ) : (
-          <div className="space-y-5">
-            {subscribedPosts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {subscribedPosts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
             {pendingChannels.size > 0 && (
-              <>
-                {Array.from({ length: skeletonCount }).map((_, i) => (
-                  <PostCardSkeleton key={`skel-${i}`} />
-                ))}
+              <div className="mt-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                  {Array.from({ length: skeletonCount }).map((_, i) => (
+                    <PostCardSkeleton key={`skel-${i}`} />
+                  ))}
+                </div>
                 <div className="flex items-center justify-center py-4 text-sm text-gray-400 dark:text-gray-500">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Loading {pendingChannels.size} more channel{pendingChannels.size > 1 ? 's' : ''}...
                 </div>
-              </>
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>

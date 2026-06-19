@@ -90,8 +90,8 @@ export default function PostDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 dark:bg-dark-navy sm:p-6">
-        <div className="mx-auto max-w-3xl">
+      <div className="min-h-screen dark:bg-dark-navy">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-4 sm:py-6">
           <Link to="/posts" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-coral transition hover:text-brand-pink">
             <ArrowLeft className="h-4 w-4" />
             {t('posts.backToPosts')}
@@ -109,8 +109,8 @@ export default function PostDetailPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen p-4 dark:bg-dark-navy sm:p-6">
-        <div className="mx-auto max-w-3xl">
+      <div className="min-h-screen dark:bg-dark-navy">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-4 sm:py-6">
           <Link to="/posts" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-coral transition hover:text-brand-pink">
             <ArrowLeft className="h-4 w-4" />
             {t('posts.backToPosts')}
@@ -145,8 +145,9 @@ export default function PostDetailPage() {
   const images = post.images.length > 0 ? post.images : (post.thumbnail ? [post.thumbnail] : []);
 
   return (
-    <div className="min-h-screen p-4 dark:bg-dark-navy sm:p-6">
-      <article className="mx-auto max-w-3xl">
+    <div className="min-h-screen dark:bg-dark-navy">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-4 sm:py-6">
+      <article>
         <Link to="/posts" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-coral transition hover:text-brand-pink">
           <ArrowLeft className="h-4 w-4" />
           {t('posts.backToPosts')}
@@ -278,6 +279,7 @@ export default function PostDetailPage() {
           onCancel={handleCancel}
         />
       )}
+      </div>
     </div>
   );
 }
