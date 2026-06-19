@@ -398,33 +398,94 @@ function VideoPage() {
     navigate(`/channel/${video.channelId}`);
   }, [video, navigate]);
 
+  const isFav = video ? isFavorite(video.link) : false;
+  const formattedViews = video ? formatViews(video.views) : undefined;
+  const formattedDuration = video ? formatDuration(video.duration) : undefined;
+  const channelInitial = video?.channelName?.charAt(0).toUpperCase() || '?';
+  const hasChannelRoute = !!video?.channelId;
+
+  const player = (
+    <div
+      ref={playerContainerRef}
+      className="relative aspect-video w-full bg-black overflow-hidden lg:rounded-xl lg:shadow-2xl"
+    >
+      {embedSrc && canRenderPlayer ? (
+        <>
+          <iframe
+            ref={iframeRef}
+            key={embedSrc}
+            src={embedSrc}
+            title={video?.title || 'YouTube video'}
+            className="absolute inset-0 w-full h-full"
+            allow="autoplay; encrypted-media; fullscreen"
+            allowFullScreen
+            onLoad={() => setIframeLoaded(true)}
+          />
+          {!iframeLoaded && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            </div>
+          )}
+          {durationSeconds > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-10">
+              <div
+                ref={progressBarRef}
+                className="h-full bg-brand-coral transition-all duration-[250ms] ease-linear"
+                style={{ width: '0%' }}
+              />
+            </div>
+          )}
+        </>
+      ) : embedSrc ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+          <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+          {video?.link && (
+            <button
+              onClick={() => { window.open(video.link, '_blank'); }}
+              className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {t('miniPlayer.openOnYoutube')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-dark-navy">
-        <div className="mx-auto max-w-5xl px-0 sm:px-4 lg:px-6 py-0 sm:py-6">
-          <div className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl skeleton-shimmer" />
-          <div className="px-4 sm:px-0 py-4 sm:py-6 space-y-4 sm:space-y-5">
-            <div className="h-8 w-3/4 rounded skeleton-shimmer" />
-            <div className="h-4 w-48 rounded skeleton-shimmer" />
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <div className="h-4 w-32 rounded skeleton-shimmer" />
-              <div className="h-4 w-24 rounded skeleton-shimmer" />
-              <div className="h-4 w-20 rounded skeleton-shimmer" />
-              <div className="h-4 w-16 rounded skeleton-shimmer" />
-            </div>
-            <div className="border-t border-gray-100 dark:border-white/10" />
-            <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10 space-y-3">
-              <div className="h-4 w-full rounded skeleton-shimmer" />
-              <div className="h-4 w-full rounded skeleton-shimmer" />
-              <div className="h-4 w-2/3 rounded skeleton-shimmer" />
-            </div>
-            <div className="border-t border-gray-100 dark:border-white/10" />
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <div className="h-10 w-32 rounded-xl skeleton-shimmer" />
-              <div className="h-10 w-28 rounded-xl skeleton-shimmer" />
-              <div className="h-10 w-28 rounded-xl skeleton-shimmer" />
-              <div className="h-10 w-24 rounded-xl skeleton-shimmer" />
-              <div className="h-10 w-24 rounded-xl skeleton-shimmer" />
+        <div className="mx-auto w-full max-w-7xl px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
+          <div className="lg:grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] lg:gap-6 xl:gap-8">
+            <div className="relative aspect-video w-full bg-black rounded-none lg:rounded-xl overflow-hidden shadow-2xl skeleton-shimmer" />
+            <div className="px-4 lg:px-0 py-4 lg:py-0 space-y-5 sm:space-y-6">
+              <div className="h-8 w-3/4 rounded skeleton-shimmer" />
+              <div className="h-4 w-48 rounded skeleton-shimmer" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div className="h-4 w-32 rounded skeleton-shimmer" />
+                <div className="h-4 w-24 rounded skeleton-shimmer" />
+                <div className="h-4 w-20 rounded skeleton-shimmer" />
+                <div className="h-4 w-16 rounded skeleton-shimmer" />
+              </div>
+              <div className="border-t border-gray-100 dark:border-white/10" />
+              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10 space-y-3">
+                <div className="h-4 w-full rounded skeleton-shimmer" />
+                <div className="h-4 w-full rounded skeleton-shimmer" />
+                <div className="h-4 w-2/3 rounded skeleton-shimmer" />
+              </div>
+              <div className="border-t border-gray-100 dark:border-white/10" />
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <div className="h-10 w-32 rounded-xl skeleton-shimmer" />
+                <div className="h-10 w-28 rounded-xl skeleton-shimmer" />
+                <div className="h-10 w-28 rounded-xl skeleton-shimmer" />
+                <div className="h-10 w-24 rounded-xl skeleton-shimmer" />
+                <div className="h-10 w-24 rounded-xl skeleton-shimmer" />
+              </div>
             </div>
           </div>
         </div>
@@ -432,225 +493,167 @@ function VideoPage() {
     );
   }
 
-  const isFav = video ? isFavorite(video.link) : false;
-  const formattedViews = video ? formatViews(video.views) : undefined;
-  const formattedDuration = video ? formatDuration(video.duration) : undefined;
-  const channelInitial = video?.channelName?.charAt(0).toUpperCase() || '?';
-  const hasChannelRoute = !!video?.channelId;
-
   return (
     <div className="min-h-screen bg-white dark:bg-dark-navy">
-      {/* Video player - sticky, full width */}
-      <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy">
-        <div
-          ref={playerContainerRef}
-          className="relative aspect-video w-full bg-black overflow-hidden"
-        >
-            {embedSrc && canRenderPlayer ? (
-              <>
-                <iframe
-                  ref={iframeRef}
-                  key={embedSrc}
-                  src={embedSrc}
-                  title={video?.title || 'YouTube video'}
-                  className="absolute inset-0 w-full h-full"
-                  allow="autoplay; encrypted-media; fullscreen"
-                  allowFullScreen
-                  onLoad={() => setIframeLoaded(true)}
-                />
-                {!iframeLoaded && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  </div>
-                )}
-                {durationSeconds > 0 && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-10">
-                    <div
-                      ref={progressBarRef}
-                      className="h-full bg-brand-coral transition-all duration-[250ms] ease-linear"
-                      style={{ width: '0%' }}
-                    />
-                  </div>
-                )}
-              </>
-            ) : embedSrc ? (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              </div>
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
-                <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
-                {video?.link && (
-                  <button
-                    onClick={() => { window.open(video.link, '_blank'); }}
-                    className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    {t('miniPlayer.openOnYoutube')}
-                  </button>
-                )}
-              </div>
-            )}
+      <div className="mx-auto w-full max-w-7xl px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
+        <div className="lg:grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] lg:gap-6 xl:gap-8">
+
+          <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy lg:sticky lg:top-[calc(64px+1.5rem)] lg:self-start">
+            {player}
           </div>
-        </div>
 
-        <div className="mx-auto max-w-5xl px-0 sm:px-4 lg:px-6 py-0 sm:py-6">
           {video ? (
-            <div className="px-4 sm:px-0 py-4 sm:py-6 space-y-5 sm:space-y-6">
-            {/* Title */}
-            <h1 className="text-xl sm:text-2xl font-bold leading-snug text-gray-900 dark:text-white">
-              {video.title}
-            </h1>
+            <div className="px-4 sm:px-0 lg:px-0 py-4 sm:py-6 space-y-5 sm:space-y-6">
+              <h1 className="text-xl sm:text-2xl font-bold leading-snug text-gray-900 dark:text-white">
+                {video.title}
+              </h1>
 
-            {/* Divider */}
-            <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
+              <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
 
-            {/* Channel + metadata row */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                {hasChannelRoute ? (
-                  <button
-                    onClick={handleChannelClick}
-                    className="flex items-center gap-3 min-w-0 group/channel"
-                    aria-label={`${t('miniPlayer.openChannel')}: ${video.channelName}`}
-                  >
-                    <span className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-orange text-sm font-bold text-white shadow-sm flex-shrink-0">
-                      {channelInitial}
-                    </span>
-                    <span className="text-sm sm:text-base font-semibold text-brand-coral group-hover/channel:underline truncate">
-                      {video.channelName}
-                    </span>
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-orange text-sm font-bold text-white shadow-sm flex-shrink-0">
-                      {channelInitial}
-                    </span>
-                    <span className="text-sm sm:text-base font-semibold text-brand-coral truncate">
-                      {video.channelName}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  {hasChannelRoute ? (
+                    <button
+                      onClick={handleChannelClick}
+                      className="flex items-center gap-3 min-w-0 group/channel"
+                      aria-label={`${t('miniPlayer.openChannel')}: ${video.channelName}`}
+                    >
+                      <span className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-orange text-sm font-bold text-white shadow-sm flex-shrink-0">
+                        {channelInitial}
+                      </span>
+                      <span className="text-sm sm:text-base font-semibold text-brand-coral group-hover/channel:underline truncate">
+                        {video.channelName}
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-orange text-sm font-bold text-white shadow-sm flex-shrink-0">
+                        {channelInitial}
+                      </span>
+                      <span className="text-sm sm:text-base font-semibold text-brand-coral truncate">
+                        {video.channelName}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-              <div className="flex items-center gap-3 sm:gap-4 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {formatRelativeTime(video.publishedDate, t)}
-                </span>
-                {formattedViews && (
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3.5 w-3.5" />
-                    {formattedViews} {t('miniPlayer.views')}
-                  </span>
-                )}
-                {formattedDuration && (
+                <div className="flex items-center gap-3 sm:gap-4 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
-                    {formattedDuration}
+                    {formatRelativeTime(video.publishedDate, t)}
                   </span>
-                )}
+                  {formattedViews && (
+                    <span className="flex items-center gap-1">
+                      <Eye className="h-3.5 w-3.5" />
+                      {formattedViews} {t('miniPlayer.views')}
+                    </span>
+                  )}
+                  {formattedDuration && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {formattedDuration}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-white/10" />
+
+              {video.description && video.description.trim().length > 0 ? (
+                <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10">
+                  <VideoDescription description={video.description} />
+                </div>
+              ) : (
+                <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10">
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 italic">
+                    {t('miniPlayer.noDescription')}
+                  </p>
+                </div>
+              )}
+
+              <div className="border-t border-gray-100 dark:border-white/10" />
+
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <div className="group relative">
+                  <button
+                    onClick={handleOpenOnYoutube}
+                    className="flex items-center justify-center rounded-xl bg-red-600 p-3 sm:p-2.5 text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20 min-h-[44px] min-w-[44px]"
+                    aria-label={t('miniPlayer.openOnYoutube')}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </button>
+                  <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+                    {t('miniPlayer.openOnYoutube')}
+                  </span>
+                </div>
+
+                <div className="group relative">
+                  <button
+                    onClick={handleWatchLater}
+                    className={`flex items-center justify-center rounded-xl p-3 sm:p-2.5 transition-all active:scale-95 border min-h-[44px] min-w-[44px] ${
+                      isInWatchLater
+                        ? 'bg-brand-coral/10 text-brand-coral border-brand-coral/30 dark:bg-brand-coral/20'
+                        : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
+                    }`}
+                    aria-label={isInWatchLater ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
+                  >
+                    {isInWatchLater ? <BookmarkCheck className="h-4 w-4" /> : <BookmarkPlus className="h-4 w-4" />}
+                  </button>
+                  <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+                    {isInWatchLater ? t('watchLater.remove') : t('videoCard.watchLater')}
+                  </span>
+                </div>
+
+                <div className="group relative">
+                  <button
+                    onClick={handleFavorite}
+                    className={`flex items-center justify-center rounded-xl p-3 sm:p-2.5 transition-all active:scale-95 border min-h-[44px] min-w-[44px] ${
+                      isFav
+                        ? 'bg-red-500/10 text-red-500 border-red-500/30 dark:bg-red-500/20'
+                        : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
+                    }`}
+                    aria-label={isFav ? t('favorites.remove') : t('favorites.add')}
+                  >
+                    <Heart className={`h-4 w-4 ${isFav ? 'fill-current' : ''}`} />
+                  </button>
+                  <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+                    {isFav ? t('favorites.remove') : t('favorites.add')}
+                  </span>
+                </div>
+
+                <div className="group relative">
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center justify-center rounded-xl p-3 sm:p-2.5 bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px] min-w-[44px]"
+                    aria-label={t('miniPlayer.share')}
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                  <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+                    {t('miniPlayer.share')}
+                  </span>
+                </div>
+
+                <div className="group relative">
+                  <button
+                    onClick={handleAudioMode}
+                    className="flex items-center justify-center rounded-xl p-3 sm:p-2.5 bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px] min-w-[44px]"
+                    aria-label={t('audioPage.listenInAudioMode')}
+                  >
+                    <Headphones className="h-4 w-4" />
+                  </button>
+                  <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+                    {t('audioPage.listenInAudioMode')}
+                  </span>
+                </div>
               </div>
             </div>
-
-            <div className="border-t border-gray-100 dark:border-white/10" />
-
-            {/* Description */}
-            {video.description && video.description.trim().length > 0 ? (
-              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10">
-                <VideoDescription description={video.description} />
-              </div>
-            ) : (
-              <div className="rounded-xl bg-gray-50 dark:bg-white/5 p-4 sm:p-5 border border-gray-100 dark:border-white/10">
-                <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 italic">
-                  {t('miniPlayer.noDescription')}
-                </p>
-              </div>
-            )}
-
-            <div className="border-t border-gray-100 dark:border-white/10" />
-
-            {/* Action buttons - icon only */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <div className="group relative">
-                <button
-                  onClick={handleOpenOnYoutube}
-                  className="flex items-center justify-center rounded-xl bg-red-600 p-3 sm:p-2.5 text-white hover:bg-red-700 transition-all active:scale-95 shadow-sm shadow-red-600/20 min-h-[44px] min-w-[44px]"
-                  aria-label={t('miniPlayer.openOnYoutube')}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </button>
-                <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
-                  {t('miniPlayer.openOnYoutube')}
-                </span>
-              </div>
-
-              <div className="group relative">
-                <button
-                  onClick={handleWatchLater}
-                  className={`flex items-center justify-center rounded-xl p-3 sm:p-2.5 transition-all active:scale-95 border min-h-[44px] min-w-[44px] ${
-                    isInWatchLater
-                      ? 'bg-brand-coral/10 text-brand-coral border-brand-coral/30 dark:bg-brand-coral/20'
-                      : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
-                  }`}
-                  aria-label={isInWatchLater ? t('videoCard.removeWatchLater') : t('videoCard.watchLater')}
-                >
-                  {isInWatchLater ? <BookmarkCheck className="h-4 w-4" /> : <BookmarkPlus className="h-4 w-4" />}
-                </button>
-                <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
-                  {isInWatchLater ? t('watchLater.remove') : t('videoCard.watchLater')}
-                </span>
-              </div>
-
-              <div className="group relative">
-                <button
-                  onClick={handleFavorite}
-                  className={`flex items-center justify-center rounded-xl p-3 sm:p-2.5 transition-all active:scale-95 border min-h-[44px] min-w-[44px] ${
-                    isFav
-                      ? 'bg-red-500/10 text-red-500 border-red-500/30 dark:bg-red-500/20'
-                      : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15'
-                  }`}
-                  aria-label={isFav ? t('favorites.remove') : t('favorites.add')}
-                >
-                  <Heart className={`h-4 w-4 ${isFav ? 'fill-current' : ''}`} />
-                </button>
-                <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
-                  {isFav ? t('favorites.remove') : t('favorites.add')}
-                </span>
-              </div>
-
-              <div className="group relative">
-                <button
-                  onClick={handleShare}
-                  className="flex items-center justify-center rounded-xl p-3 sm:p-2.5 bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px] min-w-[44px]"
-                  aria-label={t('miniPlayer.share')}
-                >
-                  <Share2 className="h-4 w-4" />
-                </button>
-                <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
-                  {t('miniPlayer.share')}
-                </span>
-              </div>
-
-              <div className="group relative">
-                <button
-                  onClick={handleAudioMode}
-                  className="flex items-center justify-center rounded-xl p-3 sm:p-2.5 bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/15 transition-all active:scale-95 min-h-[44px] min-w-[44px]"
-                  aria-label={t('audioPage.listenInAudioMode')}
-                >
-                  <Headphones className="h-4 w-4" />
-                </button>
-                <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 dark:bg-gray-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
-                  {t('audioPage.listenInAudioMode')}
-                </span>
-              </div>
+          ) : (
+            <div className="px-4 sm:px-0 lg:px-0 py-8 text-center">
+              <p className="text-gray-500 dark:text-gray-400">{t('videoPage.notFound') || 'Video not found'}</p>
             </div>
-          </div>
-        ) : (
-          <div className="px-4 sm:px-0 py-8 text-center">
-            <p className="text-gray-500 dark:text-gray-400">{t('videoPage.notFound') || 'Video not found'}</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
