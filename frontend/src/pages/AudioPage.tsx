@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward, Rewind, FastForward, Timer } from 'lucide-react';
+import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward, Rewind, FastForward, Timer, Gauge } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAudio } from '../context/AudioContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -11,6 +11,8 @@ import { findCachedHomeVideoById } from '../services/videoCacheService';
 import type { LatestVideo } from '../types';
 
 const SLEEP_TIMER_OPTIONS = [10, 20, 30, 60] as const;
+const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
+const RESUME_STORAGE_KEY = 'wasla_audio_resume';
 
 function formatTime(seconds: number): string {
   if (!seconds || isNaN(seconds)) return '0:00';
@@ -31,9 +33,11 @@ function AudioPage() {
   const {
     currentVideo,
     isPlaying,
+    isEnded,
     currentTime,
     duration,
     volume,
+    playbackRate,
     sleepTimerMinutes,
     sleepTimerRemaining,
     playAudio,
@@ -41,18 +45,21 @@ function AudioPage() {
     resumeAudio,
     seekAudio,
     setVolume,
+    setPlaybackRate,
     setSleepTimer,
   } = useAudio();
 
   const [video, setVideo] = useState<(LatestVideo & { channelId?: string }) | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showSleepMenu, setShowSleepMenu] = useState(false);
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-  const [showStartTimeInput, setShowStartTimeInput] = useState(false);
+  const [activePanel, setActivePanel] = useState<'volume' | 'sleep' | 'startTime' | 'speed' | null>(null);
   const [startTimeValue, setStartTimeValue] = useState('');
   const progressRef = useRef<HTMLDivElement>(null);
 
   useMeta({ title: video ? `${video.title} - ${t('audioPage.title')}` : t('audioPage.title') });
+
+  const togglePanel = useCallback((panel: typeof activePanel) => {
+    setActivePanel(prev => prev === panel ? null : panel);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -96,6 +103,27 @@ function AudioPage() {
     };
   }, [videoId, currentVideo, playerVideo, location.state, playAudio]);
 
+  useEffect(() => {
+    if (!currentVideo || !currentVideo._videoId) return;
+    const key = `${RESUME_STORAGE_KEY}_${currentVideo._videoId}`;
+    const saved = sessionStorage.getItem(key);
+    if (saved) {
+      const pos = parseFloat(saved);
+      if (pos > 5) {
+        seekAudio(pos);
+        showToast(t('audioPage.resumedFrom', { time: formatTime(pos) }), 'info');
+      }
+      sessionStorage.removeItem(key);
+    }
+  }, [currentVideo?._videoId, seekAudio, showToast, t]);
+
+  useEffect(() => {
+    if (!isPlaying && currentTime > 5 && currentVideo?._videoId) {
+      const key = `${RESUME_STORAGE_KEY}_${currentVideo._videoId}`;
+      sessionStorage.setItem(key, String(currentTime));
+    }
+  }, [isPlaying, currentTime, currentVideo?._videoId]);
+
   const handleBack = useCallback(() => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -105,12 +133,17 @@ function AudioPage() {
   }, [navigate]);
 
   const handlePlayPause = useCallback(() => {
+    if (isEnded) {
+      seekAudio(0);
+      resumeAudio();
+      return;
+    }
     if (isPlaying) {
       pauseAudio();
     } else {
       resumeAudio();
     }
-  }, [isPlaying, pauseAudio, resumeAudio]);
+  }, [isPlaying, isEnded, pauseAudio, resumeAudio, seekAudio]);
 
   const handleProgressClick = useCallback((e: React.MouseEvent) => {
     if (!progressRef.current || !duration) return;
@@ -131,12 +164,12 @@ function AudioPage() {
       setSleepTimer(minutes);
       showToast(t('audioPage.sleepTimerSet', { minutes: minutes.toString() }), 'info');
     }
-    setShowSleepMenu(false);
+    setActivePanel(null);
   }, [sleepTimerMinutes, setSleepTimer, showToast, t]);
 
   const clearSleepTimer = useCallback(() => {
     setSleepTimer(null);
-    setShowSleepMenu(false);
+    setActivePanel(null);
   }, [setSleepTimer]);
 
   const handleStartTimeSubmit = useCallback((e: React.FormEvent) => {
@@ -153,7 +186,7 @@ function AudioPage() {
       return;
     }
     seekAudio(Math.max(0, Math.min(duration, seconds)));
-    setShowStartTimeInput(false);
+    setActivePanel(null);
     setStartTimeValue('');
   }, [startTimeValue, duration, seekAudio]);
 
@@ -198,6 +231,12 @@ function AudioPage() {
               <p className="text-sm sm:text-base text-brand-coral font-medium mb-8 sm:mb-12">
                 {video.channelName}
               </p>
+
+              {isEnded && (
+                <div className="w-full max-w-md mb-6 px-4 py-3 bg-gray-100 dark:bg-white/5 rounded-xl text-sm text-gray-500 dark:text-gray-400">
+                  {t('audioPage.playbackComplete')}
+                </div>
+              )}
 
               <div className="w-full max-w-md space-y-4">
                 <div
@@ -248,7 +287,11 @@ function AudioPage() {
                     className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-brand-coral to-brand-orange flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all active:scale-95"
                     aria-label={isPlaying ? t('audioPage.pause') : t('audioPage.play')}
                   >
-                    {isPlaying ? (
+                    {isEnded ? (
+                      <svg className="w-6 h-6 sm:w-8 sm:h-8 ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                    ) : isPlaying ? (
                       <Pause className="w-6 h-6 sm:w-8 sm:h-8" />
                     ) : (
                       <Play className="w-6 h-6 sm:w-8 sm:h-8 ml-0.5" />
@@ -277,13 +320,52 @@ function AudioPage() {
                 <div className="flex items-center justify-center gap-4 pt-6 sm:pt-8">
                   <div className="relative">
                     <button
-                      onClick={() => setShowStartTimeInput(!showStartTimeInput)}
+                      onClick={() => togglePanel('speed')}
+                      className={`p-2 sm:p-3 transition-colors ${
+                        playbackRate !== 1
+                          ? 'text-brand-coral'
+                          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white'
+                      }`}
+                      aria-label={t('audioPage.playbackSpeed')}
+                    >
+                      <Gauge className="w-5 h-5" />
+                    </button>
+                    {playbackRate !== 1 && (
+                      <span className="absolute -top-1 -right-1 text-[10px] font-bold bg-brand-coral text-white rounded-full px-1.5 py-0.5 leading-none">
+                        {playbackRate}x
+                      </span>
+                    )}
+                    {activePanel === 'speed' && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 min-w-[120px]">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-3 py-1.5">
+                          {t('audioPage.playbackSpeed')}
+                        </p>
+                        {PLAYBACK_RATES.map((rate) => (
+                          <button
+                            key={rate}
+                            onClick={() => { setPlaybackRate(rate); setActivePanel(null); }}
+                            className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                              playbackRate === rate
+                                ? 'bg-brand-coral/10 text-brand-coral font-medium'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                            }`}
+                          >
+                            {rate}x
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => togglePanel('startTime')}
                       className="p-2 sm:p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
                       aria-label={t('audioPage.jumpToTime')}
                     >
                       <Timer className="w-5 h-5" />
                     </button>
-                    {showStartTimeInput && (
+                    {activePanel === 'startTime' && (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
                         <form onSubmit={handleStartTimeSubmit} className="flex items-center gap-2">
                           <input
@@ -307,13 +389,13 @@ function AudioPage() {
 
                   <div className="relative">
                     <button
-                      onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+                      onClick={() => togglePanel('volume')}
                       className="p-2 sm:p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
                       aria-label={t('audioPage.volume')}
                     >
                       {volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </button>
-                    {showVolumeSlider && (
+                    {activePanel === 'volume' && (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
                         <input
                           type="range"
@@ -331,7 +413,7 @@ function AudioPage() {
 
                   <div className="relative">
                     <button
-                      onClick={() => setShowSleepMenu(!showSleepMenu)}
+                      onClick={() => togglePanel('sleep')}
                       className={`p-2 sm:p-3 transition-colors ${
                         sleepTimerMinutes
                           ? 'text-brand-coral'
@@ -346,7 +428,7 @@ function AudioPage() {
                         {sleepTimerLabel}
                       </span>
                     )}
-                    {showSleepMenu && (
+                    {activePanel === 'sleep' && (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 min-w-[160px]">
                         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-3 py-1.5">
                           {t('audioPage.sleepTimer')}

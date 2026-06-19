@@ -39,14 +39,19 @@ interface YTPlayer {
   unMute: () => void;
   destroy: () => void;
   getPlayerState: () => number;
+  getAvailablePlaybackRates: () => number[];
+  setPlaybackRate: (rate: number) => void;
+  getPlaybackRate: () => number;
 }
 
 interface AudioContextType {
   currentVideo: (LatestVideo & { _videoId: string; channelId?: string }) | null;
   isPlaying: boolean;
+  isEnded: boolean;
   currentTime: number;
   duration: number;
   volume: number;
+  playbackRate: number;
   sleepTimerMinutes: number | null;
   sleepTimerRemaining: number | null;
   playAudio: (video: LatestVideo, channelId?: string) => void;
@@ -54,6 +59,7 @@ interface AudioContextType {
   resumeAudio: () => void;
   seekAudio: (time: number) => void;
   setVolume: (vol: number) => void;
+  setPlaybackRate: (rate: number) => void;
   stopAudio: () => void;
   setSleepTimer: (minutes: number | null) => void;
 }
@@ -82,9 +88,11 @@ function loadYouTubeAPI(): Promise<void> {
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [currentVideo, setCurrentVideo] = useState<(LatestVideo & { _videoId: string; channelId?: string }) | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isEnded, setIsEnded] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(1);
+  const [playbackRate, setPlaybackRateState] = useState(1);
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
   const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null);
   const [sleepTimerEndTime, setSleepTimerEndTime] = useState<number | null>(null);
@@ -97,6 +105,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const timePollRef = useRef<number | null>(null);
   const sleepTimerRef = useRef<number | null>(null);
   const destroyedRef = useRef(false);
+  const endedRef = useRef(false);
 
   const clearTimePoll = useCallback(() => {
     if (timePollRef.current !== null) {
@@ -195,6 +204,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     mediaManager.requestPlay('audio');
 
     destroyedRef.current = false;
+    endedRef.current = false;
+    setIsEnded(false);
     setCurrentVideo({ ...normalized, channelId });
     setIsPlaying(true);
     setCurrentTime(0);
@@ -223,25 +234,38 @@ export function AudioProvider({ children }: { children: ReactNode }) {
             rel: 0,
             controls: 0,
             modestbranding: 1,
+            fs: 0,
+            iv_load_policy: 3,
           },
           events: {
             onReady: (event) => {
               playerReadyRef.current = true;
               event.target.setVolume(volume * 100);
+              try {
+                const rates = event.target.getAvailablePlaybackRates();
+                if (rates.includes(playbackRate)) {
+                  event.target.setPlaybackRate(playbackRate);
+                }
+              } catch { /* ignore */ }
               startTimePoll();
             },
             onStateChange: (event) => {
               if (event.data === window.YT.PlayerState.PLAYING) {
+                if (endedRef.current) {
+                  playerRef.current?.stopVideo();
+                  return;
+                }
                 setIsPlaying(true);
+                setIsEnded(false);
                 startTimePoll();
               } else if (event.data === window.YT.PlayerState.PAUSED) {
                 setIsPlaying(false);
                 clearTimePoll();
               } else if (event.data === window.YT.PlayerState.ENDED) {
+                endedRef.current = true;
                 setIsPlaying(false);
+                setIsEnded(true);
                 clearTimePoll();
-                setCurrentVideo(null);
-                mediaManager.stopMedia('audio');
               }
             },
             onError: () => {
@@ -255,7 +279,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setIsPlaying(false);
       }
     });
-  }, [destroyPlayer, startTimePoll, clearTimePoll, volume, mediaManager]);
+  }, [destroyPlayer, startTimePoll, clearTimePoll, volume, mediaManager, playbackRate]);
 
   const pauseAudio = useCallback(() => {
     if (playerRef.current && playerReadyRef.current) {
@@ -270,6 +294,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const resumeAudio = useCallback(() => {
     if (playerRef.current && playerReadyRef.current) {
       try {
+        endedRef.current = false;
+        setIsEnded(false);
         playerRef.current.playVideo();
         setIsPlaying(true);
         startTimePoll();
@@ -296,12 +322,23 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setPlaybackRate = useCallback((rate: number) => {
+    setPlaybackRateState(rate);
+    if (playerRef.current && playerReadyRef.current) {
+      try {
+        playerRef.current.setPlaybackRate(rate);
+      } catch { /* ignore */ }
+    }
+  }, []);
+
   const stopAudio = useCallback(() => {
     destroyPlayer();
     setCurrentVideo(null);
     setIsPlaying(false);
+    setIsEnded(false);
     setCurrentTime(0);
     setDuration(0);
+    endedRef.current = false;
     if (sleepTimerRef.current !== null) {
       clearTimeout(sleepTimerRef.current);
       sleepTimerRef.current = null;
@@ -352,9 +389,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       value={{
         currentVideo,
         isPlaying,
+        isEnded,
         currentTime,
         duration,
         volume,
+        playbackRate,
         sleepTimerMinutes,
         sleepTimerRemaining,
         playAudio,
@@ -362,6 +401,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         resumeAudio,
         seekAudio,
         setVolume,
+        setPlaybackRate,
         stopAudio,
         setSleepTimer,
       }}

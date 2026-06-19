@@ -49,6 +49,9 @@ interface YTPlayer {
   unMute: () => void;
   destroy: () => void;
   getPlayerState: () => number;
+  getAvailablePlaybackRates: () => number[];
+  setPlaybackRate: (rate: number) => void;
+  getPlaybackRate: () => number;
 }
 
 // ─── API loader (singleton) ───────────────────────────────────────────────────
