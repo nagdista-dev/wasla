@@ -498,7 +498,7 @@ function VideoPage() {
       <div className="mx-auto w-full max-w-[1440px] px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
         <div className="lg:grid lg:grid-cols-[2fr_1fr] lg:gap-6 xl:gap-8">
 
-          <div className="sticky top-[64px] z-30 bg-white dark:bg-dark-navy lg:sticky lg:top-[calc(64px+1.5rem)] lg:self-start lg:order-2">
+          <div className="lg:sticky lg:top-[calc(64px+1.5rem)] lg:self-start z-30 bg-white dark:bg-dark-navy lg:order-2 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
             {player}
           </div>
 
