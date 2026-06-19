@@ -316,12 +316,6 @@ function VideoPage() {
 
   useEffect(() => {
     if (!embedSrc) return;
-    const timer = setTimeout(() => setIframeLoaded(true), 15000);
-    return () => clearTimeout(timer);
-  }, [embedSrc, canRenderPlayer]);
-
-  useEffect(() => {
-    if (!embedSrc) return;
 
     const currentIframe = iframeRef.current;
 
@@ -428,24 +422,27 @@ function VideoPage() {
       ref={playerContainerRef}
       className="relative aspect-video w-full bg-black overflow-hidden rounded-xl sm:shadow-2xl sm:ring-1 sm:ring-white/5"
     >
-      {embedSrc && canRenderPlayer ? (
+      {embedSrc ? (
         <>
           <iframe
             ref={iframeRef}
             key={embedSrc}
             src={embedSrc}
             title={video?.title || 'YouTube video'}
-            className="absolute inset-0 w-full h-full"
+            className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${iframeLoaded ? 'opacity-100' : 'opacity-0'}`}
             allow="autoplay; encrypted-media; fullscreen"
             allowFullScreen
             onLoad={() => setIframeLoaded(true)}
           />
           {!iframeLoaded && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <div className="relative h-16 w-16">
+                <div className="absolute inset-0 rounded-full border-4 border-white/20" />
+                <div className="absolute inset-0 rounded-full border-4 border-brand-coral border-t-transparent animate-spin" />
+              </div>
             </div>
           )}
-          {durationSeconds > 0 && (
+          {canRenderPlayer && durationSeconds > 0 && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-10">
               <div
                 ref={progressBarRef}
@@ -455,10 +452,6 @@ function VideoPage() {
             </div>
           )}
         </>
-      ) : embedSrc ? (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-        </div>
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
           <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>

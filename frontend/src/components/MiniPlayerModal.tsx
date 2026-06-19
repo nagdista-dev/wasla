@@ -449,14 +449,14 @@ const MiniPlayerModal = memo(function MiniPlayerModal() {
                   <>
                     <div
                       ref={containerRef}
-                      className="absolute inset-0 w-full h-full"
+                      className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${playerReady ? 'opacity-100' : 'opacity-0'}`}
                     />
                     {!playerReady && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
                         <div className="flex flex-col items-center gap-4 text-white">
                           <div className="relative w-16 h-16">
-                            <div className="absolute inset-0 border-4 border-white/20 rounded-full" />
-                            <div className="absolute inset-0 border-4 border-brand-coral rounded-full animate-spin border-t-transparent" />
+                            <div className="absolute inset-0 rounded-full border-4 border-white/20" />
+                            <div className="absolute inset-0 rounded-full border-4 border-brand-coral border-t-transparent animate-spin" />
                           </div>
                           <p className="text-sm text-white/70">{t('miniPlayer.loading')}</p>
                         </div>
