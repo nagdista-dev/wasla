@@ -213,19 +213,23 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
             </p>
           </div>
         ) : (
-          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-full items-stretch">
             {displayItems.map(({ channel, video, loading, error }) => (
-              <div key={channel.id} className="h-full">
+              <div key={channel.id} className="min-w-0 h-full">
                 {loading ? (
                   <VideoCardSkeleton />
                   ) : error ? (
-                    <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-navy dark:ring-gray-700 flex h-full min-h-[220px] flex-col justify-center p-5 text-center">
-                      <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
-                      <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
-                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                    <div className="animate-fadein h-full">
+                      <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy p-6 text-center min-h-[280px] flex flex-col items-center justify-center h-full">
+                        <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
+                        <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+                      </article>
                     </div>
                   ) : video ? (
-                    <VideoCard channel={channel} video={video} />
+                    <div className="animate-fadein h-full">
+                      <VideoCard channel={channel} video={video} />
+                    </div>
                   ) : null}
                 </div>
               ))}
