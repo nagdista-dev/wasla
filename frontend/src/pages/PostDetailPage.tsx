@@ -183,7 +183,7 @@ export default function PostDetailPage() {
               </div>
             </div>
 
-            {post.channelCategories.length > 0 && (
+            {post.channelCategories && post.channelCategories.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {post.channelCategories.map((cat) => (
                   <Link

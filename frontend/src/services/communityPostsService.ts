@@ -247,7 +247,12 @@ export function loadCachedCommunityPosts(): CommunityPost[] {
     const parsed = JSON.parse(cached);
     if (!Array.isArray(parsed)) return [];
     const now = Date.now();
-    const posts = parsed.filter((post: CommunityPost) => now - post.fetchedAt < CACHE_TTL_MS * 2);
+    const posts = parsed
+      .filter((post: CommunityPost) => now - post.fetchedAt < CACHE_TTL_MS * 2)
+      .map((post: CommunityPost) => ({
+        ...post,
+        channelCategories: post.channelCategories || [],
+      }));
     return posts.sort((a: CommunityPost, b: CommunityPost) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   } catch {
     return [];
