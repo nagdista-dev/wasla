@@ -37,22 +37,22 @@ function NotFoundPage() {
   };
 
   return (
-    <div className="relative flex min-h-[80dvh] flex-col items-center justify-center overflow-hidden px-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-white px-4 dark:bg-dark-navy">
       {/* Background floating circles */}
       <motion.div
-        className={`pointer-events-none absolute -top-20 ${isRTL ? '-left-20' : '-right-20'} h-72 w-72 rounded-full opacity-10`}
+        className={`pointer-events-none absolute -top-20 ${isRTL ? '-left-20' : '-right-20'} h-72 w-72 rounded-full opacity-10 dark:opacity-20`}
         style={{ background: 'linear-gradient(135deg, #f37345, #feb144)' }}
         animate={{ y: [0, -20, 0], scale: [1, 1.05, 1] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className={`pointer-events-none absolute -bottom-16 ${isRTL ? '-right-16' : '-left-16'} h-56 w-56 rounded-full opacity-10`}
+        className={`pointer-events-none absolute -bottom-16 ${isRTL ? '-right-16' : '-left-16'} h-56 w-56 rounded-full opacity-10 dark:opacity-20`}
         style={{ background: 'linear-gradient(135deg, #b51762, #e2436a)' }}
         animate={{ y: [0, 24, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className={`pointer-events-none absolute top-1/3 ${isRTL ? 'right-1/4' : 'left-1/4'} h-32 w-32 rounded-full opacity-5`}
+        className={`pointer-events-none absolute top-1/3 ${isRTL ? 'right-1/4' : 'left-1/4'} h-32 w-32 rounded-full opacity-5 dark:opacity-10`}
         style={{ background: 'linear-gradient(135deg, #e2436a, #f37345)' }}
         animate={{ y: [0, -16, 0], x: [0, 12, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
