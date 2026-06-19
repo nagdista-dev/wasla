@@ -371,7 +371,7 @@ export default function ChannelPage() {
   if (loading) {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
-        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 pb-6 pt-6">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 pb-6 pt-6">
           <div className="relative h-48 sm:h-64 w-full overflow-hidden rounded-xl skeleton-shimmer mb-8" />
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
             <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full skeleton-shimmer flex-shrink-0 border-4 border-white dark:border-gray-300" />
@@ -400,7 +400,7 @@ export default function ChannelPage() {
   if (error || !data) {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
-        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 p-6">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 p-6">
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
             <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
             <p className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -436,7 +436,7 @@ export default function ChannelPage() {
         )}
       </div>
 
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 pb-10">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 pb-10">
         {/* ── Channel header ── */}
         <div className="-mt-12 sm:-mt-16 flex flex-col sm:flex-row sm:items-end gap-4 mb-6">
           <div

@@ -124,7 +124,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-6">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-6">
         <div className="mb-6">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{t('channels.title')}</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">

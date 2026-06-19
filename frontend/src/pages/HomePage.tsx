@@ -322,7 +322,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
         )}
       </div>
 
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 pt-4">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 pt-4">
         {channels.length > 0 && (
           <div className="mb-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           {items.some((i) => i.loading) || isRefreshing || !hasLoadedCache ? (

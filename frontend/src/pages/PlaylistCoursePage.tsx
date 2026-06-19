@@ -203,7 +203,7 @@ export default function PlaylistCoursePage() {
   if (loading) {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
-        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-6">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-6">
           <div className="mb-6 h-4 w-20 rounded skeleton-shimmer" />
           <div className="mb-8 space-y-3">
             <div className="h-9 w-72 rounded skeleton-shimmer" />
@@ -257,7 +257,7 @@ export default function PlaylistCoursePage() {
   if (error) {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
-        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-6">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-6">
           <button
             onClick={() => navigate(-1)}
             className="mb-6 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -276,7 +276,7 @@ export default function PlaylistCoursePage() {
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-6">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-6">
         <button
           onClick={() => navigate(-1)}
           className="mb-6 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"

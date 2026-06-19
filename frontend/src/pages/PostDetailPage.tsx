@@ -91,7 +91,7 @@ export default function PostDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
-        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-4 sm:py-6">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-4 sm:py-6">
           <Link to="/posts" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-coral transition hover:text-brand-pink">
             <ArrowLeft className="h-4 w-4" />
             {t('posts.backToPosts')}
@@ -110,7 +110,7 @@ export default function PostDetailPage() {
   if (!post) {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
-        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-4 sm:py-6">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-4 sm:py-6">
           <Link to="/posts" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-coral transition hover:text-brand-pink">
             <ArrowLeft className="h-4 w-4" />
             {t('posts.backToPosts')}
@@ -140,7 +140,7 @@ export default function PostDetailPage() {
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-4 sm:py-6">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-4 sm:py-6">
       <article>
         <Link to="/posts" className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-brand-coral transition hover:text-brand-pink">
           <ArrowLeft className="h-4 w-4" />

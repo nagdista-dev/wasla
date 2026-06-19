@@ -55,7 +55,7 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
 
   return (
     <div className="min-h-screen dark:bg-dark-navy">
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-6">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-6">
         <div className="mb-6">
           <h1 className="flex items-center gap-2 text-4xl font-bold text-gray-900 dark:text-white">
             <Heart className="h-8 w-8 text-brand-coral" />

@@ -460,7 +460,7 @@ function VideoPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-dark-navy pb-safe">
-        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
+        <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-0 lg:py-6">
           <div className="flex flex-col gap-6 sm:gap-8">
             <div className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl skeleton-shimmer" />
             <div className="px-4 sm:px-0 space-y-5 sm:space-y-6">
@@ -495,7 +495,7 @@ function VideoPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-dark-navy pb-safe">
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-0 lg:py-6">
         <div className="flex flex-col gap-6 sm:gap-8">
 
           <div className="w-full">
