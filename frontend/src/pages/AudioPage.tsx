@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward } from 'lucide-react';
+import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward, Rewind, FastForward, Timer } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAudio } from '../context/AudioContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -25,7 +25,7 @@ function AudioPage() {
   const { videoId } = useParams<{ videoId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const { showToast } = useToast();
   const { currentVideo: playerVideo } = usePlayer();
   const {
@@ -48,6 +48,8 @@ function AudioPage() {
   const [loading, setLoading] = useState(true);
   const [showSleepMenu, setShowSleepMenu] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [showStartTimeInput, setShowStartTimeInput] = useState(false);
+  const [startTimeValue, setStartTimeValue] = useState('');
   const progressRef = useRef<HTMLDivElement>(null);
 
   useMeta({ title: video ? `${video.title} - ${t('audioPage.title')}` : t('audioPage.title') });
@@ -114,9 +116,9 @@ function AudioPage() {
     if (!progressRef.current || !duration) return;
     const rect = progressRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const ratio = x / rect.width;
-    seekAudio(ratio * duration);
-  }, [duration, seekAudio]);
+    const ratio = isRTL ? 1 - x / rect.width : x / rect.width;
+    seekAudio(Math.max(0, Math.min(duration, ratio * duration)));
+  }, [duration, seekAudio, isRTL]);
 
   const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setVolume(parseFloat(e.target.value));
@@ -136,6 +138,24 @@ function AudioPage() {
     setSleepTimer(null);
     setShowSleepMenu(false);
   }, [setSleepTimer]);
+
+  const handleStartTimeSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = startTimeValue.trim();
+    if (!trimmed || !duration) return;
+    let seconds: number;
+    if (/^\d+$/.test(trimmed)) {
+      seconds = parseInt(trimmed, 10);
+    } else if (/^(\d+):(\d{1,2})$/.test(trimmed)) {
+      const [, m, s] = trimmed.match(/^(\d+):(\d{1,2})$/)!;
+      seconds = parseInt(m, 10) * 60 + parseInt(s, 10);
+    } else {
+      return;
+    }
+    seekAudio(Math.max(0, Math.min(duration, seconds)));
+    setShowStartTimeInput(false);
+    setStartTimeValue('');
+  }, [startTimeValue, duration, seekAudio]);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const sleepTimerLabel = sleepTimerRemaining !== null ? formatTime(sleepTimerRemaining) : null;
@@ -195,7 +215,7 @@ function AudioPage() {
                     className="h-full bg-gradient-to-r from-brand-coral to-brand-orange rounded-full relative transition-all duration-100"
                     style={{ width: `${progress}%` }}
                   >
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border-2 border-brand-coral opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-md border-2 border-brand-coral opacity-100 transition-opacity" />
                   </div>
                 </div>
 
@@ -204,37 +224,87 @@ function AudioPage() {
                   <span>{formatTime(duration)}</span>
                 </div>
 
-                <div className="flex items-center justify-center gap-4 sm:gap-6 pt-4">
+                <div className="flex items-center justify-center gap-2 sm:gap-4 pt-4">
                   <button
                     onClick={() => seekAudio(Math.max(0, currentTime - 10))}
-                    className="p-2 sm:p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
-                    aria-label={t('audioPage.skipBack')}
+                    className="flex flex-col items-center gap-0.5 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors group"
+                    aria-label={t('audioPage.skipBack10')}
                   >
-                    <SkipBack className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <SkipBack className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-[10px] leading-none font-medium">10</span>
+                  </button>
+
+                  <button
+                    onClick={() => seekAudio(Math.max(0, currentTime - 5))}
+                    className="flex flex-col items-center gap-0.5 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors group"
+                    aria-label={t('audioPage.skipBack5')}
+                  >
+                    <Rewind className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-[10px] leading-none font-medium">5</span>
                   </button>
 
                   <button
                     onClick={handlePlayPause}
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-brand-coral to-brand-orange flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all active:scale-95"
+                    className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-brand-coral to-brand-orange flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all active:scale-95"
                     aria-label={isPlaying ? t('audioPage.pause') : t('audioPage.play')}
                   >
                     {isPlaying ? (
-                      <Pause className="w-7 h-7 sm:w-8 sm:h-8" />
+                      <Pause className="w-6 h-6 sm:w-8 sm:h-8" />
                     ) : (
-                      <Play className="w-7 h-7 sm:w-8 sm:h-8 ml-1" />
+                      <Play className="w-6 h-6 sm:w-8 sm:h-8 ml-0.5" />
                     )}
                   </button>
 
                   <button
-                    onClick={() => seekAudio(Math.min(duration, currentTime + 10))}
-                    className="p-2 sm:p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
-                    aria-label={t('audioPage.skipForward')}
+                    onClick={() => seekAudio(Math.min(duration, currentTime + 5))}
+                    className="flex flex-col items-center gap-0.5 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors group"
+                    aria-label={t('audioPage.skipForward5')}
                   >
-                    <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <FastForward className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-[10px] leading-none font-medium">5</span>
+                  </button>
+
+                  <button
+                    onClick={() => seekAudio(Math.min(duration, currentTime + 10))}
+                    className="flex flex-col items-center gap-0.5 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors group"
+                    aria-label={t('audioPage.skipForward10')}
+                  >
+                    <SkipForward className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-[10px] leading-none font-medium">10</span>
                   </button>
                 </div>
 
                 <div className="flex items-center justify-center gap-4 pt-6 sm:pt-8">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowStartTimeInput(!showStartTimeInput)}
+                      className="p-2 sm:p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
+                      aria-label={t('audioPage.jumpToTime')}
+                    >
+                      <Timer className="w-5 h-5" />
+                    </button>
+                    {showStartTimeInput && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+                        <form onSubmit={handleStartTimeSubmit} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={startTimeValue}
+                            onChange={(e) => setStartTimeValue(e.target.value)}
+                            placeholder="MM:SS"
+                            className="w-20 px-2 py-1 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-coral"
+                            autoFocus
+                          />
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 text-sm font-medium text-white bg-brand-coral rounded-lg hover:bg-brand-orange transition-colors"
+                          >
+                            {t('audioPage.go')}
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="relative">
                     <button
                       onClick={() => setShowVolumeSlider(!showVolumeSlider)}
