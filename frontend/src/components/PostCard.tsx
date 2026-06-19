@@ -106,17 +106,19 @@ function PostCard({ post }: { post: CommunityPost }) {
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <div className="flex items-center gap-2">
-          <span
-            className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #b51762, #e2436a)' }}
-          >
-            {channelInitial}
-          </span>
-          <span className="truncate text-sm font-semibold text-brand-coral">
-            {post.channelName}
-          </span>
-          <span className="ml-auto flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span
+              className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #b51762, #e2436a)' }}
+            >
+              {channelInitial}
+            </span>
+            <span className="truncate text-sm font-semibold text-brand-coral">
+              {post.channelName}
+            </span>
+          </div>
+          <span className="flex items-center gap-1 pl-8 text-xs text-gray-400 dark:text-gray-500">
             <Clock className="h-3 w-3" />
             {formatRelativeTime(post.publishedAt, t)}
           </span>
