@@ -101,6 +101,7 @@ const AudioPage = lazy(() => import("./pages/AudioPage"));
 const WatchHistoryPage = lazy(() => import("./pages/WatchHistoryPage"));
 const PostsPage = lazy(() => import("./pages/PostsPage"));
 const PostDetailPage = lazy(() => import("./pages/PostDetailPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -592,6 +593,7 @@ function App() {
                 path="/contact"
                 element={<ContactPage />}
               />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </main>
