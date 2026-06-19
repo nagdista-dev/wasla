@@ -170,67 +170,77 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
 
   return (
 <>
-<nav className="fixed top-0 left-0 right-0 min-h-fit z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-700 dark:bg-dark-navy/90">
+<nav className="fixed top-0 left-0 right-0 min-h-fit z-50 border-b border-gray-200/70 bg-white/80 backdrop-blur-xl dark:border-gray-700/50 dark:bg-dark-navy/80">
   <div className="mx-auto max-w-7xl px-4">
     <div className="flex items-center justify-between h-16">
-      <Link to="/">
-        <img src={logo} alt={t('app.name')} className="h-18 w-18 object-contain" />
+      <Link to="/" className="flex-shrink-0">
+        <img src={logo} alt={t('app.name')} className="h-12 w-12 object-contain" />
       </Link>
 
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onOpenSearch}
-          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-          aria-label={t('home.search')}
-        >
-          <Search className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => setShowFilterModal(true)}
-          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 relative"
-          aria-label={t('filterModal.filter')}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          {activeFilterCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-brand-coral text-[10px] font-bold text-white leading-none px-1">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={toggleTheme}
-          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-          aria-label={t('nav.toggleTheme')}
-        >
-          {theme === "dark" ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
-        </button>
+      <div className="flex items-center">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onOpenSearch}
+            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
+            aria-label={t('home.search')}
+          >
+            <Search className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setShowFilterModal(true)}
+            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90 relative"
+            aria-label={t('filterModal.filter')}
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-brand-coral text-[10px] font-bold text-white leading-none px-1 shadow-sm">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
 
-        <button
-          onClick={() => setLanguage(language === "en" ? "ar" : "en")}
-          className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-          aria-label={t('nav.toggleLanguage')}
-        >
-          <Languages className="h-4 w-4" />
-        </button>
+        <div className="mx-2 h-6 w-px bg-gray-200/70 dark:bg-gray-700/50" />
+
+        <div className="flex items-center gap-1">
+          <button
+            onClick={toggleTheme}
+            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
+            aria-label={t('nav.toggleTheme')}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
+            aria-label={t('nav.toggleLanguage')}
+          >
+            <Languages className="h-5 w-5" />
+          </button>
+        </div>
 
         {isAudioPlaying && audioVideo && (
-          <button
-            onClick={() => navigate(`/audio/${audioVideo._videoId}`, { state: { video: audioVideo } })}
-            className="rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center text-brand-coral hover:bg-gray-100 dark:hover:bg-white/10 relative"
-            aria-label={t('audioPage.activeIndicator')}
-          >
-            <Headphones className="h-4 w-4 audio-waveform-icon" />
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-coral animate-ping" />
-          </button>
+          <>
+            <div className="mx-2 h-6 w-px bg-gray-200/70 dark:bg-gray-700/50" />
+            <button
+              onClick={() => navigate(`/audio/${audioVideo._videoId}`, { state: { video: audioVideo } })}
+              className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-brand-coral hover:bg-brand-coral/10 dark:hover:bg-brand-coral/20 transition-all active:scale-90 relative"
+              aria-label={t('audioPage.activeIndicator')}
+            >
+              <Headphones className="h-5 w-5 audio-waveform-icon" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-coral animate-ping" />
+            </button>
+          </>
         )}
 
         <button
           onClick={() => setMenuOpen(true)}
-          className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+          className="md:hidden ml-2 rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
           aria-label={t('nav.menu')}
         >
           <Menu className="h-5 w-5" />
@@ -255,14 +265,14 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
         }`}
       >
         {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-700 flex-shrink-0">
+        <div className="flex h-16 items-center justify-between border-b border-gray-100 px-4 dark:border-gray-700/50 flex-shrink-0">
           <Link to="/" className="flex items-center">
-            <img src={logo} alt={t('app.name')} className="h-12 w-12 object-contain" />
+            <img src={logo} alt={t('app.name')} className="h-11 w-11 object-contain" />
           </Link>
 
           <button
             onClick={closeMenu}
-            className="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+            className="rounded-xl p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100/70 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-white/10 transition-all active:scale-90"
             aria-label={t('nav.closeMenu')}
           >
             <X className="h-5 w-5" />
@@ -270,7 +280,7 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
         </div>
 
         {/* Navigation */}
-        <nav className="flex flex-col p-4 space-y-1 flex-shrink-0">
+        <nav className="flex flex-col px-3 py-2 space-y-0.5 flex-shrink-0">
           {navItems.map((item) => {
             const isActive = pathname === item.path || (item.path === '/posts' && (pathname.startsWith('/posts/') || pathname.startsWith('/post/')));
 
@@ -281,17 +291,17 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
                 onClick={closeMenu}
                 className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-brand-coral text-white shadow-md"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+                    ? "bg-brand-coral/10 text-brand-coral font-semibold"
+                    : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                 }`}
               >
                 <item.icon
-                  className={`h-5 w-5 ${isActive ? "text-white" : ""}`}
+                  className={`h-5 w-5 ${isActive ? "text-brand-coral" : "text-gray-400"}`}
                 />
                 {item.label}
 
                 {isActive && (
-                  <span className={`${isRTL ? 'mr-auto' : 'ml-auto'} h-2 w-2 rounded-full bg-white`} />
+                  <span className={`${isRTL ? 'mr-auto' : 'ml-auto'} h-1.5 w-1.5 rounded-full bg-brand-coral`} />
                 )}
               </Link>
             );
@@ -299,26 +309,26 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
         </nav>
 
         {/* Categories (scroll area) */}
-        <div className="flex flex-col flex-1 min-h-0 border-t border-gray-200 dark:border-gray-700">
-          <div className="px-4 pt-2 flex-0">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        <div className="flex flex-col flex-1 min-h-0 border-t border-gray-100 dark:border-gray-700/50">
+          <div className="px-4 pt-3 pb-1 flex-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 dark:text-gray-500">
               {t('nav.categories')}
             </p>
           </div>
 
-          <div className="flex-1 min-h-0 modal-scroll px-2 pb-4">
+          <div className="flex-1 min-h-0 modal-scroll px-3 pb-4 space-y-0.5">
             <Link
               to="/"
               onClick={closeMenu}
-              className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                 pathname === "/"
-                  ? "bg-brand-coral text-white shadow-md"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+                  ? "bg-brand-coral/10 text-brand-coral font-semibold"
+                  : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
               }`}
             >
               <LayoutDashboard
                 className={`h-4 w-4 ${
-                  pathname === "/" ? "text-white" : "text-gray-400"
+                  pathname === "/" ? "text-brand-coral" : "text-gray-400"
                 }`}
               />
               <span className="truncate">{t('nav.all')}</span>
@@ -332,15 +342,15 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
                   key={cat}
                   to={`/category/${encodeURIComponent(cat)}`}
                   onClick={closeMenu}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-brand-coral text-white shadow-md"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+                      ? "bg-brand-coral/10 text-brand-coral font-semibold"
+                      : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                   }`}
                 >
                   <Tag
                     className={`h-4 w-4 ${
-                      isActive ? "text-white" : "text-gray-400"
+                      isActive ? "text-brand-coral" : "text-gray-400"
                     }`}
                   />
                   <span className="truncate">{cat}</span>
