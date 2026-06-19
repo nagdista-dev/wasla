@@ -372,6 +372,10 @@ const en = {
   'confirmLink.continue': 'Open',
   'confirmLink.cancel': 'Cancel',
 
+  // Video Description
+  'videoDesc.confirmTitle': 'View Video Description',
+  'videoDesc.confirmMessage': 'You are about to view the video description. Do you want to continue?',
+
   // Post Card
   'postCard.watchOnYoutube': 'Watch on YouTube',
   'postCard.externalRedirect': 'You are about to be redirected to YouTube. The app will open this content in your browser.',

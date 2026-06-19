@@ -7,6 +7,7 @@ import { useMediaManager } from '../context/MediaContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useToast } from '../components/Toast';
 import ConfirmLinkModal from '../components/ConfirmLinkModal';
+import ConfirmActionModal from '../components/ConfirmActionModal';
 import { extractVideoId, buildWatchUrl } from '../utils/videoUtils';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { formatDescription } from '../utils/formatDescription';
@@ -47,6 +48,7 @@ function VideoDescription({ description }: { description: string }) {
   const [needsToggle, setNeedsToggle] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
   const [pendingLink, setPendingLink] = useState<string | null>(null);
+  const [showDescConfirm, setShowDescConfirm] = useState(false);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -99,7 +101,13 @@ function VideoDescription({ description }: { description: string }) {
       />
       {needsToggle && (
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => {
+            if (expanded) {
+              setExpanded(false);
+            } else {
+              setShowDescConfirm(true);
+            }
+          }}
           className="mt-2 flex items-center gap-1 text-xs sm:text-sm font-semibold text-brand-coral hover:text-brand-pink transition-colors"
         >
           {expanded ? (
@@ -115,6 +123,17 @@ function VideoDescription({ description }: { description: string }) {
           )}
         </button>
       )}
+      <ConfirmActionModal
+        isOpen={showDescConfirm}
+        onClose={() => setShowDescConfirm(false)}
+        onConfirm={() => {
+          setExpanded(true);
+          setShowDescConfirm(false);
+        }}
+        title={t('videoDesc.confirmTitle')}
+        description={t('videoDesc.confirmMessage')}
+        confirmLabel={t('confirmAction.confirm')}
+      />
       {pendingLink && (
         <ConfirmLinkModal
           url={pendingLink}

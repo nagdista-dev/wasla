@@ -372,6 +372,10 @@ const ar: Record<string, string> = {
   'confirmLink.continue': 'فتح',
   'confirmLink.cancel': 'إلغاء',
 
+  // Video Description
+  'videoDesc.confirmTitle': 'عرض وصف الفيديو',
+  'videoDesc.confirmMessage': 'أنت على وشك عرض وصف الفيديو. هل تريد المتابعة؟',
+
   // Post Card
   'postCard.watchOnYoutube': 'مشاهدة على يوتيوب',
   'postCard.externalRedirect': 'سيتم تحويلك إلى يوتيوب. سيتم فتح هذا المحتوى في متصفحك.',
