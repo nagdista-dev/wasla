@@ -407,7 +407,7 @@ function VideoPage() {
   const player = (
     <div
       ref={playerContainerRef}
-      className="relative aspect-video w-full bg-black overflow-hidden lg:rounded-xl lg:shadow-2xl lg:ring-1 lg:ring-white/5"
+      className="relative aspect-video w-full bg-black overflow-hidden rounded-none sm:rounded-xl sm:shadow-2xl sm:ring-1 sm:ring-white/5"
     >
       {embedSrc && canRenderPlayer ? (
         <>
@@ -461,9 +461,9 @@ function VideoPage() {
     return (
       <div className="min-h-screen bg-white dark:bg-dark-navy pb-safe">
         <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
-          <div className="lg:grid lg:grid-cols-[1fr_1.5fr] lg:gap-6 xl:grid-cols-[1fr_1.8fr] xl:gap-8 2xl:grid-cols-[1fr_2fr] 2xl:gap-10">
-            <div className="relative aspect-video w-full bg-black rounded-none lg:rounded-xl overflow-hidden shadow-2xl skeleton-shimmer lg:order-2" />
-            <div className="px-4 lg:px-0 py-4 lg:py-0 space-y-5 sm:space-y-6 lg:order-1">
+          <div className="flex flex-col gap-6 sm:gap-8">
+            <div className="relative aspect-video w-full bg-black rounded-none sm:rounded-xl overflow-hidden shadow-2xl skeleton-shimmer" />
+            <div className="px-4 sm:px-0 space-y-5 sm:space-y-6">
               <div className="h-8 w-3/4 rounded skeleton-shimmer" />
               <div className="h-4 w-48 rounded skeleton-shimmer" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -496,14 +496,14 @@ function VideoPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-dark-navy pb-safe">
       <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-0 sm:px-4 lg:px-6 py-0 lg:py-6">
-        <div className="lg:grid lg:grid-cols-[1fr_1.5fr] lg:gap-6 xl:grid-cols-[1fr_1.8fr] xl:gap-8 2xl:grid-cols-[1fr_2fr] 2xl:gap-10">
+        <div className="flex flex-col gap-6 sm:gap-8">
 
-          <div className="lg:sticky lg:top-[calc(64px+1.5rem)] lg:self-start z-30 bg-white dark:bg-dark-navy lg:order-2">
+          <div className="w-full">
             {player}
           </div>
 
           {video ? (
-            <div className="px-4 sm:px-0 lg:px-0 py-4 sm:py-6 lg:py-0 space-y-5 sm:space-y-6 lg:order-1">
+            <div className="px-4 sm:px-0 space-y-5 sm:space-y-6">
               <h1 className="text-xl sm:text-2xl xl:text-3xl font-bold leading-snug text-gray-900 dark:text-white">
                 {video.title}
               </h1>
@@ -649,7 +649,7 @@ function VideoPage() {
               </div>
             </div>
           ) : (
-            <div className="px-4 sm:px-0 lg:px-0 py-8 text-center">
+            <div className="px-4 sm:px-0 py-8 text-center">
               <p className="text-gray-500 dark:text-gray-400">{t('videoPage.notFound') || 'Video not found'}</p>
             </div>
           )}
