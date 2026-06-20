@@ -7,6 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { getHomeScroll } from './utils/scrollRestoration';
+import { trackPageView } from './services/analyticsService';
 import {
   Home,
   Users,
@@ -28,6 +29,7 @@ import {
   Headphones,
   History,
   Newspaper,
+  BarChart3,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
@@ -103,6 +105,7 @@ const WatchHistoryPage = lazy(() => import("./pages/WatchHistoryPage"));
 const PostsPage = lazy(() => import("./pages/PostsPage"));
 const PostDetailPage = lazy(() => import("./pages/PostDetailPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const AnalyticsDashboardPage = lazy(() => import("./pages/AnalyticsDashboardPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -154,6 +157,11 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
   useEffect(() => {
     queueMicrotask(() => setMenuOpen(false));
   }, [language]);
+
+  useEffect(() => {
+    trackPageView(pathname);
+  }, [pathname]);
+
   const navItems = [
     { path: "/", label: t('nav.home'), icon: Home },
     { path: "/favorites", label: t('favorites.title'), icon: HeartHandshake },
@@ -164,6 +172,7 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
     { path: "/watch-later", label: t('watchLater.title'), icon: BookmarkCheck },
     { path: "/history", label: t('watchHistory.title'), icon: History },
     { path: "/how-to-use", label: t('nav.howToUse'), icon: BookOpen },
+    { path: "/analytics", label: t('nav.analytics'), icon: BarChart3 },
     { path: "/contact", label: t('contact.title'), icon: MessageCircle },
     { path: "/settings", label: t('nav.settings'), icon: Settings },
   ];
@@ -601,6 +610,10 @@ function App() {
               <Route
                 path="/contact"
                 element={<ContactPage />}
+              />
+              <Route
+                path="/analytics"
+                element={<AnalyticsDashboardPage />}
               />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

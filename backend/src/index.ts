@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import channelRoutes from "./routes/channel.js";
+import analyticsRoutes from "./routes/analytics.js";
 
 dotenv.config();
 
@@ -48,5 +49,6 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api", channelRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 export default app;

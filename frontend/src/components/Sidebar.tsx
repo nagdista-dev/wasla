@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck, HeartHandshake, GraduationCap, MessageCircle, History, Newspaper } from 'lucide-react';
+import { Home, Users, Heart, Settings, Tag, LayoutDashboard, BookOpen, BookmarkCheck, HeartHandshake, GraduationCap, MessageCircle, History, Newspaper, BarChart3 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import type { Channel, Playlist } from '../types';
 
@@ -22,6 +22,7 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
     { path: '/watch-later', label: t('watchLater.title'), icon: BookmarkCheck },
     { path: '/history', label: t('watchHistory.title'), icon: History },
     { path: '/how-to-use', label: t('nav.howToUse'), icon: BookOpen },
+    { path: '/analytics', label: t('nav.analytics'), icon: BarChart3 },
     { path: '/contact', label: t('contact.title'), icon: MessageCircle },
     { path: '/settings', label: t('nav.settings'), icon: Settings },
   ];

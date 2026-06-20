@@ -11,6 +11,7 @@ import { useFavorites } from '../context/FavoritesContext';
 import { extractVideoId } from '../utils/videoUtils';
 import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
 import { useVideoProgress } from '../hooks/useVideoProgress';
+import { trackVideoClick } from '../services/analyticsService';
 
 interface VideoCardProps {
   channel: Channel;
@@ -63,6 +64,7 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
     play(video, channel.id);
     const vidId = extractVideoId(video.link);
     if (vidId) {
+      trackVideoClick(vidId);
       navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
     }
   };

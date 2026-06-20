@@ -600,7 +600,26 @@ const ar: Record<string, string> = {
   'notFound.title': 'الصفحة غير موجودة',
   'notFound.description': 'عذراً! الصفحة التي تبحث عنها غير موجودة أو تم نقلها.',
   'notFound.goHome': 'العودة إلى الرئيسية',
-  'notFound.redirecting': 'سيتم إعادة التوجيه إلى الصفحة الرئيسية بعد {countdown} ثانية...'
+  'notFound.redirecting': 'سيتم إعادة التوجيه إلى الصفحة الرئيسية بعد {countdown} ثانية...',
+
+  // Analytics Dashboard
+  'analytics.dashboard': 'لوحة التحليلات',
+  'analytics.enterPassword': 'أدخل كلمة مرور المسؤول للوصول إلى لوحة التحكم.',
+  'analytics.passwordPlaceholder': 'كلمة مرور المسؤول',
+  'analytics.unlock': 'فتح لوحة التحكم',
+  'analytics.loading': 'جارٍ التحميل...',
+  'analytics.invalidPassword': 'كلمة المرور غير صحيحة. حاول مرة أخرى.',
+  'analytics.totalVisits': 'إجمالي الزيارات',
+  'analytics.uniqueVisitors': 'الزوار الفريدون',
+  'analytics.videoClicks': 'نقرات الفيديو',
+  'analytics.mostVisitedPages': 'الصفحات الأكثر زيارة',
+  'analytics.mostClickedVideos': 'مقاطع الفيديو الأكثر نقراً',
+  'analytics.dailyVisits': 'الزيارات اليومية (آخر 30 يوم)',
+  'analytics.noData': 'لا توجد بيانات بعد. ابدأ التصفح لرؤية التحليلات.',
+  'analytics.clearData': 'مسح البيانات',
+  'analytics.confirmClear': 'هل أنت متأكد من مسح جميع بيانات التحليلات؟ لا يمكن التراجع عن هذا.',
+  'analytics.clearError': 'فشل في مسح بيانات التحليلات.',
+  'nav.analytics': 'التحليلات',
 };
 
 export default ar;

@@ -601,7 +601,26 @@ const en = {
   'notFound.title': 'Page not found',
   'notFound.description': "Oops! The page you're looking for doesn't exist or has been moved.",
   'notFound.goHome': 'Go to Home',
-  'notFound.redirecting': 'Redirecting to home in {countdown}s...'
+  'notFound.redirecting': 'Redirecting to home in {countdown}s...',
+
+  // Analytics Dashboard
+  'analytics.dashboard': 'Analytics Dashboard',
+  'analytics.enterPassword': 'Enter the admin password to access the dashboard.',
+  'analytics.passwordPlaceholder': 'Admin password',
+  'analytics.unlock': 'Unlock Dashboard',
+  'analytics.loading': 'Loading...',
+  'analytics.invalidPassword': 'Invalid password. Please try again.',
+  'analytics.totalVisits': 'Total Visits',
+  'analytics.uniqueVisitors': 'Unique Visitors',
+  'analytics.videoClicks': 'Video Clicks',
+  'analytics.mostVisitedPages': 'Most Visited Pages',
+  'analytics.mostClickedVideos': 'Most Clicked Videos',
+  'analytics.dailyVisits': 'Daily Visits (Last 30 Days)',
+  'analytics.noData': 'No data yet. Start browsing to see analytics.',
+  'analytics.clearData': 'Clear All Data',
+  'analytics.confirmClear': 'Are you sure you want to clear all analytics data? This cannot be undone.',
+  'analytics.clearError': 'Failed to clear analytics data.',
+  'nav.analytics': 'Analytics',
 };
 
 export type TranslationKeys = keyof typeof en;
