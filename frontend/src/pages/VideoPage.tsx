@@ -164,7 +164,7 @@ function VideoPage() {
   const [resumeTime, setResumeTime] = useState<number | null>(null);
   const [resumeVideoId, setResumeVideoId] = useState<string | null>(null);
   const [progressCheckedVideoId, setProgressCheckedVideoId] = useState<string | null>(null);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
 
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -191,7 +191,7 @@ function VideoPage() {
     setResumeTime(null);
     setResumeVideoId(null);
     setProgressCheckedVideoId(null);
-    setIframeLoaded(false);
+    setVideoReady(false);
     historyRecordedRef.current = false;
   }, [videoId]);
 
@@ -378,6 +378,31 @@ function VideoPage() {
     };
   }, [embedSrc, mediaManager]);
 
+  useEffect(() => {
+    if (!embedSrc) return;
+
+    setVideoReady(false);
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data.event === 'onReady' || (data.event === 'onStateChange' && data.info === 1)) {
+          setVideoReady(true);
+        }
+      } catch {}
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    const timeout = setTimeout(() => setVideoReady(true), 8000);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearTimeout(timeout);
+    };
+  }, [embedSrc]);
+
   const seekVideo = useCallback((seconds: number) => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(JSON.stringify({
@@ -480,12 +505,12 @@ function VideoPage() {
             key={embedSrc}
             src={embedSrc}
             title={video?.title || 'YouTube video'}
-            className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${iframeLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
             allow="autoplay; encrypted-media; fullscreen"
             allowFullScreen
-            onLoad={() => setIframeLoaded(true)}
+            onLoad={() => setVideoReady(true)}
           />
-          {!iframeLoaded && (
+          {!videoReady && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
               <div className="relative h-16 w-16">
                 <div className="absolute inset-0 rounded-full border-4 border-white/20" />
