@@ -618,10 +618,14 @@ const ar: Record<string, string> = {
   'analytics.mostClickedVideos': 'مقاطع الفيديو الأكثر نقراً',
   'analytics.dailyVisits': 'الزيارات اليومية (آخر 30 يوم)',
   'analytics.noData': 'لا توجد بيانات بعد. ابدأ التصفح لرؤية التحليلات.',
-  'analytics.clearData': 'مسح البيانات',
-  'analytics.confirmClear': 'هل أنت متأكد من مسح جميع بيانات التحليلات؟ لا يمكن التراجع عن هذا.',
-  'analytics.clearError': 'فشل في مسح بيانات التحليلات.',
+  'analytics.clearData': 'مسح كل البيانات',
+  'analytics.confirmClear': 'هل أنت متأكد من مسح كل بيانات التحليلات؟ لا يمكن التراجع عن هذا.',
+  'analytics.clearError': 'فشل مسح بيانات التحليلات.',
   'nav.analytics': 'التحليلات',
+
+  // Video Page
+  'videoPage.copyDescription': 'نسخ الوصف',
+  'videoPage.copied': 'تم النسخ',
 };
 
 export default ar;

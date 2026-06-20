@@ -623,6 +623,10 @@ const en = {
   'analytics.confirmClear': 'Are you sure you want to clear all analytics data? This cannot be undone.',
   'analytics.clearError': 'Failed to clear analytics data.',
   'nav.analytics': 'Analytics',
+
+  // Video Page
+  'videoPage.copyDescription': 'Copy description',
+  'videoPage.copied': 'Copied',
 };
 
 export type TranslationKeys = keyof typeof en;
