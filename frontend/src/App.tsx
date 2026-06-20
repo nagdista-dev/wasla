@@ -682,7 +682,7 @@ function App() {  const { isRTL } = useLanguage();
                   <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannelsJson={handleImportChannelsJson} />
                 }
               />
-              <Route path="/channel/:channelId" element={<ChannelPage />} />
+              <Route path="/channel/:channelId" element={<ChannelPage channels={channels} onUpdate={handleUpdateChannel} onDelete={handleDeleteChannel} />} />
               <Route path="/playlist/:playlistId" element={<PlaylistCoursePage />} />
               <Route path="/video/:videoId" element={<VideoPage />} />
               <Route path="/audio/:videoId" element={<AudioPage />} />

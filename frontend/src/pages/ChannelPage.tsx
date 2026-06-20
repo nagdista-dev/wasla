@@ -1,10 +1,12 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowUpDown, ExternalLink, Film, ListVideo, Loader2, Play } from 'lucide-react';
+import { AlertCircle, ArrowUpDown, ExternalLink, Film, ListVideo, Loader2, Play, Edit3, Trash2 } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
+import EditChannelModal from '../components/EditChannelModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelDetailsData, LatestVideo, Playlist } from '../types';
@@ -262,9 +264,31 @@ const PlaylistsPanel = memo(function PlaylistsPanel({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function ChannelPage() {
+export default function ChannelPage({
+  channels = [],
+  onUpdate,
+  onDelete,
+}: {
+  channels?: Channel[];
+  onUpdate?: (id: string, name: string, categories: string[]) => void;
+  onDelete?: (id: string) => void;
+}) {
   const { t } = useLanguage();
   const { channelId } = useParams<{ channelId: string }>();
+  const navigate = useNavigate();
+
+  const currentChannel = useMemo(
+    () => channels?.find((c) => c.id === channelId),
+    [channels, channelId]
+  );
+  
+  const allCategories = useMemo(
+    () => Array.from(new Set(channels?.flatMap((c) => c.categories) || [])).sort((a, b) => a.localeCompare(b)),
+    [channels]
+  );
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // ── Videos state ──────────────────────────────────────────────────────────
   const [data, setData] = useState<ChannelDetailsData | null>(null);
@@ -467,16 +491,36 @@ export default function ChannelPage() {
                   {t('channel.videoCount', { count: data.videos.length })}
                 </p>
               </div>
-              <a
-                href={data.handle ? `https://www.youtube.com/@${data.handle}` : `https://www.youtube.com/channel/${channelId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-gray-200 bg-white hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-shrink-0 mt-1"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink className="h-4 w-4 text-red-600" />
-                {t('playlists.youtube')}
-              </a>
+              <div className="flex items-center gap-2 flex-wrap mt-2 sm:mt-0">
+                {currentChannel && onUpdate && (
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 bg-white hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/10 shadow-sm"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    {t('channels.edit')}
+                  </button>
+                )}
+                {currentChannel && onDelete && (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 ring-1 ring-red-200 bg-red-50 hover:bg-red-100 transition dark:bg-red-900/20 dark:text-red-400 dark:ring-red-900/50 dark:hover:bg-red-900/40 shadow-sm"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t('channels.delete')}
+                  </button>
+                )}
+                <a
+                  href={data.handle ? `https://www.youtube.com/@${data.handle}` : `https://www.youtube.com/channel/${channelId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-gray-200 bg-white hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 flex-shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-4 w-4 text-red-600" />
+                  {t('playlists.youtube')}
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -563,6 +607,31 @@ export default function ChannelPage() {
           />
         </div>
       </div>
+      
+      {showEditModal && currentChannel && onUpdate && (
+        <EditChannelModal
+          channel={currentChannel}
+          onClose={() => setShowEditModal(false)}
+          onUpdate={(name, categories) => {
+            onUpdate(currentChannel.id, name, categories);
+            setShowEditModal(false);
+          }}
+          existingCategories={allCategories}
+        />
+      )}
+      
+      {showDeleteConfirm && currentChannel && onDelete && (
+        <ConfirmDeleteModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={() => {
+            onDelete(currentChannel.id);
+            navigate('/channels');
+          }}
+          title={t('channels.deleteTitle')}
+          description={t('channels.deleteDescription', { name: currentChannel.name })}
+        />
+      )}
     </div>
   );
 }
