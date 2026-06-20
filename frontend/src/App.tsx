@@ -6,6 +6,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+import { saveHomeScroll, getHomeScroll } from './utils/scrollRestoration';
 import {
   Home,
   Users,
@@ -28,7 +29,7 @@ import {
   History,
   Newspaper,
 } from "lucide-react";
-import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FloatingButton from "./components/FloatingButton";
 import LoadingScreen from "./components/LoadingScreen";
 import AddChannelModal from "./components/AddChannelModal";
@@ -105,9 +106,18 @@ const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
+  const prevPathname = useRef(pathname);
+
   useEffect(() => {
+    if (prevPathname.current === pathname) return;
+    prevPathname.current = pathname;
+
+    if (pathname === '/' && getHomeScroll() > 0) {
+      return;
+    }
     window.scrollTo(0, 0);
   }, [pathname]);
+
   return null;
 }
 

@@ -20,6 +20,7 @@ import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepo
 import { extractVideoId } from '../utils/videoUtils';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
+import { saveHomeScroll, getHomeScroll, clearHomeScroll } from '../utils/scrollRestoration';
 
 function syncLoadPref<T>(key: string, fallback: T): T {
   try {
@@ -70,6 +71,20 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
   }, [items]);
 
   useEffect(() => { saveSetting('wasla_viewMode', viewMode); }, [viewMode]);
+
+  useEffect(() => {
+    const saved = getHomeScroll();
+    if (saved > 0 && channels.length > 0) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, saved);
+        clearHomeScroll();
+      });
+    }
+  }, [hasLoadedCache, channels.length]);
+
+  useEffect(() => {
+    return () => saveHomeScroll();
+  }, []);
 
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
