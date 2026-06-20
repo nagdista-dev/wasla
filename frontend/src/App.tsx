@@ -5,6 +5,7 @@ import {
   Link,
   useLocation,
   useNavigate,
+  useMatch,
 } from "react-router-dom";
 import { getHomeScroll } from './utils/scrollRestoration';
 import { trackPageView } from './services/analyticsService';
@@ -522,6 +523,8 @@ function App() {
     [channels, playlists],
   );
 
+  const isHomePage = useMatch("/") !== null;
+
   return (
     <FeedProvider>
       <GlobalFeedLoader channels={channels} />
@@ -639,10 +642,12 @@ function App() {
             </Routes>
           </Suspense>
         </main>
-        <FloatingButton
-          onAddChannel={() => setShowChannelModal(true)}
-          onAddPlaylist={() => setShowPlaylistModal(true)}
-        />
+        {isHomePage && (
+          <FloatingButton
+            onAddChannel={() => setShowChannelModal(true)}
+            onAddPlaylist={() => setShowPlaylistModal(true)}
+          />
+        )}
         {showChannelModal && (
           <AddChannelModal
             onClose={() => setShowChannelModal(false)}
