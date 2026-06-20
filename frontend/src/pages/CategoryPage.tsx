@@ -51,12 +51,7 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
   const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('all');
 
   const categoryChannels = useMemo(
-    () => {
-      if (decoded === 'Live') {
-        return channels.filter((ch) => ch.categories.includes(decoded));
-      }
-      return channels.filter((ch) => ch.categories.includes(decoded));
-    },
+    () => channels.filter((ch) => ch.categories.includes(decoded)),
     [channels, decoded],
   );
 
@@ -109,12 +104,6 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
 
   const displayItems = useMemo(() => items
     .filter((item) => !item.loading && item.video)
-    .filter((item) => {
-      if (decoded === 'Live') {
-        return item.video?.isLive === true;
-      }
-      return true;
-    })
     .filter((item) => {
       if (!item.video || timeRange === 'all') return true;
       const now = Date.now();

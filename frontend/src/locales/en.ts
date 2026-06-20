@@ -17,8 +17,6 @@ const en = {
   'sidebar.categories': 'Categories',
   'sidebar.navigation': 'Navigation',
   'sidebar.all': 'All',
-  'sidebar.live': 'Live',
-
   // Home Page
   'home.title': 'Home',
   'home.search': 'Search',
@@ -27,8 +25,6 @@ const en = {
   'home.filterCategory': 'Category',
   'home.filterTime': 'Time',
   'home.filterSort': 'Sort',
-  'home.liveOnly': 'Live Only',
-  'home.allVideos': 'All Videos',
   'home.showingWithCategory': 'Showing {count} of {total} channels ({category})',
   'home.showing': 'Showing {count} of {total} channels',
   'home.sortBy': 'Sort by',

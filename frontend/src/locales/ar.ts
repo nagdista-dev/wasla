@@ -17,8 +17,6 @@ const ar: Record<string, string> = {
   'sidebar.categories': 'التصنيفات',
   'sidebar.navigation': 'التنقل',
   'sidebar.all': 'الكل',
-  'sidebar.live': 'مباشر',
-
   // Home Page
   'home.title': 'الرئيسية',
   'home.search': 'بحث',
@@ -28,8 +26,6 @@ const ar: Record<string, string> = {
   'home.filterTime': 'الوقت',
   'home.filterSort': 'الترتيب',
   'home.sortBy': 'ترتيب حسب',
-  'home.liveOnly': 'فيديوهات مباشرة فقط',
-  'home.allVideos': 'جميع الفيديوهات',
   'home.showingWithCategory': 'عرض {count} من {total} قناة ({category})',
   'home.showing': 'عرض {count} من {total} قناة',
   'home.allTime': 'كل الوقت',
@@ -533,8 +529,6 @@ const ar: Record<string, string> = {
   'filterModal.viewMode': 'طريقة العرض',
   'filterModal.publishedTime': 'وقت النشر',
   'filterModal.last3Months': 'آخر 3 أشهر',
-  'filterModal.liveOnly': 'فيديوهات مباشرة فقط',
-
   // Watch History
   'watchHistory.title': 'سجل المشاهدة',
   'watchHistory.empty': 'لا توجد سجل مشاهدة بعد',

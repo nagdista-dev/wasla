@@ -169,8 +169,7 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
   ];
   const categories = useMemo(
     () => {
-      const cats = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
-      return ['Live', ...cats];
+      return Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
     },
     [channels],
   );
@@ -490,7 +489,7 @@ function App() {
         ...channels.flatMap((c) => c.categories),
         ...playlists.flatMap((p) => p.categories),
       ])).sort((a, b) => a.localeCompare(b));
-      return ['Live', ...categories];
+      return categories;
     },
     [channels, playlists],
   );

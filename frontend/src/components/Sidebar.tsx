@@ -32,7 +32,7 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
         ...channels.flatMap((c) => c.categories),
         ...playlists.flatMap((p) => p.categories),
       ])).sort((a, b) => a.localeCompare(b));
-      return ['Live', ...cats];
+      return cats;
     },
     [channels, playlists]
   );
