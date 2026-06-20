@@ -1,5 +1,5 @@
 {
-  "totalVisits": 242,
+  "totalVisits": 249,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -50,7 +50,7 @@
     "/video": 1,
     "/video/yAhp3tUevZw": 5,
     "/watch-later": 2,
-    "/channels": 4,
+    "/channels": 5,
     "/playlists": 2,
     "/courses": 1,
     "/contact": 2,
@@ -58,12 +58,13 @@
     "/settings": 1,
     "/posts": 1,
     "/video/dQw4w9WgXcQ": 2,
-    "/category/English": 17,
+    "/category/English": 21,
     "/import/category": 3,
     "/channel/UCKgpamMlm872zkGDcBJHYDg": 1,
     "/video/sbAns1wSxkk": 2,
     "/audio/sbAns1wSxkk": 4,
-    "/audio/yAhp3tUevZw": 2
+    "/audio/yAhp3tUevZw": 2,
+    "/channel/UCHaHD477h-FeBbVh9Sh7syA": 2
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -90,6 +91,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 45
+    "2026-06-21": 52
   }
 }

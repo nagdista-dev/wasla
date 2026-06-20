@@ -688,7 +688,7 @@ function App() {  const { isRTL } = useLanguage();
               <Route path="/audio/:videoId" element={<AudioPage />} />
               <Route
                 path="/category/:categoryName"
-                element={<CategoryPage channels={channels} />}
+                element={<CategoryPage channels={channels} onUpdate={handleUpdateChannel} />}
               />
               <Route
                 path="/import/category"

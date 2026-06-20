@@ -5,6 +5,7 @@ import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
+import EditChannelModal from '../components/EditChannelModal';
 import { encodeSharePayload } from '../utils/shareUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
@@ -42,7 +43,7 @@ function getLatestVideo(channel: Channel, data: ChannelApiResponse['data']): Lat
   return undefined;
 }
 
-export default function CategoryPage({ channels }: { channels: Channel[] }) {
+export default function CategoryPage({ channels, onUpdate }: { channels: Channel[], onUpdate?: (id: string, name: string, categories: string[]) => void }) {
   const { t } = useLanguage();
   const { categoryName } = useParams<{ categoryName: string }>();
   const decoded = useMemo(() => categoryName ? decodeURIComponent(categoryName) : '', [categoryName]);
@@ -55,6 +56,12 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
   const [isCopied, setIsCopied] = useState(false);
   const [showSharedBanner, setShowSharedBanner] = useState(true);
   const [showMobileActions, setShowMobileActions] = useState(false);
+  const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+
+  const allCategories = useMemo(
+    () => Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b)),
+    [channels]
+  );
 
   const isShared = useMemo(() => {
     try {
@@ -292,8 +299,8 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
                     </div>
                     
                     {/* Hover Action Desktop Only */}
-                    <div className="absolute right-2 opacity-0 transition-all duration-200 group-hover:opacity-100 hidden md:flex">
-                      <button onClick={(e) => { e.stopPropagation(); navigate('/channels'); }} className="rounded-full bg-gray-50 p-2 text-gray-500 hover:text-brand-coral hover:bg-brand-coral/10 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-brand-coral transition-colors" aria-label="Edit">
+                    <div className="absolute right-2 opacity-0 transition-all duration-200 group-hover:opacity-100 focus-within:opacity-100 group-focus:opacity-100 hidden md:flex">
+                      <button onClick={(e) => { e.stopPropagation(); setEditingChannel(ch); }} className="rounded-full bg-gray-50 p-2 text-gray-500 hover:text-brand-coral hover:bg-brand-coral/10 focus:opacity-100 focus:bg-brand-coral/10 focus:text-brand-coral active:bg-brand-coral/20 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-brand-coral transition-colors" aria-label="Edit">
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -383,6 +390,17 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
           </>
         )}
       </div>
+      {editingChannel && onUpdate && (
+        <EditChannelModal
+          channel={editingChannel}
+          onClose={() => setEditingChannel(null)}
+          onUpdate={(name, categories) => {
+            onUpdate(editingChannel.id, name, categories);
+            setEditingChannel(null);
+          }}
+          existingCategories={allCategories}
+        />
+      )}
     </div>
   );
 }
