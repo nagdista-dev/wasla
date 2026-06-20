@@ -112,6 +112,7 @@ const PostsPage = lazy(() => import("./pages/PostsPage"));
 const PostDetailPage = lazy(() => import("./pages/PostDetailPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const AnalyticsDashboardPage = lazy(() => import("./pages/AnalyticsDashboardPage"));
+const ImportCategoryPage = lazy(() => import("./pages/ImportCategoryPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -597,6 +598,48 @@ function App() {
     [],
   );
 
+  const handleImportSharedCategory = useCallback((categoryName: string, importedChannels: Partial<Channel>[]) => {
+    try {
+      const stored = localStorage.getItem('wasla_shared_categories');
+      const sharedCategories = stored ? JSON.parse(stored) : [];
+      if (!sharedCategories.includes(categoryName)) {
+        localStorage.setItem('wasla_shared_categories', JSON.stringify([...sharedCategories, categoryName]));
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    
+    setChannels(prev => {
+      const next = [...prev];
+      let changed = false;
+      
+      for (const ic of importedChannels) {
+        if (!ic.id) continue;
+        const existingIndex = next.findIndex(c => c.id === ic.id);
+        if (existingIndex >= 0) {
+          const existing = next[existingIndex];
+          if (!existing.categories.includes(categoryName)) {
+            next[existingIndex] = { ...existing, categories: [...existing.categories, categoryName] };
+            changed = true;
+          }
+        } else {
+          next.push({
+            id: ic.id,
+            name: ic.name || 'Unknown Channel',
+            categories: [categoryName],
+            handle: ic.handle,
+          });
+          changed = true;
+        }
+      }
+      if (changed) {
+        saveChannels(next);
+        return next;
+      }
+      return prev;
+    });
+  }, []);
+
   return (
     <FeedProvider>
       <GlobalFeedLoader channels={channels} />
@@ -638,6 +681,10 @@ function App() {
               <Route
                 path="/category/:categoryName"
                 element={<CategoryPage channels={channels} />}
+              />
+              <Route
+                path="/import/category"
+                element={<ImportCategoryPage onImport={handleImportSharedCategory} />}
               />
               <Route
                 path="/channels"

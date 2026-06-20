@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertCircle, Play, RefreshCw } from 'lucide-react';
+import { AlertCircle, Play, RefreshCw, Share2, Check } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
+import { encodeSharePayload } from '../utils/shareUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
@@ -49,6 +50,35 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most_viewed' | 'least_viewed'>('newest');
   const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('all');
+  const [isCopied, setIsCopied] = useState(false);
+
+  const isShared = useMemo(() => {
+    try {
+      const stored = localStorage.getItem('wasla_shared_categories');
+      if (!stored) return false;
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) && parsed.includes(decoded);
+    } catch {
+      return false;
+    }
+  }, [decoded]);
+
+  const handleShareCategory = useCallback(() => {
+    if (channels.filter((ch) => ch.categories.includes(decoded)).length === 0) return;
+    
+    const payload = {
+      c: decoded,
+      ch: channels.filter((ch) => ch.categories.includes(decoded)).map(ch => ({ id: ch.id, name: ch.name, handle: ch.handle }))
+    };
+    
+    const base64Data = encodeSharePayload(payload);
+    const shareUrl = `${window.location.origin}/import/category?data=${base64Data}`;
+    
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
+  }, [decoded, channels]);
 
   const categoryChannels = useMemo(
     () => channels.filter((ch) => ch.categories.includes(decoded)),
@@ -140,7 +170,14 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
       <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{decoded}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{decoded}</h1>
+              {isShared && (
+                <span className="px-2.5 py-1 rounded-full bg-brand-coral/10 text-brand-coral text-xs font-semibold whitespace-nowrap">
+                  {t('category.sharedBadge')}
+                </span>
+              )}
+            </div>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
               {t('category.channels', { count: categoryChannels.length })}
               {items.some((i) => i.loading) ? t('category.loading') : t('category.videos', { count: displayItems.length })}
@@ -181,6 +218,17 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
               aria-label={t('category.refresh')}
             >
               <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              type="button"
+              onClick={handleShareCategory}
+              disabled={categoryChannels.length === 0}
+              className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
+            >
+              {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Share2 className="h-4 w-4" />}
+              <span className="hidden sm:inline">
+                {isCopied ? t('category.copied') : t('category.share')}
+              </span>
             </button>
           </div>
         </div>

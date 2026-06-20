@@ -1,12 +1,12 @@
 {
-  "totalVisits": 198,
+  "totalVisits": 210,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
     "9c1ffcc1-6b46-4bd1-9cc4-11a0c279b597"
   ],
   "pageViews": {
-    "/": 48,
+    "/": 49,
     "/analytics": 1,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
@@ -57,7 +57,9 @@
     "/favorites": 2,
     "/settings": 1,
     "/posts": 1,
-    "/video/dQw4w9WgXcQ": 2
+    "/video/dQw4w9WgXcQ": 2,
+    "/category/English": 8,
+    "/import/category": 3
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -83,6 +85,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 1
+    "2026-06-21": 13
   }
 }

@@ -182,6 +182,15 @@ const en = {
   'category.refresh': 'Refresh',
   'category.couldNotFetch': 'Could not fetch this channel',
   'category.noVideoFound': 'No video found',
+  'category.sharedBadge': 'Shared',
+  'category.share': 'Share',
+  'category.copied': 'Copied',
+
+  // Import
+  'import.processing': 'Processing Import...',
+  'import.success': 'Import Successful!',
+  'import.redirecting': 'Redirecting to category...',
+  'import.error': 'Import Failed',
 
   // Settings Page
   'settings.title': 'Settings',

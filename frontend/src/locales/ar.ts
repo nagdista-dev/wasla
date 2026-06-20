@@ -182,6 +182,15 @@ const ar: Record<string, string> = {
   'category.refresh': 'تحديث',
   'category.couldNotFetch': 'تعذر جلب هذه القناة',
   'category.noVideoFound': 'لم يتم العثور على فيديو',
+  'category.sharedBadge': 'مشترك',
+  'category.share': 'مشاركة',
+  'category.copied': 'تم النسخ',
+
+  // Import
+  'import.processing': 'جاري الاستيراد...',
+  'import.success': 'تم الاستيراد بنجاح!',
+  'import.redirecting': 'جاري التوجيه إلى الفئة...',
+  'import.error': 'فشل الاستيراد',
 
   // Settings Page
   'settings.title': 'الإعدادات',
