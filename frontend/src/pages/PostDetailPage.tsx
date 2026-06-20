@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Clock, ImageIcon, Loader2, MessageSquareText, RefreshCcw } from 'lucide-react';
 import { Link, useParams, useLocation } from 'react-router-dom';
-import type { CommunityPost, Channel } from '../types';
+import type { CommunityPost } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
@@ -79,7 +79,7 @@ export default function PostDetailPage() {
 
       if (!cancelled && !retriedRef.current) {
         retriedRef.current = true;
-        const stateData = location.state as { channelId?: string } | undefined;
+        const stateData = location.state as { channelId?: string; channelName?: string } | undefined;
         const channelId = stateData?.channelId;
 
         if (channelId) {
