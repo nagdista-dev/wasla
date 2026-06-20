@@ -6,7 +6,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { saveHomeScroll, getHomeScroll } from './utils/scrollRestoration';
+import { getHomeScroll } from './utils/scrollRestoration';
 import {
   Home,
   Users,

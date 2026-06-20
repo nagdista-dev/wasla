@@ -33,7 +33,7 @@ function NotFoundPage() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 24 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 14 } },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 100, damping: 14 } },
   };
 
   return (

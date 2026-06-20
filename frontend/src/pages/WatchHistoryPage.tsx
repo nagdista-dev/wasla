@@ -55,7 +55,7 @@ export default function WatchHistoryPage() {
 
   const handleClearAll = async () => {
     await clearAllHistory();
-    setEntries([]);
+    setHistory([]);
   };
 
   const handlePlay = (entry: WatchHistoryEntry) => {
