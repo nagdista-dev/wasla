@@ -6,6 +6,8 @@ import type { LatestVideo } from '../types';
  *   https://youtu.be/VIDEO_ID
  *   https://www.youtube.com/embed/VIDEO_ID
  *   https://www.youtube.com/shorts/VIDEO_ID
+ *   https://www.youtube.com/live/VIDEO_ID
+ *   https://www.youtube.com/v/VIDEO_ID
  */
 export function extractVideoId(url: string): string | null {
   if (!url) return null;
@@ -14,12 +16,15 @@ export function extractVideoId(url: string): string | null {
     // ?v= param (standard watch URL)
     const v = u.searchParams.get('v');
     if (v && v.length === 11) return v;
-    // path-based (youtu.be, /embed/, /shorts/)
-    const pathMatch = u.pathname.match(/\/(?:embed|shorts|v)\/([A-Za-z0-9_-]{11})/);
+    // path-based (youtu.be, /embed/, /shorts/, /live/, /v/)
+    const pathMatch = u.pathname.match(/\/(?:embed|shorts|live|v)\/([A-Za-z0-9_-]{11})/);
     if (pathMatch) return pathMatch[1];
     if (u.hostname === 'youtu.be') {
       const id = u.pathname.replace(/^\//, '');
       if (id.length === 11) return id;
+      // also check youtu.be with query params like ?si= or ?feature=
+      const cleanId = id.split('?')[0];
+      if (cleanId.length === 11) return cleanId;
     }
   } catch {
     // URL parse failed — try regex on raw string
@@ -30,6 +35,8 @@ export function extractVideoId(url: string): string | null {
     /youtu\.be\/([A-Za-z0-9_-]{11})/,
     /\/embed\/([A-Za-z0-9_-]{11})/,
     /\/shorts\/([A-Za-z0-9_-]{11})/,
+    /\/live\/([A-Za-z0-9_-]{11})/,
+    /\/v\/([A-Za-z0-9_-]{11})/,
   ];
   for (const pattern of patterns) {
     const m = url.match(pattern);

@@ -132,8 +132,8 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
     if (link) {
       const href = link.getAttribute('href');
       if (href && !href.startsWith('mailto:') && !href.startsWith('#')) {
+        e.preventDefault();
         if (href.includes('youtube.com') || href.includes('youtu.be')) {
-          e.preventDefault();
           const info = classifyYouTubeUrl(href);
           if (info) {
             switch (info.type) {
@@ -147,10 +147,9 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
                 if (info.playlistId) navigate(`/playlist/${encodeURIComponent(info.playlistId)}`);
                 break;
             }
+            return;
           }
-          return;
         }
-        e.preventDefault();
         setPendingLink(href);
         return;
       }

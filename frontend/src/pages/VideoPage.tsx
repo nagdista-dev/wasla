@@ -91,6 +91,8 @@ function VideoDescription({ description }: { description: string }) {
             if (info.playlistId) navigate(`/playlist/${encodeURIComponent(info.playlistId)}`);
             break;
         }
+      } else {
+        setPendingLink(href);
       }
     } else {
       setPendingLink(href);
