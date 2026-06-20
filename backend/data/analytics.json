@@ -1,14 +1,63 @@
 {
-  "totalVisits": 3,
+  "totalVisits": 89,
   "uniqueVisitors": [
-    "fd1a9956-974c-4a00-a00c-c5a3b62bf20a"
+    "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
+    "df116cf8-f550-4bf7-b399-08b81e105525"
   ],
   "pageViews": {
-    "/": 2,
-    "/analytics": 1
+    "/": 22,
+    "/analytics": 1,
+    "/video/sahl43TkY5Y": 4,
+    "/video/CJy6ltUkxUo": 1,
+    "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A": 1,
+    "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A%D8%A7": 1,
+    "/video/Wo_OMIzOJ0Q": 1,
+    "/video/fEVXhWdAdhY": 3,
+    "/video/KrVv7BxB31c": 1,
+    "/video/9N9O9Xp6dRM": 2,
+    "/video/vLvgwWzPJA0": 1,
+    "/video/CQoVsG7j_aE": 4,
+    "/channel/UCG0amqggEVJ0_U_q8mdEEKQ": 2,
+    "/video/2jC_Vc_oR6Y": 1,
+    "/channel/UC-4KnPMmZzwAzW7SbVATUZQ": 2,
+    "/video/UuxaTYXJwgo": 1,
+    "/video/SgP1c5KMMYI": 1,
+    "/video/EJ90KhEOP6M": 1,
+    "/video/AR-2ts_C4I0": 2,
+    "/video/RoN1PrF6WLU": 1,
+    "/video/9n_vs21GlrU": 1,
+    "/video/vWMsbKL94D4": 1,
+    "/video/OqZyB6t7fRA": 3,
+    "/channel/%40LStudioeg": 1,
+    "/channel/%40Kalam7allah": 3,
+    "/video/nKJnND67Bb8": 1,
+    "/channel/%40erza3ma3serry": 1,
+    "/channel/%40Joe-Ahmed": 1,
+    "/video/0CSom01gJhc": 1,
+    "/video/5TykgPUZJoE": 3,
+    "/playlist/PL5gCk5NdNx5-u3cXTYnWuZ9AAP920628P": 1,
+    "/playlist/PL5gCk5NdNx5_QxWasJ3msGjlpB7hs1-nF": 1,
+    "/video/L2Xa_sMsqQI": 1,
+    "/video/mhTC8hWoN50": 1
   },
-  "videoClicks": {},
+  "videoClicks": {
+    "CJy6ltUkxUo": 1,
+    "Wo_OMIzOJ0Q": 1,
+    "2jC_Vc_oR6Y": 1,
+    "UuxaTYXJwgo": 1,
+    "SgP1c5KMMYI": 1,
+    "EJ90KhEOP6M": 1,
+    "AR-2ts_C4I0": 1,
+    "RoN1PrF6WLU": 1,
+    "9n_vs21GlrU": 1,
+    "vWMsbKL94D4": 1,
+    "OqZyB6t7fRA": 2,
+    "nKJnND67Bb8": 1,
+    "0CSom01gJhc": 1,
+    "5TykgPUZJoE": 1,
+    "mhTC8hWoN50": 1
+  },
   "dailyVisits": {
-    "2026-06-20": 3
+    "2026-06-20": 89
   }
 }

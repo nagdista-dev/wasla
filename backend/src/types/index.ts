@@ -75,5 +75,11 @@ export interface PlaylistSummary {
   videoCount?: number;
 }
 
+export interface VideoResponse {
+  success: boolean;
+  data?: VideoData;
+  error?: string;
+}
+
 // Force emission of JS file
 export const __typesOnly = true;

@@ -61,6 +61,8 @@ const en = {
   'home.importFailed': 'Failed to read file.',
   'home.importedWithErrors': 'Some channels were imported with warnings.',
   'home.importSuccess': 'Channels imported successfully.',
+  'home.channel': 'Channel',
+  'home.video': 'Video',
 
   // Channels Page
   'channels.title': 'Channels',

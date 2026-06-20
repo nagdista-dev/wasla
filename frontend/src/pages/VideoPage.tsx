@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Share2, ChevronDown, ChevronUp, Headphones } from 'lucide-react';
 import { classifyYouTubeUrl } from '../utils/linkUtils';
 import { useLanguage } from '../context/LanguageContext';
@@ -16,6 +17,7 @@ import { useMeta } from '../hooks/useMeta';
 import { usePlaybackResume } from '../hooks/usePlaybackResume';
 import { recordWatch } from '../services/watchHistoryService';
 import { findCachedHomeVideoById } from '../services/videoCacheService';
+import { api } from '../api';
 import type { LatestVideo } from '../types';
 
 function formatViews(views?: number | string): string | undefined {
@@ -172,6 +174,7 @@ function VideoPage() {
   const initialOffsetRef = useRef(0);
   const animFrameRef = useRef<number>(0);
   const currentTimeRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
   const {
     loadProgress,
@@ -182,27 +185,55 @@ function VideoPage() {
   useMeta({ title: video?.title || t('videoPage.loading') });
 
   useEffect(() => {
+    setVideo(null);
+    setLoading(true);
+    setIsInWatchLater(false);
+    setResumeTime(null);
+    setResumeVideoId(null);
+    setProgressCheckedVideoId(null);
+    setIframeLoaded(false);
+    historyRecordedRef.current = false;
+  }, [videoId]);
+
+  useEffect(() => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
+
     let cancelled = false;
     let found: (LatestVideo & { channelId?: string }) | null = null;
 
     const resolveVideo = async () => {
       const stateData = location.state as { video?: LatestVideo; channelId?: string } | undefined;
-      if (stateData?.video) {
+      if (stateData?.video && !signal.aborted) {
         const extractedId = extractVideoId(stateData.video.link);
         if (extractedId === videoId) {
           found = { ...stateData.video, channelId: stateData.channelId };
         }
       }
 
-      if (!found && currentVideo && currentVideo._videoId === videoId) {
+      if (!found && currentVideo && currentVideo._videoId === videoId && !signal.aborted) {
         found = { ...currentVideo };
       }
 
-      if (!found && videoId) {
+      if (!found && videoId && !signal.aborted) {
         found = await findCachedHomeVideoById(videoId);
       }
 
-      if (cancelled) return;
+      if (!found && videoId && !signal.aborted) {
+        try {
+          const res = await api.get<{ success: boolean; data?: LatestVideo }>(`/video/${videoId}`, { signal });
+          if (!signal.aborted && res.data?.success && res.data?.data) {
+            found = res.data.data;
+          }
+        } catch (err) {
+          if (axios.isCancel(err)) return;
+        }
+      }
+
+      if (cancelled || signal.aborted) return;
       if (found) {
         setVideo(found);
         mediaManager.requestPlay('video');
@@ -214,6 +245,9 @@ function VideoPage() {
 
     return () => {
       cancelled = true;
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
     };
   }, [videoId, currentVideo, location.state, mediaManager]);
 

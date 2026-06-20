@@ -399,6 +399,78 @@ export async function fetchPlaylistData(playlistId: string): Promise<{ playlistN
   };
 }
 
+export async function fetchVideoDataById(videoId: string): Promise<VideoData | null> {
+  try {
+    const watchUrlStr = `https://www.youtube.com/watch?v=${videoId}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    const response = await fetch(watchUrlStr, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Wasla/1.0)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return null;
+    const htmlText = await response.text();
+
+    const jsonLdMatches = htmlText.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g);
+    if (jsonLdMatches) {
+      for (const script of jsonLdMatches) {
+        try {
+          const json = JSON.parse(script.replace(/<script type="application\/ld\+json">|<\/script>/g, ''));
+          if (json['@type'] === 'VideoObject' || json['@type'] === 'VideoObject') {
+            const channelName = json.author?.name || '';
+            const channelUrl = json.author?.url || '';
+            const channelIdMatch = channelUrl.match(/channel\/(UC[\w-]{22,})/);
+            return {
+              title: json.name || 'Untitled',
+              link: watchUrlStr,
+              thumbnail: json.thumbnailUrl?.[0] || (typeof json.thumbnailUrl === 'string' ? json.thumbnailUrl : undefined) || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+              publishedDate: json.uploadDate || new Date().toISOString(),
+              channelName,
+              description: json.description || undefined,
+              duration: json.duration ? String(isoDurationToSeconds(json.duration)) : undefined,
+              views: json.interactionStatistic?.find((s: Record<string, unknown>) => s['@type'] === 'InteractionCounter')?.userInteractionCount
+                ? parseInt(json.interactionStatistic.find((s: Record<string, unknown>) => s['@type'] === 'InteractionCounter')?.userInteractionCount, 10)
+                : undefined,
+            };
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    }
+
+    const descriptionMatch = htmlText.match(/<meta name="description" content="([^"]+)"/);
+    const titleMatch = htmlText.match(/<meta name="title" content="([^"]+)"/) || htmlText.match(/<title>([^<]+)<\/title>/);
+
+    return {
+      title: titleMatch?.[1]?.replace(' - YouTube', '') || 'Untitled',
+      link: watchUrlStr,
+      thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+      publishedDate: new Date().toISOString(),
+      channelName: '',
+      description: descriptionMatch?.[1] ? descriptionMatch[1].replace(/&amp;/g, '&') : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function isoDurationToSeconds(iso: string): number {
+  const match = iso.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1]?.replace('H', '') || '0', 10);
+  const minutes = parseInt(match[2]?.replace('M', '') || '0', 10);
+  const seconds = parseInt(match[3]?.replace('S', '') || '0', 10);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
 export function clearAllCaches(): void {
   cache.clear();
   pendingRequests.clear();

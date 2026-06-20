@@ -61,6 +61,8 @@ const ar: Record<string, string> = {
   'home.importFailed': 'فشل قراءة الملف.',
   'home.importedWithErrors': 'تم استيراد بعض القنوات مع تحذيرات.',
   'home.importSuccess': 'تم استيراد القنوات بنجاح.',
+  'home.channel': 'قناة',
+  'home.video': 'فيديو',
 
   // Channels Page
   'channels.title': 'القنوات',

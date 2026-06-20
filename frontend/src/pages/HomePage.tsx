@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, SlidersHorizontal, Upload } from 'lucide-react';
+import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, SlidersHorizontal, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditChannelModal from '../components/EditChannelModal';
 import VideoCard from '../components/VideoCard';
@@ -16,8 +16,9 @@ import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import { parseAndValidateChannelsJson } from '../utils/importChannels';
 import { getAllFromIndex } from '../services/indexedDbService';
 import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepository';
+import { useFeed } from '../context/FeedContext';
 import { extractVideoId } from '../utils/videoUtils';
-import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
+import type { Channel, ChannelLatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
 import { saveHomeScroll, getHomeScroll, clearHomeScroll } from '../utils/scrollRestoration';
 
@@ -37,7 +38,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
   const { showToast } = useToast();
   const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowFilterModal, activeFilterCount } = useFilters();
   const { selectedCategory, timeRange, sortBy, hiddenCategories } = filters;
-  const [items, setItems] = useState<ChannelLatestVideo[]>([]);
+  const { feedItems: items, setFeedItems: setItems } = useFeed();
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(syncLoadPref('wasla_viewMode', 'grid'));
   const [continueWatching, setContinueWatching] = useState<WatchHistoryEntry[]>([]);

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists, fetchCommunityPostsXml } from '../services/rssService.js';
-import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse, ChannelPlaylistsResponse, PlaylistSummary } from '../types/index.js';
+import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists, fetchCommunityPostsXml, fetchVideoDataById } from '../services/rssService.js';
+import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse, ChannelPlaylistsResponse, PlaylistSummary, VideoResponse } from '../types/index.js';
 
 const router = Router();
 
@@ -199,6 +199,32 @@ router.get('/playlist/:id', async (req: Request, res: Response) => {
 router.delete('/cache', (_req: Request, res: Response) => {
   clearAllCaches();
   res.json({ success: true, message: 'Cache cleared' });
+});
+
+router.get('/video/:id', async (req: Request, res: Response) => {
+  const videoId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  try {
+    if (!videoId) {
+      const response: VideoResponse = { success: false, error: 'Video ID is required' };
+      return res.status(400).json(response);
+    }
+
+    const data = await fetchVideoDataById(videoId);
+    if (!data) {
+      const response: VideoResponse = { success: false, error: 'Could not fetch video data' };
+      return res.status(404).json(response);
+    }
+
+    const response: VideoResponse = { success: true, data };
+    res.json(response);
+  } catch (error) {
+    console.error(`Error fetching video ${videoId}:`, error);
+    const response: VideoResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch video data',
+    };
+    res.status(500).json(response);
+  }
 });
 
 router.get('/cache/stats', (_req: Request, res: Response) => {

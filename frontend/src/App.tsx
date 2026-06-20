@@ -47,6 +47,8 @@ import Sidebar from "./components/Sidebar";
 import FilterModal from "./components/FilterModal";
 import SearchOverlay from "./components/SearchOverlay";
 import { useFilters } from "./context/FilterContext";
+import { FeedProvider, useFeed } from "./context/FeedContext";
+import { loadHomeFeedFromCache } from "./services/homeFeedRepository";
 import logo from "./assets/logo.png";
 
 function syncLoadChannels(): Channel[] {
@@ -370,6 +372,22 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
   );
 });
 
+function GlobalFeedLoader({ channels }: { channels: Channel[] }) {
+  const { setFeedItems } = useFeed();
+
+  useEffect(() => {
+    if (channels.length === 0) {
+      setFeedItems([]);
+      return;
+    }
+    loadHomeFeedFromCache(channels).then((cached) => {
+      if (cached.length > 0) setFeedItems(cached);
+    });
+  }, [channels, setFeedItems]);
+
+  return null;
+}
+
 function App() {
   const { isRTL } = useLanguage();
   const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, resetFilters, showFilterModal, setShowFilterModal } = useFilters();
@@ -505,7 +523,8 @@ function App() {
   );
 
   return (
-    <>
+    <FeedProvider>
+      <GlobalFeedLoader channels={channels} />
       {showSplash && <LoadingScreen fadeOut={splashFadeOut} />}
       <BrowserRouter>
         <ScrollToTop />
@@ -659,7 +678,7 @@ function App() {
         />
         </div>
       </BrowserRouter>
-    </>
+    </FeedProvider>
   );
 }
 
