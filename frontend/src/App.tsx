@@ -45,6 +45,7 @@ import { useTheme } from "./context/ThemeContext";
 import { useAudio } from "./context/AudioContext";
 import Sidebar from "./components/Sidebar";
 import FilterModal from "./components/FilterModal";
+import SearchOverlay from "./components/SearchOverlay";
 import { useFilters } from "./context/FilterContext";
 import logo from "./assets/logo.png";
 
@@ -533,7 +534,7 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannelsJson={handleImportChannelsJson} showSearch={showSearch} onCloseSearch={() => setShowSearch(false)} />
+                  <HomePage channels={channels} onUpdate={handleUpdateChannel} onImportChannelsJson={handleImportChannelsJson} />
                 }
               />
               <Route path="/channel/:channelId" element={<ChannelPage />} />
@@ -638,6 +639,11 @@ function App() {
           />
         )}
         <MobileAppBanner />
+        <SearchOverlay
+          isOpen={showSearch}
+          onClose={() => setShowSearch(false)}
+          channels={channels}
+        />
         <FilterModal
           isOpen={showFilterModal}
           onClose={() => setShowFilterModal(false)}
