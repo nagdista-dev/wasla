@@ -598,52 +598,44 @@ function VideoPage() {
 
               <div className="h-px w-full bg-gradient-to-r from-gray-200 via-gray-100 to-transparent dark:from-gray-700 dark:via-gray-700/50 dark:to-transparent" />
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  {hasChannelRoute ? (
-                    <button
-                      onClick={handleChannelClick}
-                      className="flex items-center gap-3 min-w-0 group/channel"
-                      aria-label={`${t('miniPlayer.openChannel')}: ${video.channelName}`}
-                    >
-                      <span className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-orange text-sm font-bold text-white shadow-sm flex-shrink-0">
-                        {channelInitial}
-                      </span>
-                      <span className="text-sm sm:text-base font-semibold text-brand-coral group-hover/channel:underline truncate">
-                        {video.channelName}
-                      </span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-brand-pink via-brand-coral to-brand-orange text-sm font-bold text-white shadow-sm flex-shrink-0">
-                        {channelInitial}
-                      </span>
-                      <span className="text-sm sm:text-base font-semibold text-brand-coral truncate">
-                        {video.channelName}
-                      </span>
-                    </div>
-                  )}
-                </div>
+               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                 <div className="flex items-center min-w-0">
+                   {hasChannelRoute ? (
+                     <button
+                       onClick={handleChannelClick}
+                       className="flex items-center min-w-0 group/channel"
+                       aria-label={`${t('miniPlayer.openChannel')}: ${video.channelName}`}
+                     >
+                       <span className="text-sm sm:text-base font-semibold text-brand-coral group-hover/channel:underline truncate">
+                         {video.channelName}
+                       </span>
+                     </button>
+                   ) : (
+                     <span className="text-sm sm:text-base font-semibold text-brand-coral truncate">
+                       {video.channelName}
+                     </span>
+                   )}
+                 </div>
 
-                <div className="flex items-center gap-3 sm:gap-4 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {formatRelativeTime(video.publishedDate, t)}
-                  </span>
-                  {formattedViews && (
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-3.5 w-3.5" />
-                      {formattedViews} {t('miniPlayer.views')}
-                    </span>
-                  )}
-                  {formattedDuration && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {formattedDuration}
-                    </span>
-                  )}
-                </div>
-              </div>
+                 <div className="flex items-center gap-3 sm:gap-4 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+                   <span className="flex items-center gap-1">
+                     <Clock className="h-3.5 w-3.5" />
+                     {formatRelativeTime(video.publishedDate, t)}
+                   </span>
+                   {formattedViews && (
+                     <span className="flex items-center gap-1">
+                       <Eye className="h-3.5 w-3.5" />
+                       {formattedViews} {t('miniPlayer.views')}
+                     </span>
+                   )}
+                   {formattedDuration && (
+                     <span className="flex items-center gap-1">
+                       <Clock className="h-3.5 w-3.5" />
+                       {formattedDuration}
+                     </span>
+                   )}
+                 </div>
+               </div>
 
               <div className="h-px w-full bg-gradient-to-r from-gray-200 via-gray-100 to-transparent dark:from-gray-700 dark:via-gray-700/50 dark:to-transparent" />
 
