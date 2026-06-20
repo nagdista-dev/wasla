@@ -1,4 +1,5 @@
 import express from "express";
+import compression from "compression";
 import cors from "cors";
 import dotenv from "dotenv";
 import channelRoutes from "./routes/channel.js";
@@ -37,18 +38,27 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+app.use(compression());
+
+const cacheMiddleware = (duration: number) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', `public, max-age=${duration}, s-maxage=${duration}`);
+  }
+  next();
+};
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.get("/", (req, res) => {
+app.get("/", cacheMiddleware(300), (req, res) => {
   res.json({ message: "Hello from backend!" });
 });
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", cacheMiddleware(60), (req, res) => {
   res.json({ status: "ok", message: "Backend is running" });
 });
 
-app.use("/api", channelRoutes);
+app.use("/api", cacheMiddleware(300), channelRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 export default app;
