@@ -5,7 +5,6 @@ import {
   Link,
   useLocation,
   useNavigate,
-  useMatch,
 } from "react-router-dom";
 import { getHomeScroll } from './utils/scrollRestoration';
 import { trackPageView } from './services/analyticsService';
@@ -523,7 +522,8 @@ function App() {
     [channels, playlists],
   );
 
-  const isHomePage = useMatch("/") !== null;
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   return (
     <FeedProvider>
