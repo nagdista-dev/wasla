@@ -1,6 +1,6 @@
 import type { Channel, CommunityPost } from '../types';
 import { api } from '../api';
-import { getItem, putItem, replaceStoreItems, getAllFromIndex } from './indexedDbService';
+import { getItem, putItem, replaceStoreItems, getAllFromIndex, getAll } from './indexedDbService';
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const MAX_POSTS_PER_CHANNEL = 2;
@@ -269,7 +269,23 @@ function saveCachedCommunityPosts(posts: CommunityPost[]): void {
 
 export function getPostById(id: string): CommunityPost | null {
   const cached = loadCachedCommunityPosts();
-  return cached.find(post => post.id === id) || null;
+  const found = cached.find(post => post.id === id);
+  if (found) return found;
+  return null;
+}
+
+export async function getPostByIdAsync(id: string): Promise<CommunityPost | null> {
+  const cached = loadCachedCommunityPosts();
+  const found = cached.find(post => post.id === id);
+  if (found) return found;
+  try {
+    const allPosts = await getAll<CachedPost>('communityPosts');
+    const match = allPosts.find(p => p.id === id);
+    if (match) return denormalizePost(match);
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
 function sortPostsByDate(posts: CommunityPost[]): CommunityPost[] {

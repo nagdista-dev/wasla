@@ -153,7 +153,7 @@ function PostCard({ post }: { post: CommunityPost }) {
         <div className="mt-4 flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
           <button
             type="button"
-            onClick={() => navigate(`/post/${post.id}`)}
+            onClick={() => navigate(`/post/${post.id}`, { state: { channelId: post.channelId, channelName: post.channelName } })}
             className="inline-flex items-center gap-1 text-xs font-semibold text-brand-coral transition hover:text-brand-pink"
           >
             {t('posts.readMore')}

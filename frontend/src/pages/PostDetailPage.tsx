@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Clock, ImageIcon, Loader2, MessageSquareText, RefreshCcw } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
-import type { CommunityPost } from '../types';
+import { Link, useParams, useLocation } from 'react-router-dom';
+import type { CommunityPost, Channel } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { isYouTubeUrl } from '../utils/linkUtils';
 import ConfirmLinkModal from '../components/ConfirmLinkModal';
-import { getPostById } from '../services/communityPostsService';
+import { getPostById, getPostByIdAsync } from '../services/communityPostsService';
+import { api } from '../api';
 
 function renderContentWithLinks(content: string, onLinkClick: (url: string) => void) {
   const urlRegex = /^(https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
@@ -38,11 +39,14 @@ function renderContentWithLinks(content: string, onLinkClick: (url: string) => v
 
 export default function PostDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
   const { t } = useLanguage();
   const [pendingLink, setPendingLink] = useState<string | null>(null);
-  const [post, setPost] = useState<CommunityPost | null>(() => id ? getPostById(id) : null);
-  const [loading, setLoading] = useState(!post);
+  const [post, setPost] = useState<CommunityPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const retriedRef = useRef(false);
 
   useMeta({
     title: post ? `${post.channelName} ${t('posts.post')}` : t('posts.notFound'),
@@ -52,22 +56,88 @@ export default function PostDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const cached = getPostById(id);
-    if (cached) {
-      setPost(cached);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const retry = getPostById(id);
-      if (retry) {
-        setPost(retry);
+
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+
+      const cached = getPostById(id);
+      if (cached) {
+        setPost(cached);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [id]);
+
+      const fromIdb = await getPostByIdAsync(id);
+      if (!cancelled && fromIdb) {
+        setPost(fromIdb);
+        setLoading(false);
+        return;
+      }
+
+      if (!cancelled && !retriedRef.current) {
+        retriedRef.current = true;
+        const stateData = location.state as { channelId?: string } | undefined;
+        const channelId = stateData?.channelId;
+
+        if (channelId) {
+          try {
+            const res = await api.get<{ success: boolean; xml?: string; source?: string; error?: string }>(`/community/${encodeURIComponent(channelId)}`);
+            if (cancelled) return;
+
+            if (res.data.success && res.data.xml) {
+              const doc = new DOMParser().parseFromString(res.data.xml, 'application/xml');
+              const entries = Array.from(doc.querySelectorAll('item, entry'));
+              for (const item of entries) {
+                const guid = item.querySelector('guid')?.textContent || item.querySelector('id')?.textContent || '';
+                const linkEl = item.querySelector('link[href]')?.getAttribute('href') || item.querySelector('link')?.textContent || '';
+                const title = item.querySelector('title')?.textContent || '';
+                const published = item.querySelector('pubDate')?.textContent || item.querySelector('published')?.textContent || '';
+                const rawGuid = guid || linkEl || `${channelId}:${title}:${published}`;
+                const computedId = hash(`${channelId}:${rawGuid}`);
+                if (computedId === id) {
+                  const content = item.querySelector('encoded')?.textContent || item.querySelector('content')?.textContent || item.querySelector('description')?.textContent || '';
+                  const textContent = new DOMParser().parseFromString(content, 'text/html').body.textContent || '';
+                  const images = Array.from(item.querySelectorAll('img')).map(img => img.getAttribute('src') || '').filter(Boolean);
+                  const thumbnail = item.querySelector('thumbnail')?.getAttribute('url') || images[0];
+                  const publishedDate = new Date(published);
+
+                  const foundPost: CommunityPost = {
+                    id,
+                    channelId,
+                    channelName: stateData?.channelName || '',
+                    channelCategories: [],
+                    content: textContent.trim(),
+                    publishedAt: Number.isNaN(publishedDate.getTime()) ? new Date().toISOString() : publishedDate.toISOString(),
+                    thumbnail: thumbnail || undefined,
+                    images,
+                    source: 'rsshub',
+                    fetchedAt: Date.now(),
+                  };
+                  setPost(foundPost);
+                  setLoading(false);
+                  return;
+                }
+              }
+            }
+          } catch {
+            /* backend fallback failed */
+          }
+        }
+      }
+
+      if (!cancelled) {
+        setError(t('posts.notFound'));
+        setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => { cancelled = true; };
+  }, [id, location.state, t]);
 
   const handleLinkClick = (url: string) => {
     if (isYouTubeUrl(url)) {
@@ -107,7 +177,7 @@ export default function PostDetailPage() {
     );
   }
 
-  if (!post) {
+  if (error || !post) {
     return (
       <div className="min-h-screen dark:bg-dark-navy">
         <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-4 sm:py-6">
@@ -276,4 +346,12 @@ export default function PostDetailPage() {
       </div>
     </div>
   );
+}
+
+function hash(value: string): string {
+  let result = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    result = (result * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return result.toString(36);
 }
