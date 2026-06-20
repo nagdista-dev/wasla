@@ -257,6 +257,7 @@ const en = {
   'addChannel.categoriesPlaceholder': 'Categories (press Enter)',
   'addChannel.addButton': 'Add Channel',
   'addChannel.failedResolve': 'Failed to resolve channel. Check the URL or handle.',
+  'addChannel.added': '✓ Added {name}',
 
   // Add Playlist Modal
   'addPlaylist.title': 'Add Playlist',
@@ -267,6 +268,7 @@ const en = {
   'addPlaylist.categoriesPlaceholder': 'Categories (press Enter)',
   'addPlaylist.addButton': 'Add Playlist',
   'addPlaylist.enterValid': 'Please enter a valid playlist URL or ID.',
+  'addPlaylist.added': '✓ Added {name}',
 
   // Edit Channel Modal
   'editChannel.title': 'Edit Channel',

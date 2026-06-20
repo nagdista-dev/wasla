@@ -115,7 +115,15 @@ const AddPlaylistModal = memo(function AddPlaylistModal({ onClose, onAdd, existi
     };
 
     onAdd(entry);
-    onClose();
+    showToast(t('addPlaylist.added', { name: entry.name }), 'success');
+    setInput('');
+    setCustomName('');
+    setDescription('');
+    setCategoryInput('');
+    setResolvedId(null);
+    setThumbnail(null);
+    setChannelName(null);
+    prevIdRef.current = null;
   };
 
   return (

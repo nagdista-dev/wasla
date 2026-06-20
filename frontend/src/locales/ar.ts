@@ -257,6 +257,7 @@ const ar: Record<string, string> = {
   'addChannel.categoriesPlaceholder': 'التصنيفات (اضغط Enter)',
   'addChannel.addButton': 'إضافة قناة',
   'addChannel.failedResolve': 'فشل في التعرف على القناة. تحقق من الرابط أو المعرف.',
+  'addChannel.added': '✓ تمت إضافة {name}',
 
   // Add Playlist Modal
   'addPlaylist.title': 'إضافة قائمة تشغيل',
@@ -267,6 +268,7 @@ const ar: Record<string, string> = {
   'addPlaylist.categoriesPlaceholder': 'التصنيفات (اضغط Enter)',
   'addPlaylist.addButton': 'إضافة قائمة تشغيل',
   'addPlaylist.enterValid': 'الرجاء إدخال رابط أو معرف قائمة تشغيل صالح.',
+  'addPlaylist.added': '✓ تمت إضافة {name}',
 
   // Edit Channel Modal
   'editChannel.title': 'تعديل القناة',

@@ -133,7 +133,11 @@ const AddChannelModal = memo(function AddChannelModal({ onClose, onAdd, existing
     };
 
     onAdd(entry);
-    onClose();
+    showToast(t('addChannel.added', { name: entry.name }), 'success');
+    setInput('');
+    setCustomName('');
+    setCategoryInput('');
+    setResolvedId(null);
   };
 
   return (
