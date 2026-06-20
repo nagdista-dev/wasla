@@ -1,13 +1,14 @@
 {
-  "totalVisits": 1,
+  "totalVisits": 3,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a"
   ],
   "pageViews": {
-    "/": 1
+    "/": 2,
+    "/analytics": 1
   },
   "videoClicks": {},
   "dailyVisits": {
-    "2026-06-20": 1
+    "2026-06-20": 3
   }
 }

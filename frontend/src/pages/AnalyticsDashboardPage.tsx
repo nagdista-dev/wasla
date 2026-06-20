@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { fetchDashboard, clearAnalytics, type DashboardData } from '../services/analyticsService';
 import { BarChart3, Eye, MousePointerClick, Users, Trash2, Lock, BarChart, Calendar } from 'lucide-react';
