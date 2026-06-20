@@ -1,11 +1,11 @@
 {
-  "totalVisits": 107,
+  "totalVisits": 122,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525"
   ],
   "pageViews": {
-    "/": 26,
+    "/": 32,
     "/analytics": 1,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
@@ -40,7 +40,7 @@
     "/video/L2Xa_sMsqQI": 2,
     "/video/mhTC8hWoN50": 1,
     "/video/gtjKvg07doc": 1,
-    "/video/tPHruj8LRCc": 2,
+    "/video/tPHruj8LRCc": 7,
     "/channel/UC-XvsQP1a_ZqrcUK_wKpjGg": 1,
     "/video/ZcJCDCnMA64": 1,
     "/video/nTt5OKkm920": 2
@@ -61,11 +61,11 @@
     "0CSom01gJhc": 1,
     "5TykgPUZJoE": 1,
     "mhTC8hWoN50": 1,
-    "tPHruj8LRCc": 2,
+    "tPHruj8LRCc": 6,
     "ZcJCDCnMA64": 1,
     "nTt5OKkm920": 1
   },
   "dailyVisits": {
-    "2026-06-20": 107
+    "2026-06-20": 122
   }
 }

@@ -197,7 +197,9 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
         <img src={logo} alt={t('app.name')} className="h-12 w-12 object-contain" />
       </Link>
 
-      <div className="flex items-center">
+      <div className="flex-1" />
+
+      <div className="flex items-center gap-1">
         <button
           onClick={onOpenSearch}
           className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
@@ -208,27 +210,25 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
 
         <div className="mx-2 h-6 w-px bg-gray-200/70 dark:bg-gray-700/50" />
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={toggleTheme}
-            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
-            aria-label={t('nav.toggleTheme')}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </button>
+        <button
+          onClick={toggleTheme}
+          className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
+          aria-label={t('nav.toggleTheme')}
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </button>
 
-          <button
-            onClick={() => setLanguage(language === "en" ? "ar" : "en")}
-            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
-            aria-label={t('nav.toggleLanguage')}
-          >
-            <Languages className="h-5 w-5" />
-          </button>
-        </div>
+        <button
+          onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+          className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
+          aria-label={t('nav.toggleLanguage')}
+        >
+          <Languages className="h-5 w-5" />
+        </button>
 
         {isAudioPlaying && audioVideo && (
           <>
@@ -389,10 +389,32 @@ function GlobalFeedLoader({ channels }: { channels: Channel[] }) {
 }
 
 function App() {
+  const IsOnHomePageIndicator = () => {
+    const location = useLocation();
+    const isOnHomePage = location.pathname === "/";
+    return isOnHomePage ? (
+      <FloatingButton
+        onAddChannel={() => setShowChannelModal(true)}
+        onAddPlaylist={() => setShowPlaylistModal(true)}
+      />
+    ) : null;
+  };
+
   const { isRTL } = useLanguage();
   const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, resetFilters, showFilterModal, setShowFilterModal } = useFilters();
   const [channels, setChannels] = useState<Channel[]>(syncLoadChannels);
   const [playlists, setPlaylists] = useState<Playlist[]>(syncLoadPlaylists);
+
+  const allCategories = useMemo(
+    () => {
+      const categories = Array.from(new Set([
+        ...channels.flatMap((c) => c.categories),
+        ...playlists.flatMap((p) => p.categories),
+      ])).sort((a, b) => a.localeCompare(b));
+      return categories;
+    },
+    [channels, playlists],
+  );
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -511,28 +533,6 @@ function App() {
     [],
   );
 
-  const allCategories = useMemo(
-    () => {
-      const categories = Array.from(new Set([
-        ...channels.flatMap((c) => c.categories),
-        ...playlists.flatMap((p) => p.categories),
-      ])).sort((a, b) => a.localeCompare(b));
-      return categories;
-    },
-    [channels, playlists],
-  );
-
-  const [isHomePage, setIsHomePage] = useState(false);
-
-  useEffect(() => {
-    const updateHomePage = () => {
-      setIsHomePage(window.location.pathname === "/");
-    };
-    updateHomePage();
-    window.addEventListener('popstate', updateHomePage);
-    return () => window.removeEventListener('popstate', updateHomePage);
-  }, []);
-
   return (
     <FeedProvider>
       <GlobalFeedLoader channels={channels} />
@@ -650,12 +650,6 @@ function App() {
             </Routes>
           </Suspense>
         </main>
-        {isHomePage && (
-          <FloatingButton
-            onAddChannel={() => setShowChannelModal(true)}
-            onAddPlaylist={() => setShowPlaylistModal(true)}
-          />
-        )}
         {showChannelModal && (
           <AddChannelModal
             onClose={() => setShowChannelModal(false)}
@@ -690,6 +684,7 @@ function App() {
           categories={allCategories}
         />
         </div>
+        <IsOnHomePageIndicator />
       </BrowserRouter>
     </FeedProvider>
   );
