@@ -376,6 +376,11 @@ html {
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  pointer-events: auto;
 }
 
 .timestamp-highlight:hover {
