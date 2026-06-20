@@ -8,6 +8,14 @@ import { LanguageProvider } from './context/LanguageContext'
 migrateLocalStorageKeys();
 migrateStorageToIndexedDB();
 import { ThemeProvider } from './context/ThemeContext'
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
 import { ToastProvider } from './components/Toast'
 import { MediaProvider } from './context/MediaContext'
 import { PlayerProvider } from './context/PlayerContext'

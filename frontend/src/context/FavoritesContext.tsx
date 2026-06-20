@@ -8,6 +8,7 @@ interface FavoritesContextValue {
   toggleFavorite: (video: LatestVideo, channelName?: string) => void;
   removeFavorite: (id: string) => void;
   updateFavorite: (id: string, title: string, category?: string) => void;
+  addFavorite: (favorite: FavoriteVideo) => void;
 }
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
@@ -81,9 +82,16 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     [favorites, persist],
   );
 
+  const addFavorite = useCallback(
+    (favorite: FavoriteVideo) => {
+      persist([...favorites, favorite]);
+    },
+    [favorites, persist],
+  );
+
   return (
     <FavoritesContext.Provider
-      value={{ favorites, isFavorite, toggleFavorite, removeFavorite, updateFavorite }}
+      value={{ favorites, isFavorite, toggleFavorite, removeFavorite, updateFavorite, addFavorite }}
     >
       {children}
     </FavoritesContext.Provider>

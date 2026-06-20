@@ -39,8 +39,9 @@ import AddPlaylistModal from "./components/AddPlaylistModal";
 import MobileAppBanner from "./components/MobileAppBanner";
 
 import type { Channel, FavoriteVideo, Playlist } from "./types";
-import { loadChannels, saveChannels, loadPlaylists, savePlaylists, readStoredValue, loadFavorites, saveFavorites } from "./storage";
+import { loadChannels, saveChannels, loadPlaylists, savePlaylists, readStoredValue } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
+import { useFavorites } from "./context/FavoritesContext";
 import { useTheme } from "./context/ThemeContext";
 import { useAudio } from "./context/AudioContext";
 import Sidebar from "./components/Sidebar";
@@ -404,6 +405,7 @@ function App() {
 
   const { isRTL } = useLanguage();
   const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, resetFilters, showFilterModal, setShowFilterModal } = useFilters();
+  const { favorites, addFavorite } = useFavorites();
   const [channels, setChannels] = useState<Channel[]>(syncLoadChannels);
   const [playlists, setPlaylists] = useState<Playlist[]>(syncLoadPlaylists);
 
@@ -435,10 +437,9 @@ function App() {
       categories: string[];
     }) => {
       if (data.type === 'video') {
-        const existing = await loadFavorites();
         const id = data.extractedId || `shared-${Date.now()}`;
         // Avoid duplicates by videoId
-        if (existing.some((f) => f.id === id || f.videoUrl === data.rawUrl)) return;
+        if (favorites.some((f) => f.id === id || f.videoUrl === data.rawUrl)) return;
         const entry: FavoriteVideo = {
           id,
           videoUrl: data.rawUrl,
@@ -449,7 +450,7 @@ function App() {
           category: data.categories[0],
           savedAt: Date.now(),
         };
-        await saveFavorites([...existing, entry]);
+        addFavorite(entry);
       } else if (data.type === 'channel') {
         const id = data.extractedId || `channel-${Date.now()}`;
         setChannels(prev => {
