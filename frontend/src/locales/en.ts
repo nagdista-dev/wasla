@@ -361,6 +361,7 @@ const en = {
   'audioPage.playbackComplete': 'Playback complete. Tap play to listen again.',
   'audioPage.resumedFrom': 'Resumed from {time}',
   'audioPage.listenInAudioMode': 'Listen in Audio Mode',
+  'audioPage.switchToVideo': 'Watch Video',
   'audioPage.playbackStopped': 'Playback stopped',
   'audioPage.activeIndicator': 'Active audio - Click to open player',
 

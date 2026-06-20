@@ -151,6 +151,7 @@ function VideoPage() {
   const trackingStartRef = useRef(0);
   const initialOffsetRef = useRef(0);
   const animFrameRef = useRef<number>(0);
+  const currentTimeRef = useRef(0);
 
   const {
     loadProgress,
@@ -223,6 +224,14 @@ function VideoPage() {
       });
     }
 
+    const stateTime = (location.state as { videoStartTime?: number })?.videoStartTime;
+    if (stateTime && stateTime > 5) {
+      setResumeTime(stateTime);
+      setResumeVideoId(vidId);
+      setProgressCheckedVideoId(vidId);
+      return;
+    }
+
     loadProgress().then((progress) => {
       if (cancelled) return;
       if (progress && progress.currentTime > 5 && progress.currentTime < progress.duration - 5) {
@@ -259,6 +268,7 @@ function VideoPage() {
     const tick = () => {
       const elapsed = (Date.now() - trackingStartRef.current) / 1000;
       const currentTime = initialOffsetRef.current + elapsed;
+      currentTimeRef.current = currentTime;
       const pct = (currentTime / durationSeconds) * 100;
 
       updatePosition(currentTime, durationSeconds);
@@ -384,7 +394,13 @@ function VideoPage() {
 
   const handleAudioMode = useCallback(() => {
     if (!video) return;
-    navigate(`/audio/${videoId}`, { state: { video, channelId: video.channelId } });
+    const ct = currentTimeRef.current;
+    const vidId = extractVideoId(video.link) || videoId;
+    if (ct > 5 && vidId) {
+      const key = `wasla_audio_resume_${vidId}`;
+      try { sessionStorage.setItem(key, String(ct)); } catch {}
+    }
+    navigate(`/audio/${vidId}`, { state: { video, channelId: video.channelId } });
   }, [video, videoId, navigate]);
 
   const handleChannelClick = useCallback(() => {

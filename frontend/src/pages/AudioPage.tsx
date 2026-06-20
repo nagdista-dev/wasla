@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward, Rewind, FastForward, Timer, Gauge } from 'lucide-react';
+import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward, Rewind, FastForward, Timer, Gauge, Monitor } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAudio } from '../context/AudioContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -261,6 +261,25 @@ function AudioPage() {
                 <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   <span>{formatTime(currentTime)}</span>
                   <span>{formatTime(duration)}</span>
+                </div>
+
+                <div className="flex justify-center pt-2">
+                  <button
+                    onClick={() => {
+                      const vidId = extractVideoId(video.link) || videoId;
+                      navigate(`/video/${vidId}`, {
+                        state: {
+                          video: { ...video },
+                          channelId: video.channelId,
+                          videoStartTime: currentTime,
+                        },
+                      });
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:border-white/15 dark:hover:bg-white/20 transition-all active:scale-95"
+                  >
+                    <Monitor className="h-4 w-4" />
+                    {t('audioPage.switchToVideo')}
+                  </button>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 sm:gap-4 pt-4">

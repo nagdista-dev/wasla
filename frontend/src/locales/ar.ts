@@ -361,6 +361,7 @@ const ar: Record<string, string> = {
   'audioPage.playbackComplete': 'اكتمل التشغيل. اضغط تشغيل للاستماع مرة أخرى.',
   'audioPage.resumedFrom': 'استؤنف من {time}',
   'audioPage.listenInAudioMode': 'استمع في وضع الصوت',
+  'audioPage.switchToVideo': 'شاهد الفيديو',
   'audioPage.playbackStopped': 'تم إيقاف التشغيل',
   'audioPage.activeIndicator': 'صوت نشط - اضغط لفتح المشغل',
 

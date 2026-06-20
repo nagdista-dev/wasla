@@ -280,6 +280,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson, sho
     hiddenCategories.forEach(cat => {
       chips.push({ key: `hidden:${cat}`, label: `${t('filterModal.hiddenCategories')}: ${cat}`, onRemove: () => setHiddenCategories(hiddenCategories.filter(c => c !== cat)) });
     });
+    return chips;
   }, [selectedCategory, timeRange, sortBy, hiddenCategories, t, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories]);
 
   return (
