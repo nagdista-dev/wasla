@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, SkipBack, SkipForward } from 'lucide-react';
 
 export type CustomVideoPlayerProps = {
   videoId: string;
@@ -13,39 +12,18 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   videoId,
   startTime = 0,
   onPlayStateChange,
-  onSpeedChange,
   onSeek,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(startTime);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-  const [showControls, setShowControls] = useState(false);
+  const [, setIsPlaying] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
   const overlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
-
   const handleMouseMove = useCallback(() => {
     document.body.classList.remove('youtube-hover');
   }, []);
-
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    if (hrs > 0) {
-      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -101,7 +79,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     };
   }, []);
 
-  const sendMessage = (command: string, args: any[] = []) => {
+  const sendMessage = useCallback((command: string, args: any[] = []) => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(JSON.stringify({
         event: 'command',
@@ -109,57 +87,12 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         args: args,
       }), '*');
     }
-  };
-
-  const handlePlayPause = useCallback(() => {
-    if (isPlaying) {
-      sendMessage('pause');
-    } else {
-      sendMessage('play');
-    }
-    setIsPlaying(!isPlaying);
-    onPlayStateChange?.(!isPlaying);
-  }, [isPlaying, onPlayStateChange]);
-
-  const handleSpeedChange = useCallback((speed: number) => {
-    sendMessage('setPlaybackRate', [speed]);
-    setPlaybackRate(speed);
-    onSpeedChange?.(speed);
-  }, [onSpeedChange]);
+  }, []);
 
   const handleSeek = useCallback((seconds: number) => {
     sendMessage('seekTo', [seconds, true]);
-    setCurrentTime(seconds);
     onSeek?.(seconds);
-  }, [onSeek]);
-
-  const handleVolumeChange = useCallback((newVolume: number) => {
-    sendMessage('setVolume', [newVolume]);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  }, []);
-
-  const handleMuteToggle = useCallback(() => {
-    if (isMuted) {
-      sendMessage('unMute');
-      setIsMuted(false);
-      setVolume(1);
-    } else {
-      sendMessage('mute');
-      setIsMuted(true);
-      setVolume(0);
-    }
-  }, [isMuted]);
-
-  const handleFullscreenToggle = useCallback(() => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  }, []);
+  }, [onSeek, sendMessage]);
 
   const handleOverlayClick = useCallback((e: React.MouseEvent) => {
     const now = Date.now();
@@ -168,18 +101,13 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       return;
     }
     setLastClickTime(now);
-    setIsOverlayVisible(!isOverlayVisible);
-    setShowControls(true);
     if (overlayTimeoutRef.current) {
       clearTimeout(overlayTimeoutRef.current);
     }
     overlayTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-      if (isOverlayVisible) {
-        setIsOverlayVisible(false);
-      }
+      // Previous state variables removed
     }, 3000);
-  }, [isOverlayVisible, lastClickTime]);
+  }, [lastClickTime]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -255,10 +183,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         } else if (data.info === 2) {
           setIsPlaying(false);
           onPlayStateChange?.(false);
-        } else if (data.info === 3) {
-          setCurrentTime(data.currentTime || 0);
-        } else if (data.duration) {
-          setDuration(data.duration);
         }
       } catch (error) {
         console.error('Error parsing YouTube message:', error);
@@ -274,15 +198,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       handleSeek(startTime);
     }
   }, [startTime, handleSeek]);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   useEffect(() => {
     return () => {
