@@ -24,7 +24,9 @@ export default function WatchHistoryPage() {
   const loadHistory = useCallback(async (query?: string) => {
     setLoading(true);
     try {
-      const entries = query ? await searchHistory(query) : await getAllHistory();
+      let entries = query ? await searchHistory(query) : await getAllHistory();
+      // Sort by lastViewedAt in descending order (newest first)
+      entries = entries.sort((a, b) => b.lastViewedAt - a.lastViewedAt);
       setHistory(entries);
     } catch {
       // silently fail
