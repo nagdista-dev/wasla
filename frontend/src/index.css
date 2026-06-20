@@ -421,11 +421,17 @@ html {
   background-color: rgba(243, 115, 69, 0.2);
 }
 
-@keyframes audio-waveform {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(1.5); }
+@keyframes eq-bar {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1); }
 }
 
-.audio-waveform-icon {
-  animation: audio-waveform 0.8s ease-in-out infinite;
+.eq-bar {
+  transform-origin: bottom;
+  animation: eq-bar 0.5s ease-in-out infinite alternate;
 }
+
+.eq-bar:nth-child(1) { animation-duration: 0.4s; }
+.eq-bar:nth-child(2) { animation-duration: 0.6s; animation-delay: 0.1s; }
+.eq-bar:nth-child(3) { animation-duration: 0.5s; animation-delay: 0.2s; }
+.eq-bar:nth-child(4) { animation-duration: 0.7s; animation-delay: 0.3s; }

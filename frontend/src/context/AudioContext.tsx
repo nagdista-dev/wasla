@@ -47,6 +47,7 @@ interface YTPlayer {
 interface AudioContextType {
   currentVideo: (LatestVideo & { _videoId: string; channelId?: string }) | null;
   isPlaying: boolean;
+  isBuffering: boolean;
   isEnded: boolean;
   currentTime: number;
   duration: number;
@@ -88,6 +89,7 @@ function loadYouTubeAPI(): Promise<void> {
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [currentVideo, setCurrentVideo] = useState<(LatestVideo & { _videoId: string; channelId?: string }) | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   const [isEnded, setIsEnded] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -208,6 +210,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     destroyedRef.current = false;
     endedRef.current = false;
     setIsEnded(false);
+    setIsBuffering(true);
     setCurrentVideo({ ...normalized, channelId });
     setIsPlaying(true);
     setCurrentTime(0);
@@ -259,19 +262,25 @@ export function AudioProvider({ children }: { children: ReactNode }) {
                 }
                 setIsPlaying(true);
                 setIsEnded(false);
+                setIsBuffering(false);
                 startTimePoll();
               } else if (event.data === window.YT.PlayerState.PAUSED) {
                 setIsPlaying(false);
+                setIsBuffering(false);
                 clearTimePoll();
               } else if (event.data === window.YT.PlayerState.ENDED) {
                 endedRef.current = true;
                 setIsPlaying(false);
                 setIsEnded(true);
+                setIsBuffering(false);
                 clearTimePoll();
+              } else if (event.data === window.YT.PlayerState.BUFFERING) {
+                setIsBuffering(true);
               }
             },
             onError: () => {
               setIsPlaying(false);
+              setIsBuffering(false);
               clearTimePoll();
             },
           },
@@ -279,6 +288,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         playerRef.current = player;
       } catch {
         setIsPlaying(false);
+        setIsBuffering(false);
       }
     });
   }, [destroyPlayer, startTimePoll, clearTimePoll, volume, mediaManager, playbackRate]);
@@ -288,6 +298,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       try {
         playerRef.current.pauseVideo();
         setIsPlaying(false);
+        setIsBuffering(false);
         clearTimePoll();
       } catch { /* ignore */ }
     }
@@ -337,6 +348,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     destroyPlayer();
     setCurrentVideo(null);
     setIsPlaying(false);
+    setIsBuffering(false);
     setIsEnded(false);
     setCurrentTime(0);
     setDuration(0);
@@ -391,6 +403,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       value={{
         currentVideo,
         isPlaying,
+        isBuffering,
         isEnded,
         currentTime,
         duration,

@@ -1,12 +1,12 @@
 {
-  "totalVisits": 214,
+  "totalVisits": 242,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
     "9c1ffcc1-6b46-4bd1-9cc4-11a0c279b597"
   ],
   "pageViews": {
-    "/": 49,
+    "/": 56,
     "/analytics": 1,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
@@ -48,9 +48,9 @@
     "/history": 6,
     "/video/63GLSPpwhuc": 16,
     "/video": 1,
-    "/video/yAhp3tUevZw": 3,
+    "/video/yAhp3tUevZw": 5,
     "/watch-later": 2,
-    "/channels": 2,
+    "/channels": 4,
     "/playlists": 2,
     "/courses": 1,
     "/contact": 2,
@@ -58,8 +58,12 @@
     "/settings": 1,
     "/posts": 1,
     "/video/dQw4w9WgXcQ": 2,
-    "/category/English": 12,
-    "/import/category": 3
+    "/category/English": 17,
+    "/import/category": 3,
+    "/channel/UCKgpamMlm872zkGDcBJHYDg": 1,
+    "/video/sbAns1wSxkk": 2,
+    "/audio/sbAns1wSxkk": 4,
+    "/audio/yAhp3tUevZw": 2
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -81,10 +85,11 @@
     "ZcJCDCnMA64": 1,
     "nTt5OKkm920": 1,
     "63GLSPpwhuc": 2,
-    "yAhp3tUevZw": 2
+    "yAhp3tUevZw": 4,
+    "sbAns1wSxkk": 1
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 17
+    "2026-06-21": 45
   }
 }

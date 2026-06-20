@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward, Rewind, FastForward, Timer, Gauge, Monitor } from 'lucide-react';
+import { ChevronLeft, Play, Pause, Volume2, VolumeX, Clock, Headphones, SkipBack, SkipForward, Rewind, FastForward, Timer, Gauge, Monitor, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAudio } from '../context/AudioContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -33,6 +33,7 @@ function AudioPage() {
   const {
     currentVideo,
     isPlaying,
+    isBuffering,
     isEnded,
     currentTime,
     duration,
@@ -254,7 +255,7 @@ function AudioPage() {
                     className="h-full bg-gradient-to-r from-brand-coral to-brand-orange rounded-full relative"
                     style={{ width: `${progress}%` }}
                   >
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-md border-2 border-brand-coral" />
+                    <div className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-md border-2 border-brand-coral ${isRTL ? 'left-0 -translate-x-1/2' : 'right-0 translate-x-1/2'}`} />
                   </div>
                 </div>
 
@@ -306,7 +307,9 @@ function AudioPage() {
                     className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-brand-coral to-brand-orange flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all active:scale-95"
                     aria-label={isPlaying ? t('audioPage.pause') : t('audioPage.play')}
                   >
-                    {isEnded ? (
+                    {isBuffering ? (
+                      <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin" />
+                    ) : isEnded ? (
                       <svg className="w-6 h-6 sm:w-8 sm:h-8 ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="5 3 19 12 5 21 5 3" />
                       </svg>

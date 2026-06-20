@@ -37,7 +37,7 @@ const FloatingButton = memo(function FloatingButton({ onAddChannel, onAddPlaylis
   const side = isRTL ? 'left-6' : 'right-6';
 
   return (
-    <>
+    <div>
       <div className={`fixed bottom-6 ${side} z-40`}>
         <button
           onClick={() => setOpen(true)}
@@ -114,7 +114,7 @@ const FloatingButton = memo(function FloatingButton({ onAddChannel, onAddPlaylis
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 });
 

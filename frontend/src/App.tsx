@@ -26,7 +26,6 @@ import {
   GraduationCap,
   MessageCircle,
   Search,
-  Headphones,
   History,
   Newspaper,
   BarChart3,
@@ -239,11 +238,14 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
             <div className="mx-2 h-6 w-px bg-gray-200/70 dark:bg-gray-700/50" />
             <button
               onClick={() => navigate(`/audio/${audioVideo._videoId}`, { state: { video: audioVideo } })}
-              className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-brand-coral hover:bg-brand-coral/10 dark:hover:bg-brand-coral/20 transition-all active:scale-90 relative"
+              className="rounded-xl px-3 min-h-[44px] flex items-center justify-center text-brand-coral bg-brand-coral/5 hover:bg-brand-coral/15 dark:bg-brand-coral/10 dark:hover:bg-brand-coral/20 transition-all active:scale-90 relative shadow-sm"
               aria-label={t('audioPage.activeIndicator')}
             >
-              <Headphones className="h-5 w-5 audio-waveform-icon" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-coral animate-ping" />
+              <div className="flex items-end justify-center gap-[3px] w-5 h-4">
+                <div className="w-1 h-full bg-brand-coral rounded-sm eq-bar" />
+                <div className="w-1 h-full bg-brand-coral rounded-sm eq-bar" />
+                <div className="w-1 h-full bg-brand-coral rounded-sm eq-bar" />
+              </div>
             </button>
           </>
         )}
@@ -392,19 +394,25 @@ function GlobalFeedLoader({ channels }: { channels: Channel[] }) {
   return null;
 }
 
-function App() {
-  const IsOnHomePageIndicator = () => {
-    const location = useLocation();
-    const isOnHomePage = location.pathname === "/";
-    return isOnHomePage ? (
-      <FloatingButton
-        onAddChannel={() => setShowChannelModal(true)}
-        onAddPlaylist={() => setShowPlaylistModal(true)}
-      />
-    ) : null;
-  };
+const FloatingButtonContainer = memo(function FloatingButtonContainer({ 
+  onAddChannel, 
+  onAddPlaylist 
+}: { 
+  onAddChannel: () => void; 
+  onAddPlaylist: () => void; 
+}) {
+  const location = useLocation();
+  if (location.pathname !== "/") return null;
+  
+  return (
+    <FloatingButton
+      onAddChannel={onAddChannel}
+      onAddPlaylist={onAddPlaylist}
+    />
+  );
+});
 
-  const { isRTL } = useLanguage();
+function App() {  const { isRTL } = useLanguage();
   const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, resetFilters, showFilterModal, setShowFilterModal } = useFilters();
   const { favorites, addFavorite } = useFavorites();
   const [channels, setChannels] = useState<Channel[]>(syncLoadChannels);
@@ -803,7 +811,10 @@ function App() {
           categories={allCategories}
         />
         </div>
-        <IsOnHomePageIndicator />
+        <FloatingButtonContainer
+          onAddChannel={() => setShowChannelModal(true)}
+          onAddPlaylist={() => setShowPlaylistModal(true)}
+        />
       </BrowserRouter>
     </FeedProvider>
   );
