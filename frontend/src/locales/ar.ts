@@ -626,6 +626,35 @@ const ar: Record<string, string> = {
   // Video Page
   'videoPage.copyDescription': 'نسخ الوصف',
   'videoPage.copied': 'تم النسخ',
+
+  // YouTube Share Modal
+  'shareModal.title': 'حفظ الفيديو المشارك',
+  'shareModal.videoIdDetected': 'معرف الفيديو',
+  'shareModal.noVideoId': 'لم يتم اكتشاف معرف الفيديو',
+  'shareModal.titleLabel': 'عنوان الفيديو',
+  'shareModal.titlePlaceholder': 'أدخل عنواناً لهذا الفيديو…',
+  'shareModal.titleHint': 'لا حاجة للإنترنت — أدخل العنوان يدوياً.',
+  'shareModal.categoryLabel': 'التصنيف',
+  'shareModal.categoryPlaceholder': 'اختر تصنيفاً أو أضف واحداً…',
+  'shareModal.categoriesSelected': '{count} مختار',
+  'shareModal.newCategoryPlaceholder': 'اسم تصنيف جديد',
+  'shareModal.addCategory': 'إضافة تصنيف',
+  'shareModal.noCategories': 'لا توجد تصنيفات بعد — اكتب واحداً أعلاه.',
+  'shareModal.saveButton': 'حفظ الفيديو',
+  'shareModal.savedLabel': 'تم الحفظ!',
+  'shareModal.saved': '✓ تم حفظ الفيديو في المفضلة',
+
+  'shareModal.channelIdDetected': 'معرف القناة',
+  'shareModal.noChannelId': 'لم يتم اكتشاف معرف القناة',
+  'shareModal.channelTitleLabel': 'اسم القناة',
+  'shareModal.saveChannelButton': 'حفظ القناة',
+  'shareModal.savedChannel': '✓ تم حفظ القناة بنجاح',
+
+  'shareModal.playlistIdDetected': 'معرف قائمة التشغيل',
+  'shareModal.noPlaylistId': 'لم يتم اكتشاف معرف قائمة التشغيل',
+  'shareModal.playlistTitleLabel': 'عنوان قائمة التشغيل',
+  'shareModal.savePlaylistButton': 'حفظ قائمة التشغيل',
+  'shareModal.savedPlaylist': '✓ تم حفظ قائمة التشغيل بنجاح',
 };
 
 export default ar;

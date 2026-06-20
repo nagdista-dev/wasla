@@ -627,6 +627,35 @@ const en = {
   // Video Page
   'videoPage.copyDescription': 'Copy description',
   'videoPage.copied': 'Copied',
+
+  // YouTube Share Modal
+  'shareModal.title': 'Save Shared Video',
+  'shareModal.videoIdDetected': 'Video ID',
+  'shareModal.noVideoId': 'Video ID not detected',
+  'shareModal.titleLabel': 'Video Title',
+  'shareModal.titlePlaceholder': 'Enter a title for this video…',
+  'shareModal.titleHint': 'No API needed — enter the title manually.',
+  'shareModal.categoryLabel': 'Category',
+  'shareModal.categoryPlaceholder': 'Select or add a category…',
+  'shareModal.categoriesSelected': '{count} selected',
+  'shareModal.newCategoryPlaceholder': 'New category name',
+  'shareModal.addCategory': 'Add category',
+  'shareModal.noCategories': 'No categories yet — type one above.',
+  'shareModal.saveButton': 'Save Video',
+  'shareModal.savedLabel': 'Saved!',
+  'shareModal.saved': '✓ Video saved to Favorites',
+
+  'shareModal.channelIdDetected': 'Channel ID',
+  'shareModal.noChannelId': 'Channel ID not detected',
+  'shareModal.channelTitleLabel': 'Channel Name',
+  'shareModal.saveChannelButton': 'Save Channel',
+  'shareModal.savedChannel': '✓ Channel saved successfully',
+
+  'shareModal.playlistIdDetected': 'Playlist ID',
+  'shareModal.noPlaylistId': 'Playlist ID not detected',
+  'shareModal.playlistTitleLabel': 'Playlist Title',
+  'shareModal.savePlaylistButton': 'Save Playlist',
+  'shareModal.savedPlaylist': '✓ Playlist saved successfully',
 };
 
 export type TranslationKeys = keyof typeof en;

@@ -38,8 +38,8 @@ import AddChannelModal from "./components/AddChannelModal";
 import AddPlaylistModal from "./components/AddPlaylistModal";
 import MobileAppBanner from "./components/MobileAppBanner";
 
-import type { Channel, Playlist } from "./types";
-import { loadChannels, saveChannels, loadPlaylists, savePlaylists, readStoredValue } from "./storage";
+import type { Channel, FavoriteVideo, Playlist } from "./types";
+import { loadChannels, saveChannels, loadPlaylists, savePlaylists, readStoredValue, loadFavorites, saveFavorites } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
 import { useTheme } from "./context/ThemeContext";
 import { useAudio } from "./context/AudioContext";
@@ -49,6 +49,8 @@ import SearchOverlay from "./components/SearchOverlay";
 import { useFilters } from "./context/FilterContext";
 import { FeedProvider, useFeed } from "./context/FeedContext";
 import { loadHomeFeedFromCache } from "./services/homeFeedRepository";
+import { useShareReceiver } from "./hooks/useShareReceiver";
+import YouTubeShareModal from "./components/YouTubeShareModal";
 import logo from "./assets/logo.png";
 
 function syncLoadChannels(): Channel[] {
@@ -421,6 +423,67 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [splashFadeOut, setSplashFadeOut] = useState(false);
 
+  // ── YouTube Share Target ────────────────────────────────────────────────
+  const { sharedLink, dismiss: dismissShare } = useShareReceiver();
+
+  const handleSaveSharedVideo = useCallback(
+    async (data: {
+      rawUrl: string;
+      type: 'video' | 'channel' | 'playlist';
+      extractedId: string | null;
+      title: string;
+      categories: string[];
+    }) => {
+      if (data.type === 'video') {
+        const existing = await loadFavorites();
+        const id = data.extractedId || `shared-${Date.now()}`;
+        // Avoid duplicates by videoId
+        if (existing.some((f) => f.id === id || f.videoUrl === data.rawUrl)) return;
+        const entry: FavoriteVideo = {
+          id,
+          videoUrl: data.rawUrl,
+          title: data.title,
+          thumbnail: data.extractedId
+            ? `https://i.ytimg.com/vi/${data.extractedId}/mqdefault.jpg`
+            : undefined,
+          category: data.categories[0],
+          savedAt: Date.now(),
+        };
+        await saveFavorites([...existing, entry]);
+      } else if (data.type === 'channel') {
+        const id = data.extractedId || `channel-${Date.now()}`;
+        setChannels(prev => {
+          if (prev.some(c => c.id === id)) return prev;
+          const entry: Channel = {
+            id,
+            name: data.title,
+            categories: data.categories,
+            ...(id.startsWith('@') ? { handle: id } : {}),
+          };
+          const next = [...prev, entry];
+          saveChannels(next);
+          return next;
+        });
+      } else if (data.type === 'playlist') {
+        const id = data.extractedId || `playlist-${Date.now()}`;
+        setPlaylists(prev => {
+          if (prev.some(p => p.id === id || p.url === data.rawUrl)) return prev;
+          const entry: Playlist = {
+            id,
+            name: data.title,
+            url: data.rawUrl,
+            categories: data.categories,
+            timestamp: Date.now(),
+          };
+          const next = [...prev, entry];
+          savePlaylists(next);
+          return next;
+        });
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     loadChannels().then((items) => { if (items.length > 0) setChannels(items); });
     loadPlaylists().then((items) => { if (items.length > 0) setPlaylists(items); });
@@ -665,6 +728,14 @@ function App() {
           />
         )}
         <MobileAppBanner />
+        {sharedLink && (
+          <YouTubeShareModal
+            sharedLink={sharedLink}
+            existingCategories={allCategories}
+            onSave={handleSaveSharedVideo}
+            onClose={dismissShare}
+          />
+        )}
         <SearchOverlay
           isOpen={showSearch}
           onClose={() => setShowSearch(false)}

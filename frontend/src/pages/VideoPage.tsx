@@ -18,6 +18,7 @@ import { usePlaybackResume } from '../hooks/usePlaybackResume';
 import { recordWatch } from '../services/watchHistoryService';
 import { findCachedHomeVideoById } from '../services/videoCacheService';
 import { api } from '../api';
+import CustomVideoPlayer from '../components/CustomVideoPlayer';
 import type { LatestVideo } from '../types';
 
 function formatViews(views?: number | string): string | undefined {
@@ -182,7 +183,7 @@ function VideoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { currentVideo, registerSeekHandler, unregisterSeekHandler } = usePlayer();
+  const { currentVideo } = usePlayer();
   const mediaManager = useMediaManager();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -193,10 +194,9 @@ function VideoPage() {
   const [resumeTime, setResumeTime] = useState<number | null>(null);
   const [resumeVideoId, setResumeVideoId] = useState<string | null>(null);
   const [progressCheckedVideoId, setProgressCheckedVideoId] = useState<string | null>(null);
-  const [videoReady, setVideoReady] = useState(false);
+
 
   const playerContainerRef = useRef<HTMLDivElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const historyRecordedRef = useRef(false);
   const trackingStartRef = useRef(0);
@@ -213,14 +213,13 @@ function VideoPage() {
 
   useMeta({ title: video?.title || t('videoPage.loading') });
 
-  useEffect(() => {
+  useEffect(()=> {
     setVideo(null);
     setLoading(true);
     setIsInWatchLater(false);
     setResumeTime(null);
     setResumeVideoId(null);
     setProgressCheckedVideoId(null);
-    setVideoReady(false);
     historyRecordedRef.current = false;
   }, [videoId]);
 
@@ -336,14 +335,10 @@ function VideoPage() {
   const durationSeconds = video ? (parseInt(video.duration || '0', 10) || 0) : 0;
   const embedId = video ? (extractVideoId(video.link) || videoId) : videoId;
   const progressChecked = progressCheckedVideoId === embedId;
-  const startParam = resumeTime && resumeVideoId === embedId ? `&start=${Math.floor(resumeTime)}` : '';
-  const embedSrc = embedId
-    ? `https://www.youtube.com/embed/${embedId}?autoplay=1&enablejsapi=1${startParam}`
-    : '';
-  const canRenderPlayer = progressChecked;
+  const startTime = resumeTime && resumeVideoId === embedId ? resumeTime : 0;
 
   useEffect(() => {
-    if (!video || !canRenderPlayer || durationSeconds <= 0) return;
+    if (!video || !progressChecked || durationSeconds <= 0) return;
 
     trackingStartRef.current = Date.now();
     initialOffsetRef.current = resumeTime ?? 0;
@@ -373,7 +368,7 @@ function VideoPage() {
         animFrameRef.current = 0;
       }
     };
-  }, [video, canRenderPlayer, resumeTime, updatePosition, durationSeconds]);
+  }, [video, progressChecked, resumeTime, updatePosition, durationSeconds]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -388,64 +383,7 @@ function VideoPage() {
     };
   }, [saveOnPause]);
 
-  useEffect(() => {
-    if (!embedSrc) return;
 
-    const currentIframe = iframeRef.current;
-
-    mediaManager.registerVideoCleanup(() => {
-      if (currentIframe) {
-        currentIframe.src = 'about:blank';
-      }
-    });
-
-    return () => {
-      mediaManager.unregisterVideoCleanup();
-      if (currentIframe) {
-        currentIframe.src = 'about:blank';
-      }
-    };
-  }, [embedSrc, mediaManager]);
-
-  useEffect(() => {
-    if (!embedSrc) return;
-
-    setVideoReady(false);
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'https://www.youtube.com') return;
-      try {
-        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (data.event === 'onReady' || (data.event === 'onStateChange' && data.info === 1)) {
-          setVideoReady(true);
-        }
-      } catch {}
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    const timeout = setTimeout(() => setVideoReady(true), 8000);
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-      clearTimeout(timeout);
-    };
-  }, [embedSrc]);
-
-  const seekVideo = useCallback((seconds: number) => {
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(JSON.stringify({
-        event: 'command',
-        func: 'seekTo',
-        args: [seconds, true],
-      }), '*');
-    }
-  }, []);
-
-  useEffect(() => {
-    registerSeekHandler(seekVideo);
-    return () => unregisterSeekHandler();
-  }, [seekVideo, registerSeekHandler, unregisterSeekHandler]);
 
   const handleOpenOnYoutube = useCallback(() => {
     if (!video) return;
@@ -526,37 +464,23 @@ function VideoPage() {
       ref={playerContainerRef}
       className="relative aspect-video w-full bg-black overflow-hidden rounded-xl sm:shadow-2xl sm:ring-1 sm:ring-white/5"
     >
-      {embedSrc ? (
-        <>
-          <iframe
-            ref={iframeRef}
-            key={embedSrc}
-            src={embedSrc}
-            title={video?.title || 'YouTube video'}
-            className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
-            allow="autoplay; encrypted-media; fullscreen"
-            allowFullScreen
-            onLoad={() => setVideoReady(true)}
-          />
-          {!videoReady && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-              <div className="relative h-16 w-16">
-                <div className="absolute inset-0 rounded-full border-4 border-white/20" />
-                <div className="absolute inset-0 rounded-full border-4 border-brand-coral border-t-transparent animate-spin" />
-              </div>
-            </div>
-          )}
-          {canRenderPlayer && durationSeconds > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-10">
-              <div
-                ref={progressBarRef}
-                className="h-full bg-brand-coral transition-all duration-[250ms] ease-linear"
-                style={{ width: '0%' }}
-              />
-            </div>
-          )}
-        </>
-      ) : (
+      {embedId && progressChecked ? (
+        <CustomVideoPlayer
+          videoId={embedId}
+          startTime={startTime}
+          onPlayStateChange={(isPlaying) => {
+            if (!isPlaying) {
+              saveOnPause();
+            }
+          }}
+          onSpeedChange={(speed) => {
+            console.log('Playback speed changed to:', speed);
+          }}
+          onSeek={(seconds) => {
+            updatePosition(seconds, durationSeconds);
+          }}
+        />
+      ) : embedId ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
           <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
           {video?.link && (
@@ -568,6 +492,10 @@ function VideoPage() {
               {t('miniPlayer.openOnYoutube')}
             </button>
           )}
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+          <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
         </div>
       )}
     </div>
