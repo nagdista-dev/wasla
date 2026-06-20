@@ -522,8 +522,16 @@ function App() {
     [channels, playlists],
   );
 
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
+  const [isHomePage, setIsHomePage] = useState(false);
+
+  useEffect(() => {
+    const updateHomePage = () => {
+      setIsHomePage(window.location.pathname === "/");
+    };
+    updateHomePage();
+    window.addEventListener('popstate', updateHomePage);
+    return () => window.removeEventListener('popstate', updateHomePage);
+  }, []);
 
   return (
     <FeedProvider>
