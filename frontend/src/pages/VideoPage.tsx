@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Share2, ChevronDown, ChevronUp, Headphones } from 'lucide-react';
+import { classifyYouTubeUrl } from '../utils/linkUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useMediaManager } from '../context/MediaContext';
@@ -41,6 +42,7 @@ const DESCRIPTION_COLLAPSED_LINES = 3;
 
 function VideoDescription({ description }: { description: string }) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { seekTo } = usePlayer();
   const [expanded, setExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -74,9 +76,25 @@ function VideoDescription({ description }: { description: string }) {
     const href = link.getAttribute('href');
     if (!href) return;
     if (href.startsWith('mailto:') || href.startsWith('#')) return;
-    if (href.includes('youtube.com') || href.includes('youtu.be')) return;
     e.preventDefault();
-    setPendingLink(href);
+    if (href.includes('youtube.com') || href.includes('youtu.be')) {
+      const info = classifyYouTubeUrl(href);
+      if (info) {
+        switch (info.type) {
+          case 'video':
+            if (info.videoId) navigate(`/video/${info.videoId}`);
+            break;
+          case 'channel':
+            if (info.channelId) navigate(`/channel/${encodeURIComponent(info.channelId)}`);
+            break;
+          case 'playlist':
+            if (info.playlistId) navigate(`/playlist/${encodeURIComponent(info.playlistId)}`);
+            break;
+        }
+      }
+    } else {
+      setPendingLink(href);
+    }
   };
 
   const handleConfirmLink = () => {

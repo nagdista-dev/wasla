@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { BookmarkCheck, BookmarkPlus, ChevronDown, ChevronUp, Clock, ExternalLink, Eye, Heart, Maximize2, Share2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { useTheme } from '../context/ThemeContext';
@@ -8,6 +9,7 @@ import { useToast } from './Toast';
 import { extractVideoId, buildWatchUrl } from '../utils/videoUtils';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { formatDescription } from '../utils/formatDescription';
+import { classifyYouTubeUrl } from '../utils/linkUtils';
 import ConfirmLinkModal from './ConfirmLinkModal';
 import { loadWatchLater, saveWatchLater } from '../storage';
 
@@ -106,6 +108,7 @@ function formatDuration(duration?: string): string | undefined {
 const DESCRIPTION_COLLAPSED_LINES = 3;
 
 function VideoDescription({ description, t, onTimestampClick }: { description: string; t: (key: string) => string; onTimestampClick?: (seconds: number) => void }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsToggle, setNeedsToggle] = useState(false);
@@ -128,7 +131,25 @@ function VideoDescription({ description, t, onTimestampClick }: { description: s
     const link = target.closest('a');
     if (link) {
       const href = link.getAttribute('href');
-      if (href && !href.startsWith('mailto:') && !href.startsWith('#') && !href.includes('youtube.com') && !href.includes('youtu.be')) {
+      if (href && !href.startsWith('mailto:') && !href.startsWith('#')) {
+        if (href.includes('youtube.com') || href.includes('youtu.be')) {
+          e.preventDefault();
+          const info = classifyYouTubeUrl(href);
+          if (info) {
+            switch (info.type) {
+              case 'video':
+                if (info.videoId) navigate(`/video/${info.videoId}`);
+                break;
+              case 'channel':
+                if (info.channelId) navigate(`/channel/${encodeURIComponent(info.channelId)}`);
+                break;
+              case 'playlist':
+                if (info.playlistId) navigate(`/playlist/${encodeURIComponent(info.playlistId)}`);
+                break;
+            }
+          }
+          return;
+        }
         e.preventDefault();
         setPendingLink(href);
         return;

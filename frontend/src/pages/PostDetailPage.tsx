@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { ArrowLeft, Calendar, ChevronLeft, ChevronRight, Clock, ImageIcon, Loader2, MessageSquareText, RefreshCcw } from 'lucide-react';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import type { CommunityPost } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
-import { isYouTubeUrl } from '../utils/linkUtils';
-import ConfirmLinkModal from '../components/ConfirmLinkModal';
+import { isYouTubeUrl, classifyYouTubeUrl } from '../utils/linkUtils';
 import { getPostById, getPostByIdAsync } from '../services/communityPostsService';
 import { api } from '../api';
 
@@ -40,8 +39,8 @@ function renderContentWithLinks(content: string, onLinkClick: (url: string) => v
 export default function PostDetailPage() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useLanguage();
-  const [pendingLink, setPendingLink] = useState<string | null>(null);
   const [post, setPost] = useState<CommunityPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,21 +140,23 @@ export default function PostDetailPage() {
 
   const handleLinkClick = (url: string) => {
     if (isYouTubeUrl(url)) {
-      setPendingLink(url);
+      const info = classifyYouTubeUrl(url);
+      if (info) {
+        switch (info.type) {
+          case 'video':
+            if (info.videoId) navigate(`/video/${info.videoId}`);
+            break;
+          case 'channel':
+            if (info.channelId) navigate(`/channel/${encodeURIComponent(info.channelId)}`);
+            break;
+          case 'playlist':
+            if (info.playlistId) navigate(`/playlist/${encodeURIComponent(info.playlistId)}`);
+            break;
+        }
+      }
     } else {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
-  };
-
-  const handleConfirm = () => {
-    if (pendingLink) {
-      window.open(pendingLink, '_blank', 'noopener,noreferrer');
-      setPendingLink(null);
-    }
-  };
-
-  const handleCancel = () => {
-    setPendingLink(null);
   };
 
   if (loading) {
@@ -336,13 +337,6 @@ export default function PostDetailPage() {
         </div>
       </article>
 
-      {pendingLink && (
-        <ConfirmLinkModal
-          url={pendingLink}
-          onConfirm={handleConfirm}
-          onCancel={handleCancel}
-        />
-      )}
       </div>
     </div>
   );

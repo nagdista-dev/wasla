@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type { CommunityPost } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
-import { isYouTubeUrl } from '../utils/linkUtils';
+import { isYouTubeUrl, classifyYouTubeUrl } from '../utils/linkUtils';
 import ConfirmLinkModal from './ConfirmLinkModal';
 import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
 
@@ -54,12 +54,25 @@ function PostCard({ post }: { post: CommunityPost }) {
   const contentElements = useMemo(
     () => renderContentWithLinks(post.content, (url) => {
       if (isYouTubeUrl(url)) {
-        setPendingLink(url);
-      } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
+        const info = classifyYouTubeUrl(url);
+        if (info) {
+          switch (info.type) {
+            case 'video':
+              if (info.videoId) navigate(`/video/${info.videoId}`);
+              break;
+            case 'channel':
+              if (info.channelId) navigate(`/channel/${encodeURIComponent(info.channelId)}`);
+              break;
+            case 'playlist':
+              if (info.playlistId) navigate(`/playlist/${encodeURIComponent(info.playlistId)}`);
+              break;
+          }
+          return;
+        }
       }
+      window.open(url, '_blank', 'noopener,noreferrer');
     }),
-    [post.content]
+    [post.content, navigate]
   );
 
   const handleConfirm = () => {
