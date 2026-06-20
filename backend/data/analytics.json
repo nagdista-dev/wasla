@@ -1,5 +1,5 @@
 {
-  "totalVisits": 253,
+  "totalVisits": 254,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -64,7 +64,8 @@
     "/video/sbAns1wSxkk": 3,
     "/audio/sbAns1wSxkk": 4,
     "/audio/yAhp3tUevZw": 2,
-    "/channel/UCHaHD477h-FeBbVh9Sh7syA": 3
+    "/channel/UCHaHD477h-FeBbVh9Sh7syA": 3,
+    "/how-to-use": 1
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -91,6 +92,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 56
+    "2026-06-21": 57
   }
 }

@@ -8,6 +8,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
+import logo from '../assets/logo.png';
 
 const SECTIONS = [
   { id: 'about', icon: Info, en: 'What is Wasla?', ar: 'ما هي وصلة؟' },
@@ -412,9 +413,7 @@ export default function HowToUsePage() {
       <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-dark-navy py-12">
         <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-brand-coral rounded-lg">
-              <Film className="h-5 w-5 text-white" />
-            </span>
+            <img src={logo} alt="Wasla" className="h-8 w-8 object-contain" />
             <span className="font-bold text-xl tracking-tight">Wasla</span>
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-sm font-medium text-gray-500 dark:text-gray-400">
