@@ -43,6 +43,14 @@ export function formatDescription(text: string): string {
       /(^|\n)([\-\=]{3,})($|\n)/g,
       '$1<hr class="border-gray-200 dark:border-white/10 my-2" />$3'
     )
+    .replace(
+      /(^|\n)(-\s.+?)(?=\n|$)/g,
+      '<li class="flex items-start gap-2 mb-2 text-gray-700 dark:text-gray-300">• $1</li>'
+    )
+    .replace(
+      /(^|\n)(\d+\.\s.+?)(?=\n|$)/g,
+      '<li class="flex items-start gap-2 mb-2 text-gray-700 dark:text-gray-300"><span class="font-semibold text-brand-coral">$1</span></li>'
+    )
     .replace(/\n/g, '<br/>')
     .replace(
       /\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g,
