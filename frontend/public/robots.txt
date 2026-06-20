@@ -7,4 +7,4 @@ Allow: /how-to-use
 Allow: /watch-later
 Disallow: /settings
 
-Sitemap: https://wasla-app.vercel.app/sitemap.xml
+Sitemap: https://wasla-alpha.vercel.app/sitemap.xml
