@@ -185,6 +185,11 @@ const ar: Record<string, string> = {
   'category.sharedBadge': 'مشترك',
   'category.share': 'مشاركة',
   'category.copied': 'تم النسخ',
+  'category.sharedBannerText': 'تمت مشاركة هذه الفئة معك. يمكنك تعديلها بحرية.',
+  'category.channelsTitle': 'القنوات',
+  'category.latestVideosTitle': 'أحدث مقاطع الفيديو',
+  'category.editCategory': 'تعديل',
+  'category.moreOptions': 'المزيد',
 
   // Import
   'import.processing': 'جاري الاستيراد...',

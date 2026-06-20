@@ -185,6 +185,11 @@ const en = {
   'category.sharedBadge': 'Shared',
   'category.share': 'Share',
   'category.copied': 'Copied',
+  'category.sharedBannerText': 'This category was shared with you. You can edit it freely.',
+  'category.channelsTitle': 'Channels',
+  'category.latestVideosTitle': 'Latest Videos',
+  'category.editCategory': 'Edit',
+  'category.moreOptions': 'More',
 
   // Import
   'import.processing': 'Processing Import...',

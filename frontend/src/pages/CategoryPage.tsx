@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { AlertCircle, Play, RefreshCw, Share2, Check } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { AlertCircle, Play, RefreshCw, Share2, Check, X, Info, Edit2, MoreVertical } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
@@ -46,11 +46,15 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
   const { t } = useLanguage();
   const { categoryName } = useParams<{ categoryName: string }>();
   const decoded = useMemo(() => categoryName ? decodeURIComponent(categoryName) : '', [categoryName]);
+  const navigate = useNavigate();
+  
   const [items, setItems] = useState<ChannelLatestVideo[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most_viewed' | 'least_viewed'>('newest');
   const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('all');
   const [isCopied, setIsCopied] = useState(false);
+  const [showSharedBanner, setShowSharedBanner] = useState(true);
+  const [showMobileActions, setShowMobileActions] = useState(false);
 
   const isShared = useMemo(() => {
     try {
@@ -166,112 +170,218 @@ export default function CategoryPage({ channels }: { channels: Channel[] }) {
     }), [items, decoded, timeRange, sortBy]);
 
   return (
-    <div className="min-h-screen dark:bg-dark-navy">
-      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 py-6">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{decoded}</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-dark-navy pb-20">
+      <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        
+        {/* HEADER SECTION */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+                {decoded}
+              </h1>
               {isShared && (
-                <span className="px-2.5 py-1 rounded-full bg-brand-coral/10 text-brand-coral text-xs font-semibold whitespace-nowrap">
+                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-bold uppercase tracking-wide border border-blue-200 dark:border-blue-800/50">
                   {t('category.sharedBadge')}
                 </span>
               )}
             </div>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              {t('category.channels', { count: categoryChannels.length })}
-              {items.some((i) => i.loading) ? t('category.loading') : t('category.videos', { count: displayItems.length })}
+            <p className="mt-2 text-base text-gray-500 dark:text-gray-400 font-medium">
+              {t('category.channels', { count: categoryChannels.length })} • {items.some(i => i.loading) ? t('category.loading') : t('category.videos', { count: displayItems.length })}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <CustomFilterDropdown
-              value={sortBy}
-              onChange={(v) => setSortBy(v as 'newest' | 'oldest' | 'most_viewed' | 'least_viewed')}
-              options={[
-                { value: 'newest', label: t('category.newestFirst') },
-                { value: 'oldest', label: t('category.oldestFirst') },
-                { value: 'most_viewed', label: t('category.mostViewed') },
-                { value: 'least_viewed', label: t('category.leastViewed') },
-              ]}
-              className="min-w-[140px]"
-              placeholder={t('category.sortBy')}
-            />
-            <CustomFilterDropdown
-              value={timeRange}
-              onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
-              options={[
-                { value: 'all', label: t('category.allTime') },
-                { value: 'hour', label: t('category.lastHour') },
-                { value: 'today', label: t('category.today') },
-                { value: 'week', label: t('category.thisWeek') },
-                { value: 'month', label: t('category.thisMonth') },
-                { value: 'year', label: t('category.thisYear') },
-              ]}
-              className="min-w-[140px]"
-              placeholder={t('category.time')}
-            />
+
+          {/* DESKTOP ACTIONS */}
+          <div className="hidden md:flex items-center gap-2">
             <button
-              type="button"
-              onClick={() => fetchVideos(true)}
-              disabled={isRefreshing}
-              className="rounded-lg bg-white p-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
-              aria-label={t('category.refresh')}
-            >
-              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
-            <button
-              type="button"
               onClick={handleShareCategory}
               disabled={categoryChannels.length === 0}
-              className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-brand-coral px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-coral/90 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
-              {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Share2 className="h-4 w-4" />}
-              <span className="hidden sm:inline">
-                {isCopied ? t('category.copied') : t('category.share')}
-              </span>
+              {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+              <span>{isCopied ? t('category.copied') : t('category.share')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/channels')}
+              className="flex items-center justify-center rounded-xl bg-white p-2.5 text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/5 transition-all active:scale-95 shadow-sm"
+              aria-label={t('category.editCategory')}
+            >
+              <Edit2 className="h-4 w-4" />
+            </button>
+            <button
+              className="flex items-center justify-center rounded-xl bg-white p-2.5 text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/5 transition-all active:scale-95 shadow-sm"
+              aria-label={t('category.moreOptions')}
+            >
+              <MoreVertical className="h-4 w-4" />
             </button>
           </div>
+
+          {/* MOBILE ACTIONS */}
+          <div className="md:hidden flex items-center gap-2 w-full">
+            <button
+              onClick={handleShareCategory}
+              disabled={categoryChannels.length === 0}
+              className="flex-1 flex justify-center items-center gap-2 rounded-xl bg-brand-coral px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-coral/90 transition-all active:scale-95 disabled:opacity-50"
+            >
+              {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+              <span>{isCopied ? t('category.copied') : t('category.share')}</span>
+            </button>
+            <button
+              onClick={() => setShowMobileActions(!showMobileActions)}
+              className="flex items-center justify-center rounded-xl bg-white p-2.5 text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/5 transition-all active:scale-95 shadow-sm"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </button>
+          </div>
+          
+          {/* MOBILE ACTIONS DROPDOWN */}
+          {showMobileActions && (
+            <div className="md:hidden w-full flex flex-col gap-2 mt-2 animate-fadein">
+              <button onClick={() => navigate('/channels')} className="flex items-center gap-3 w-full rounded-xl bg-white p-3 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/5 shadow-sm">
+                <Edit2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                {t('category.editCategory')}
+              </button>
+            </div>
+          )}
         </div>
 
+        {/* SHARED BANNER */}
+        {isShared && showSharedBanner && (
+          <div className="mb-8 rounded-2xl bg-blue-50 p-4 sm:p-5 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 flex items-start sm:items-center justify-between gap-4 animate-fadein shadow-sm">
+            <div className="flex items-start sm:items-center gap-3 text-blue-800 dark:text-blue-200">
+              <div className="rounded-full bg-blue-100 dark:bg-blue-800/50 p-1.5 shrink-0 mt-0.5 sm:mt-0">
+                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <p className="text-sm font-medium leading-relaxed">
+                {t('category.sharedBannerText')}
+              </p>
+            </div>
+            <button onClick={() => setShowSharedBanner(false)} className="rounded-full p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:text-blue-200 dark:hover:bg-blue-800/50 transition-all shrink-0">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+
         {categoryChannels.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
-            <Play className="mx-auto mb-4 h-12 w-12 text-brand-coral" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('category.noChannels')}</h2>
-            <p className="mx-auto mt-2 max-w-md text-gray-600 dark:text-gray-400">
+          <div className="rounded-3xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-700 dark:bg-dark-navy shadow-sm">
+            <div className="mx-auto mb-5 h-16 w-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+              <Play className="h-8 w-8 text-gray-400 dark:text-gray-500 ml-1" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('category.noChannels')}</h2>
+            <p className="mx-auto mt-2 max-w-md text-gray-500 dark:text-gray-400">
               {t('category.noChannelsDesc', { name: decoded })}
             </p>
           </div>
-        ) : displayItems.length === 0 && !items.some((i) => i.loading) ? (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center dark:border-gray-600 dark:bg-dark-navy">
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('category.noVideosFound')}</h2>
-            <p className="mx-auto mt-2 max-w-md text-gray-600 dark:text-gray-400">
-              {t('category.noVideosDesc')}
-            </p>
-          </div>
         ) : (
-          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-full items-stretch">
-            {displayItems.map(({ channel, video, loading, error }) => (
-              <div key={channel.id} className="min-w-0 h-full">
-                {loading ? (
-                  <VideoCardSkeleton />
-                  ) : error ? (
-                    <div className="animate-fadein h-full">
-                      <article className="rounded-xl overflow-hidden bg-white shadow-md dark:bg-dark-navy p-6 text-center min-h-[280px] flex flex-col items-center justify-center h-full">
-                        <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
-                        <h2 className="font-semibold text-gray-900 dark:text-white">{channel.name}</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
-                      </article>
+          <>
+            {/* CHANNELS SECTION */}
+            <div className="mb-10">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
+                {t('category.channelsTitle')}
+              </h2>
+              
+              <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {categoryChannels.map(ch => (
+                  <div key={ch.id} onClick={() => navigate(`/channel/${encodeURIComponent(ch.id)}`)} className="group cursor-pointer relative flex items-center gap-3 rounded-2xl border border-gray-200/80 bg-white p-3 pr-8 shadow-sm transition-all hover:shadow-md hover:border-gray-300 dark:border-gray-700/50 dark:bg-dark-navy dark:hover:border-gray-600 sm:pr-3 min-w-[220px] max-w-[280px] sm:max-w-none">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-coral to-brand-orange flex items-center justify-center text-white font-bold text-lg shadow-inner">
+                      {ch.name.charAt(0).toUpperCase()}
                     </div>
-                  ) : video ? (
-                    <div className="animate-fadein h-full">
-                      <VideoCard channel={channel} video={video} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-gray-900 dark:text-white group-hover:text-brand-coral transition-colors">{ch.name}</p>
+                      <p className="truncate text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">{ch.handle || 'YouTube'}</p>
                     </div>
-                  ) : null}
-                </div>
-              ))}
+                    
+                    {/* Hover Action Desktop Only */}
+                    <div className="absolute right-2 opacity-0 transition-all duration-200 group-hover:opacity-100 hidden md:flex">
+                      <button onClick={(e) => { e.stopPropagation(); navigate('/channels'); }} className="rounded-full bg-gray-50 p-2 text-gray-500 hover:text-brand-coral hover:bg-brand-coral/10 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-brand-coral transition-colors" aria-label="Edit">
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
+
+            {/* VIDEOS FEED SECTION */}
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+                  <Play className="h-5 w-5 text-brand-coral fill-brand-coral/20" />
+                  {t('category.latestVideosTitle')}
+                </h2>
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  <CustomFilterDropdown
+                    value={sortBy}
+                    onChange={(v) => setSortBy(v as 'newest' | 'oldest' | 'most_viewed' | 'least_viewed')}
+                    options={[
+                      { value: 'newest', label: t('category.newestFirst') },
+                      { value: 'oldest', label: t('category.oldestFirst') },
+                      { value: 'most_viewed', label: t('category.mostViewed') },
+                      { value: 'least_viewed', label: t('category.leastViewed') },
+                    ]}
+                    className="min-w-[140px] shadow-sm"
+                    placeholder={t('category.sortBy')}
+                  />
+                  <CustomFilterDropdown
+                    value={timeRange}
+                    onChange={(v) => setTimeRange(v as 'all' | 'hour' | 'today' | 'week' | 'month' | 'year')}
+                    options={[
+                      { value: 'all', label: t('category.allTime') },
+                      { value: 'hour', label: t('category.lastHour') },
+                      { value: 'today', label: t('category.today') },
+                      { value: 'week', label: t('category.thisWeek') },
+                      { value: 'month', label: t('category.thisMonth') },
+                      { value: 'year', label: t('category.thisYear') },
+                    ]}
+                    className="min-w-[140px] shadow-sm"
+                    placeholder={t('category.time')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fetchVideos(true)}
+                    disabled={isRefreshing}
+                    className="rounded-xl bg-white p-2.5 text-gray-600 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50 shadow-sm shrink-0"
+                    aria-label={t('category.refresh')}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-brand-coral' : ''}`} />
+                  </button>
+                </div>
+              </div>
+
+              {displayItems.length === 0 && !items.some((i) => i.loading) ? (
+                <div className="rounded-3xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-700 dark:bg-dark-navy shadow-sm mt-4">
+                  <AlertCircle className="mx-auto mb-4 h-12 w-12 text-gray-400 dark:text-gray-500" />
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('category.noVideosFound')}</h2>
+                  <p className="mx-auto mt-2 max-w-md text-gray-500 dark:text-gray-400">
+                    {t('category.noVideosDesc')}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-x-5 gap-y-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-full items-stretch">
+                  {displayItems.map(({ channel, video, loading, error }) => (
+                    <div key={channel.id} className="min-w-0 h-full group/card">
+                      {loading ? (
+                        <VideoCardSkeleton />
+                        ) : error ? (
+                          <div className="animate-fadein h-full">
+                            <article className="rounded-2xl border border-red-100 bg-red-50/50 shadow-sm dark:border-red-900/30 dark:bg-red-900/10 p-8 text-center min-h-[280px] flex flex-col items-center justify-center h-full transition-all">
+                              <AlertCircle className="h-10 w-10 text-red-500/80 mb-3" />
+                              <h2 className="font-bold text-gray-900 dark:text-white text-lg">{channel.name}</h2>
+                              <p className="text-sm text-red-600 dark:text-red-400 mt-2 max-w-[200px]">{error}</p>
+                            </article>
+                          </div>
+                        ) : video ? (
+                          <div className="animate-fadein h-full">
+                            <VideoCard channel={channel} video={video} />
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 {
-  "totalVisits": 210,
+  "totalVisits": 214,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -58,7 +58,7 @@
     "/settings": 1,
     "/posts": 1,
     "/video/dQw4w9WgXcQ": 2,
-    "/category/English": 8,
+    "/category/English": 12,
     "/import/category": 3
   },
   "videoClicks": {
@@ -85,6 +85,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 13
+    "2026-06-21": 17
   }
 }
