@@ -251,10 +251,10 @@ function AudioPage() {
                   tabIndex={0}
                 >
                   <div
-                    className="h-full bg-gradient-to-r from-brand-coral to-brand-orange rounded-full relative transition-all duration-100"
+                    className="h-full bg-gradient-to-r from-brand-coral to-brand-orange rounded-full relative"
                     style={{ width: `${progress}%` }}
                   >
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-md border-2 border-brand-coral opacity-100 transition-opacity" />
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-md border-2 border-brand-coral" />
                   </div>
                 </div>
 

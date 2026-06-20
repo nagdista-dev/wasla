@@ -109,14 +109,14 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const clearTimePoll = useCallback(() => {
     if (timePollRef.current !== null) {
-      clearInterval(timePollRef.current);
+      cancelAnimationFrame(timePollRef.current);
       timePollRef.current = null;
     }
   }, []);
 
   const startTimePoll = useCallback(() => {
     clearTimePoll();
-    timePollRef.current = window.setInterval(() => {
+    const poll = () => {
       if (playerRef.current && playerReadyRef.current) {
         try {
           const ct = playerRef.current.getCurrentTime();
@@ -127,7 +127,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           /* ignore */
         }
       }
-    }, 250);
+      timePollRef.current = requestAnimationFrame(poll);
+    };
+    timePollRef.current = requestAnimationFrame(poll);
   }, [clearTimePoll]);
 
   const destroyPlayer = useCallback(() => {
