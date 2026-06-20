@@ -300,7 +300,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     >
       <iframe
         ref={iframeRef}
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1&rel=0&modestbranding=1&showinfo=0&controls=0&disablekb=1&iv_load_policy=3&cc_load_policy=0&fs=0&widget_referrer=none`}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1&rel=0&modestbranding=1&controls=1&disablekb=0&cc_load_policy=1&fs=1`}
         title="YouTube video player"
         className="absolute inset-0 w-full h-full"
         allow="autoplay; encrypted-media; fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -320,145 +320,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         }}
         onContextMenu={(e) => e.preventDefault()}
       />
-
-      <div className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 z-10 ${showControls || isOverlayVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}></div>
-
-      {isOverlayVisible && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-md transition-all duration-300 animate-in fade-in">
-          <div className="w-full max-w-md p-6">
-            <div className="bg-gray-900/90 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-              <h3 className="text-white text-lg font-semibold mb-4 text-center">Video Controls</h3>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-center gap-4">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleSeek(Math.max(0, currentTime - 10)); }}
-                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white"
-                    aria-label="Skip back 10 seconds"
-                  >
-                    <SkipBack className="h-5 w-5" />
-                  </button>
-
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
-                    className="p-4 bg-brand-coral hover:bg-brand-coral/90 rounded-full transition-all active:scale-95 text-white shadow-lg shadow-brand-coral/30"
-                    aria-label={isPlaying ? 'Pause' : 'Play'}
-                  >
-                    {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-                  </button>
-
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleSeek(Math.min(duration, currentTime + 10)); }}
-                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white"
-                    aria-label="Skip forward 10 seconds"
-                  >
-                    <SkipForward className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300">Playback Speed</label>
-                  <div className="flex gap-2 justify-center">
-                    {speedOptions.map((speed) => (
-                      <button
-                        key={speed}
-                        onClick={(e) => { e.stopPropagation(); handleSpeedChange(speed); }}
-                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${playbackRate === speed
-                            ? 'bg-brand-coral text-white'
-                            : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                          }`}
-                      >
-                        {speed}x
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300">Volume</label>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleMuteToggle(); }}
-                      className="p-2 text-gray-300 hover:text-white transition-colors"
-                      aria-label={isMuted ? 'Unmute' : 'Mute'}
-                    >
-                      {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                    </button>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={isMuted ? 0 : volume}
-                      onChange={(e) => { e.stopPropagation(); handleVolumeChange(parseFloat(e.target.value)); }}
-                      className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-
-                <div className="w-full bg-white/10 rounded-full h-1.5">
-                  <div
-                    className="bg-brand-coral h-1.5 rounded-full transition-all duration-100"
-                    style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
-                  />
-                </div>
-
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleFullscreenToggle(); }}
-                  className="w-full p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm text-gray-300 flex items-center justify-center gap-2"
-                >
-                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                  {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 z-10 ${showControls || isOverlayVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
-                className="p-2 text-white hover:text-brand-coral transition-colors"
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-              </button>
-
-              <div className="text-white text-sm font-medium">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </div>
-
-              <div className="text-white/70 text-xs">
-                {playbackRate}x
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={(e) => { e.stopPropagation(); handleSpeedChange(speedOptions[Math.max(0, speedOptions.indexOf(playbackRate) - 1)] || playbackRate); }}
-                className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white transition-colors"
-              >
-                Speed -
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleSpeedChange(speedOptions[Math.min(speedOptions.length - 1, speedOptions.indexOf(playbackRate) + 1)] || playbackRate); }}
-                className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white transition-colors"
-              >
-                Speed +
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+    </div>
   );
 };
 
 export default CustomVideoPlayer;
-
