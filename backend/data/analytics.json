@@ -1,5 +1,5 @@
 {
-  "totalVisits": 413,
+  "totalVisits": 415,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -52,8 +52,8 @@
     "/video": 1,
     "/video/yAhp3tUevZw": 5,
     "/watch-later": 2,
-    "/channels": 8,
-    "/playlists": 2,
+    "/channels": 9,
+    "/playlists": 3,
     "/courses": 1,
     "/contact": 2,
     "/favorites": 3,
@@ -142,6 +142,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 216
+    "2026-06-21": 218
   }
 }
