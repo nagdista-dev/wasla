@@ -613,11 +613,22 @@ const en = {
   // Video Page
   'videoPage.notFound': 'Video not found',
 
-  // 404 Page
-  'notFound.title': 'Page not found',
-  'notFound.description': "Oops! The page you're looking for doesn't exist or has been moved.",
-  'notFound.goHome': 'Go to Home',
-  'notFound.redirecting': 'Redirecting to home in {countdown}s...',
+  // Error Pages
+  'error.notFound.title': 'Page Not Found',
+  'error.notFound.description': "The page you're looking for doesn't exist or has been moved.",
+  'error.network.title': 'Network Error',
+  'error.network.description': "We couldn't reach our servers. Please check your internet connection and try again.",
+  'error.application.title': 'Something went wrong',
+  'error.application.description': 'We encountered an unexpected error while loading this page. Please try again.',
+  'error.permission.title': 'Access Denied',
+  'error.permission.description': "You don't have permission to access this resource.",
+  'error.tryAgain': 'Try Again',
+  'error.goHome': 'Go Home',
+  'error.goBack': 'Go Back',
+  'error.technicalDetails': 'Technical Details',
+  'error.copyDetails': 'Copy Error Details',
+  'error.detailsCopied': 'Copied to clipboard',
+  'error.reportIssue': 'Report Issue',
 
   // Analytics Dashboard
   'analytics.dashboard': 'Analytics Dashboard',

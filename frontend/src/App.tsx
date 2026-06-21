@@ -31,6 +31,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
 import FloatingButton from "./components/FloatingButton";
 import LoadingScreen from "./components/LoadingScreen";
 import AddChannelModal from "./components/AddChannelModal";
@@ -50,6 +51,7 @@ import { useFilters } from "./context/FilterContext";
 import { FeedProvider, useFeed } from "./context/FeedContext";
 import { loadHomeFeedFromCache } from "./services/homeFeedRepository";
 import { useShareReceiver } from "./hooks/useShareReceiver";
+import { useErrorLog } from "./hooks/useErrorLog";
 import YouTubeShareModal from "./components/YouTubeShareModal";
 import logo from "./assets/logo.png";
 
@@ -415,7 +417,9 @@ const FloatingButtonContainer = memo(function FloatingButtonContainer({
   );
 });
 
-function App() {  const { isRTL } = useLanguage();
+function App() {
+  useErrorLog();
+  const { isRTL } = useLanguage();
   const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, resetFilters, showFilterModal, setShowFilterModal } = useFilters();
   const { favorites, addFavorite } = useFavorites();
   const [channels, setChannels] = useState<Channel[]>(syncLoadChannels);
@@ -666,7 +670,8 @@ function App() {  const { isRTL } = useLanguage();
           isRTL ? 'md:mr-64' : 'md:ml-64'
         }`}>
           <main className="flex-1 overflow-visible">
-            <Suspense fallback={
+            <ErrorBoundary>
+              <Suspense fallback={
               <div className="min-h-screen flex items-center justify-center dark:bg-dark-navy" style={{ minHeight: "100dvh" }}>
                 <div className="flex flex-col items-center gap-4 px-6">
                   <img src={logo} alt="" className="w-16 h-16 sm:w-20 sm:h-20 object-contain opacity-50 splash-logo-pulse" />
@@ -770,7 +775,8 @@ function App() {  const { isRTL } = useLanguage();
               />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
-          </Suspense>
+              </Suspense>
+            </ErrorBoundary>
         </main>
         {showChannelModal && (
           <AddChannelModal

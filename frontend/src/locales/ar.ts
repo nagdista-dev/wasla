@@ -612,11 +612,22 @@ const ar: Record<string, string> = {
   // Video Page
   'videoPage.notFound': 'الفيديو غير موجود',
 
-  // 404 Page
-  'notFound.title': 'الصفحة غير موجودة',
-  'notFound.description': 'عذراً! الصفحة التي تبحث عنها غير موجودة أو تم نقلها.',
-  'notFound.goHome': 'العودة إلى الرئيسية',
-  'notFound.redirecting': 'سيتم إعادة التوجيه إلى الصفحة الرئيسية بعد {countdown} ثانية...',
+  // Error Pages
+  'error.notFound.title': 'الصفحة غير موجودة',
+  'error.notFound.description': 'الصفحة التي تبحث عنها غير موجودة أو تم نقلها.',
+  'error.network.title': 'خطأ في الشبكة',
+  'error.network.description': 'تعذر الاتصال بالخوادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.',
+  'error.application.title': 'حدث خطأ ما',
+  'error.application.description': 'حدث خطأ غير متوقع أثناء تحميل هذه الصفحة. يرجى المحاولة مرة أخرى.',
+  'error.permission.title': 'تم رفض الوصول',
+  'error.permission.description': 'ليس لديك إذن للوصول إلى هذا المورد.',
+  'error.tryAgain': 'حاول مرة أخرى',
+  'error.goHome': 'الرئيسية',
+  'error.goBack': 'عودة',
+  'error.technicalDetails': 'التفاصيل التقنية',
+  'error.copyDetails': 'نسخ تفاصيل الخطأ',
+  'error.detailsCopied': 'تم النسخ إلى الحافظة',
+  'error.reportIssue': 'الإبلاغ عن المشكلة',
 
   // Analytics Dashboard
   'analytics.dashboard': 'لوحة التحليلات',
