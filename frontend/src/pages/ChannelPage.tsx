@@ -1,14 +1,16 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowUpDown, ExternalLink, Film, ListVideo, Loader2, Play, Edit3, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowUpDown, ExternalLink, Film, ListVideo, Loader2, Play, Edit3, Trash2, Share2 } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
 import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import ShareChannelDialog from '../components/ShareChannelDialog';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
+import { getChannelShareUrl } from '../utils/shareUtils';
 import type { Channel, ChannelDetailsData, LatestVideo, Playlist } from '../types';
 
 // ─── Color helpers ───────────────────────────────────────────────────────────
@@ -275,13 +277,17 @@ export default function ChannelPage({
 }) {
   const { t } = useLanguage();
   const { channelId } = useParams<{ channelId: string }>();
+  const { username } = useParams<{ username: string }>();
+  const identifier = channelId || username;
   const navigate = useNavigate();
 
   const currentChannel = useMemo(
-    () => channels?.find((c) => c.id === channelId),
-    [channels, channelId]
+    () => channels?.find((c) => c.id === identifier || c.username === identifier),
+    [channels, identifier]
   );
-  
+
+  const channelUsername = currentChannel?.username || identifier;
+
   const allCategories = useMemo(
     () => Array.from(new Set(channels?.flatMap((c) => c.categories) || [])).sort((a, b) => a.localeCompare(b)),
     [channels]
@@ -289,6 +295,7 @@ export default function ChannelPage({
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // ── Videos state ──────────────────────────────────────────────────────────
   const [data, setData] = useState<ChannelDetailsData | null>(null);
@@ -312,12 +319,13 @@ export default function ChannelPage({
 
   // ── Fetch videos ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!channelId) return;
+    if (!identifier) return;
+    const apiId = currentChannel?.id || identifier;
     setLoading(true);
     setError('');
     api
       .get<{ success: boolean; data?: ChannelDetailsData; error?: string }>(
-        `/channel/${encodeURIComponent(channelId)}/videos`
+        `/channel/${encodeURIComponent(apiId)}/videos`
       )
       .then((res) => {
         if (res.data.success && res.data.data) {
@@ -328,18 +336,19 @@ export default function ChannelPage({
       })
       .catch(() => setError(t('channel.failedToLoad')))
       .finally(() => setLoading(false));
-  }, [channelId, t]);
+  }, [identifier, currentChannel?.id, t]);
 
   // ── Lazy-fetch playlists (only when tab is opened for the first time) ──────
   useEffect(() => {
     if (activeTab !== 'playlists') return;
     if (playlistsFetched.current) return;
     playlistsFetched.current = true;
+    const apiId = currentChannel?.id || identifier;
 
     setPlaylistsLoading(true);
     setPlaylistsError('');
     api
-      .get<ChannelPlaylistsResponse>(`/channel/${encodeURIComponent(channelId!)}/playlists`)
+      .get<ChannelPlaylistsResponse>(`/channel/${encodeURIComponent(apiId!)}/playlists`)
       .then((res) => {
         if (res.data.success) {
           setPlaylists(res.data.playlists);
@@ -349,7 +358,7 @@ export default function ChannelPage({
       })
       .catch(() => setPlaylistsError(t('channel.failedToLoadPlaylists')))
       .finally(() => setPlaylistsLoading(false));
-  }, [activeTab, channelId, t]);
+  }, [activeTab, currentChannel?.id, identifier, t]);
 
   // ── Meta ─────────────────────────────────────────────────────────────────
   useMeta(
@@ -358,7 +367,7 @@ export default function ChannelPage({
           title: data.channelName,
           description: t('channel.videoCount', { count: data.videos.length }),
           image: data.avatar || data.banner || undefined,
-          url: window.location.href,
+          url: channelUsername ? getChannelShareUrl(channelUsername) : window.location.href,
         }
       : undefined
   );
@@ -437,9 +446,10 @@ export default function ChannelPage({
   }
 
   const channelForVideo: Channel = {
-    id: channelId!,
+    id: identifier!,
     name: data.channelName,
     handle: data.handle,
+    username: channelUsername,
     categories: [],
   };
 
@@ -492,6 +502,15 @@ export default function ChannelPage({
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-wrap mt-2 sm:mt-0">
+                {currentChannel && (
+                  <button
+                    onClick={() => setShowShareDialog(true)}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 bg-white hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-white/10 shadow-sm"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    {t('channel.share')}
+                  </button>
+                )}
                 {currentChannel && onUpdate && (
                   <button
                     onClick={() => setShowEditModal(true)}
@@ -630,6 +649,14 @@ export default function ChannelPage({
           }}
           title={t('channels.deleteTitle')}
           description={t('channels.deleteDescription', { name: currentChannel.name })}
+        />
+      )}
+
+      {showShareDialog && currentChannel && (
+        <ShareChannelDialog
+          shareUrl={getChannelShareUrl(channelUsername)}
+          channelName={data?.channelName || currentChannel.name}
+          onClose={() => setShowShareDialog(false)}
         />
       )}
     </div>

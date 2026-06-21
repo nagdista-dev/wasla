@@ -615,6 +615,8 @@ const ar: Record<string, string> = {
   // Error Pages
   'error.notFound.title': 'الصفحة غير موجودة',
   'error.notFound.description': 'الصفحة التي تبحث عنها غير موجودة أو تم نقلها.',
+  'error.channelNotFound.title': 'القناة غير موجودة',
+  'error.channelNotFound.description': 'القناة التي تبحث عنها غير موجودة أو قد تمت إزالتها.',
   'error.network.title': 'خطأ في الشبكة',
   'error.network.description': 'تعذر الاتصال بالخوادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.',
   'error.application.title': 'حدث خطأ ما',
@@ -680,6 +682,16 @@ const ar: Record<string, string> = {
   'shareModal.playlistTitleLabel': 'عنوان قائمة التشغيل',
   'shareModal.savePlaylistButton': 'حفظ قائمة التشغيل',
   'shareModal.savedPlaylist': '✓ تم حفظ قائمة التشغيل بنجاح',
+
+  // Share Channel Dialog
+  'shareChannel.title': 'مشاركة القناة',
+  'shareChannel.description': 'شارك "{name}" عبر هذا الرابط:',
+  'shareChannel.shareLink': 'رابط القناة',
+  'shareChannel.copyLink': 'نسخ الرابط',
+  'shareChannel.copied': 'تم النسخ!',
+  'shareChannel.openInBrowser': 'فتح في المتصفح',
+  'shareChannel.close': 'إغلاق',
+  'channel.share': 'مشاركة',
 
   // Share Dialog
   'shareDialog.title': 'مشاركة الفئة',

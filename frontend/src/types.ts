@@ -2,6 +2,7 @@ export interface Channel {
   id: string;
   name: string;
   handle?: string;
+  username?: string;
   categories: string[];
   favorite?: boolean;
 }

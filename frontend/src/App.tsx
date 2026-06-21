@@ -52,6 +52,7 @@ import { FeedProvider, useFeed } from "./context/FeedContext";
 import { loadHomeFeedFromCache } from "./services/homeFeedRepository";
 import { useShareReceiver } from "./hooks/useShareReceiver";
 import { useErrorLog } from "./hooks/useErrorLog";
+import { ensureChannelUsernames } from "./utils/shareUtils";
 import YouTubeShareModal from "./components/YouTubeShareModal";
 import logo from "./assets/logo.png";
 
@@ -477,7 +478,7 @@ function App() {
             categories: data.categories,
             ...(id.startsWith('@') ? { handle: id } : {}),
           };
-          const next = [...prev, entry];
+          const next = ensureChannelUsernames([...prev, entry]);
           saveChannels(next);
           return next;
         });
@@ -502,7 +503,13 @@ function App() {
   );
 
   useEffect(() => {
-    loadChannels().then((items) => { if (items.length > 0) setChannels(items); });
+    loadChannels().then((items) => {
+      if (items.length > 0) {
+        const withUsernames = ensureChannelUsernames(items);
+        setChannels(withUsernames);
+        saveChannels(withUsernames);
+      }
+    });
     loadPlaylists().then((items) => { if (items.length > 0) setPlaylists(items); });
   }, []);
 
@@ -529,7 +536,7 @@ function App() {
       const withoutDuplicate = prev.filter(
         (channel) => channel.id !== entry.id,
       );
-      const next = [...withoutDuplicate, entry];
+      const next = ensureChannelUsernames([...withoutDuplicate, entry]);
       saveChannels(next);
       return next;
     });
@@ -545,8 +552,9 @@ function App() {
           existingIds.add(entry.id);
         }
       }
-      saveChannels(next);
-      return next;
+      const withUsernames = ensureChannelUsernames(next);
+      saveChannels(withUsernames);
+      return withUsernames;
     });
   }, []);
 
@@ -648,8 +656,9 @@ function App() {
         }
       }
       if (changed) {
-        saveChannels(next);
-        return next;
+        const withUsernames = ensureChannelUsernames(next);
+        saveChannels(withUsernames);
+        return withUsernames;
       }
       return prev;
     });
@@ -691,6 +700,7 @@ function App() {
                 }
               />
               <Route path="/channel/:channelId" element={<ChannelPage channels={channels} onUpdate={handleUpdateChannel} onDelete={handleDeleteChannel} />} />
+              <Route path="/c/:username" element={<ChannelPage channels={channels} onUpdate={handleUpdateChannel} onDelete={handleDeleteChannel} />} />
               <Route path="/playlist/:playlistId" element={<PlaylistCoursePage />} />
               <Route path="/video/:videoId" element={<VideoPage />} />
               <Route path="/audio/:videoId" element={<AudioPage />} />

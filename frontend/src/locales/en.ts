@@ -616,6 +616,8 @@ const en = {
   // Error Pages
   'error.notFound.title': 'Page Not Found',
   'error.notFound.description': "The page you're looking for doesn't exist or has been moved.",
+  'error.channelNotFound.title': 'Channel Not Found',
+  'error.channelNotFound.description': 'The channel you are looking for does not exist or may have been removed.',
   'error.network.title': 'Network Error',
   'error.network.description': "We couldn't reach our servers. Please check your internet connection and try again.",
   'error.application.title': 'Something went wrong',
@@ -681,6 +683,16 @@ const en = {
   'shareModal.playlistTitleLabel': 'Playlist Title',
   'shareModal.savePlaylistButton': 'Save Playlist',
   'shareModal.savedPlaylist': '✓ Playlist saved successfully',
+
+  // Share Channel Dialog
+  'shareChannel.title': 'Share Channel',
+  'shareChannel.description': 'Share "{name}" with this link:',
+  'shareChannel.shareLink': 'Channel Link',
+  'shareChannel.copyLink': 'Copy Link',
+  'shareChannel.copied': 'Copied!',
+  'shareChannel.openInBrowser': 'Open in Browser',
+  'shareChannel.close': 'Close',
+  'channel.share': 'Share',
 
   // Share Dialog
   'shareDialog.title': 'Share Category',

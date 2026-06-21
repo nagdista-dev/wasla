@@ -1,18 +1,19 @@
 {
-  "totalVisits": 325,
+  "totalVisits": 365,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
     "9c1ffcc1-6b46-4bd1-9cc4-11a0c279b597",
-    "aaf13938-8a00-400c-b213-5c08a98f5d7f"
+    "aaf13938-8a00-400c-b213-5c08a98f5d7f",
+    "c3e436d4-d188-4604-ab20-b5453ee19fd9"
   ],
   "pageViews": {
-    "/": 82,
+    "/": 91,
     "/analytics": 3,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
-    "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A": 1,
-    "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A%D8%A7": 1,
+    "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A": 2,
+    "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A%D8%A7": 16,
     "/video/Wo_OMIzOJ0Q": 1,
     "/video/fEVXhWdAdhY": 3,
     "/video/KrVv7BxB31c": 1,
@@ -51,7 +52,7 @@
     "/video": 1,
     "/video/yAhp3tUevZw": 5,
     "/watch-later": 2,
-    "/channels": 5,
+    "/channels": 8,
     "/playlists": 2,
     "/courses": 1,
     "/contact": 2,
@@ -59,8 +60,8 @@
     "/settings": 1,
     "/posts": 3,
     "/video/dQw4w9WgXcQ": 2,
-    "/category/English": 21,
-    "/import/category": 3,
+    "/category/English": 22,
+    "/import/category": 5,
     "/channel/UCKgpamMlm872zkGDcBJHYDg": 2,
     "/video/sbAns1wSxkk": 3,
     "/audio/sbAns1wSxkk": 4,
@@ -74,7 +75,7 @@
     "/video/xlALvHjVEt0": 2,
     "/video/i4k6gwijvTQ": 3,
     "/video/ba7k7ydWu-A": 1,
-    "/video/SuyhkPRTtBA": 1,
+    "/video/SuyhkPRTtBA": 2,
     "/video/_RC-Lg40Tk8": 2,
     "/audio/_RC-Lg40Tk8": 1,
     "/video/c8dF3r7PA9c": 1,
@@ -82,7 +83,9 @@
     "/video/dJaGNbl-4dU": 1,
     "/video/_WGu-p1Eu70": 1,
     "/channel/UChc0Yw9NkSb8Thy53MsM3gw": 1,
-    "/video/4z0AcDFbTaI": 1
+    "/video/4z0AcDFbTaI": 1,
+    "/category/Programming": 6,
+    "/channel/UCbRP3c757lWg9M-U7TyEkXA": 1
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -114,7 +117,7 @@
     "MJdH8moqzBc": 1,
     "i4k6gwijvTQ": 4,
     "ba7k7ydWu-A": 1,
-    "SuyhkPRTtBA": 1,
+    "SuyhkPRTtBA": 2,
     "c8dF3r7PA9c": 1,
     "PhqXO4aCWDo": 1,
     "dJaGNbl-4dU": 1,
@@ -123,6 +126,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 128
+    "2026-06-21": 168
   }
 }
