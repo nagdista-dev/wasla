@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, Play, RefreshCw, Share2, X, Info, Edit2, MoreVertical } from 'lucide-react';
+import { AlertCircle, Play, RefreshCw, Share2, X, Edit2, MoreVertical } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
@@ -56,7 +56,6 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most_viewed' | 'least_viewed'>('newest');
   const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('all');
-  const [showSharedBanner, setShowSharedBanner] = useState(true);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -358,22 +357,6 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
           )}
         </div>
 
-        {/* SHARED BANNER */}
-        {isShared && showSharedBanner && (
-          <div className="mb-8 rounded-2xl bg-blue-50 p-4 sm:p-5 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 flex items-start sm:items-center justify-between gap-4 animate-fadein shadow-sm">
-            <div className="flex items-start sm:items-center gap-3 text-blue-800 dark:text-blue-200">
-              <div className="rounded-full bg-blue-100 dark:bg-blue-800/50 p-1.5 shrink-0 mt-0.5 sm:mt-0">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <p className="text-sm font-medium leading-relaxed">
-                {t('category.sharedBannerText')}
-              </p>
-            </div>
-            <button onClick={() => setShowSharedBanner(false)} className="rounded-full p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:text-blue-200 dark:hover:bg-blue-800/50 transition-all shrink-0">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        )}
 
         {categoryChannels.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-700 dark:bg-dark-navy shadow-sm">
