@@ -1,5 +1,5 @@
 {
-  "totalVisits": 407,
+  "totalVisits": 408,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -8,7 +8,7 @@
     "c3e436d4-d188-4604-ab20-b5453ee19fd9"
   ],
   "pageViews": {
-    "/": 105,
+    "/": 106,
     "/analytics": 3,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
@@ -142,6 +142,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 210
+    "2026-06-21": 211
   }
 }
