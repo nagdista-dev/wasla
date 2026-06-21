@@ -33,7 +33,7 @@ function syncLoadPref<T>(key: string, fallback: T): T {
   }
 }
 
-export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFavorite }: ChannelsPageProps) {
+export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFavorite, onAdd }: ChannelsPageProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   useMeta({ title: t('channels.title'), description: `${channels.length} channel${channels.length !== 1 ? 's' : ''} in your collection.` });

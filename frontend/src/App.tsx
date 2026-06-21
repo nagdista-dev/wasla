@@ -38,7 +38,7 @@ import AddChannelModal from "./components/AddChannelModal";
 import AddPlaylistModal from "./components/AddPlaylistModal";
 import MobileAppBanner from "./components/MobileAppBanner";
 
-import type { Channel, FavoriteVideo, Playlist } from "./types";
+import type { Channel, FavoriteVideo, Playlist, PlaylistEntry } from "./types";
 import { loadChannels, saveChannels, loadPlaylists, savePlaylists, readStoredValue, loadSetting } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
 import { useFavorites } from "./context/FavoritesContext";
@@ -589,12 +589,12 @@ function App() {
     });
   }, []);
 
-  const handleAddPlaylist = useCallback((entry: { id: string; name: string; url?: string; thumbnail?: string; channelName?: string; description?: string; categories: string[] }) => {
+  const handleAddPlaylist = useCallback((entry: PlaylistEntry) => {
     setPlaylists(prev => {
       const withoutDuplicate = prev.filter(
         (pl) => pl.id !== entry.id && pl.url !== entry.url,
       );
-      const next = [...withoutDuplicate, { ...entry, timestamp: Date.now() }];
+      const next = [...withoutDuplicate, entry as Playlist];
       savePlaylists(next);
       return next;
     });

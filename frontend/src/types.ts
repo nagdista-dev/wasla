@@ -53,6 +53,17 @@ export interface Playlist {
   timestamp: number;
 }
 
+export interface PlaylistEntry {
+  id: string;
+  name: string;
+  url?: string;
+  thumbnail?: string;
+  channelName?: string;
+  description?: string;
+  categories: string[];
+  timestamp?: number;
+}
+
 export interface WatchLaterItem {
   id: string;
   video: LatestVideo;

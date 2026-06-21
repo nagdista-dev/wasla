@@ -27,7 +27,7 @@ function syncLoadPref<T>(key: string, fallback: T): T {
   }
 }
 
-export default function PlaylistsPage({ playlists, onDelete, onUpdate }: PlaylistsPageProps) {
+export default function PlaylistsPage({ playlists, onDelete, onUpdate, onAdd }: PlaylistsPageProps) {
   const { t } = useLanguage();
   useMeta({ title: t('playlists.title'), description: `${playlists.length} playlist${playlists.length !== 1 ? 's' : ''} saved.` });
   const [searchText, setSearchText] = useState(syncLoadPref<string>('wasla_playlists_search', ''));
@@ -161,7 +161,7 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
         <AddPlaylistModal
           onClose={() => setShowAddModal(false)}
           onAdd={(newPlaylist) => {
-            onAdd(newPlaylist);
+            onAdd({...newPlaylist, timestamp: Date.now()} as Playlist);
             setShowAddModal(false);
           }}
           existingCategories={allCategories}

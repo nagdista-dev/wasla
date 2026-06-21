@@ -112,6 +112,7 @@ const AddPlaylistModal = memo(function AddPlaylistModal({ onClose, onAdd, existi
       channelName: channelName || undefined,
       description: description.trim() || undefined,
       categories: categoryInput ? categoryInput.split(',').map((c) => c.trim()).filter(Boolean) : [],
+      timestamp: Date.now(),
     };
 
     onAdd(entry);
