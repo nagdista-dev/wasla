@@ -18,7 +18,7 @@ import { getAllFromIndex } from '../services/indexedDbService';
 import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepository';
 import { useFeed } from '../context/FeedContext';
 import { extractVideoId } from '../utils/videoUtils';
-import { Channel, ChannelLatestVideo } from '../types';
+import type { Channel, ChannelLatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
 import { saveHomeScroll, getHomeScroll, setNavigatedFromVideo, setSkipHomeFetch, shouldSkipHomeFetch, clearSkipHomeFetch } from '../utils/scrollRestoration';
 
@@ -38,7 +38,9 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
   const { showToast } = useToast();
   const { filters, setShowFilterModal, activeFilterCount } = useFilters();
   const { selectedCategory, timeRange, sortBy, hiddenCategories } = filters;
-  const { feedItems: items, setFeedItems: setItems } = useFeed();
+  const feedContext = useFeed();
+  const items = feedContext.feedItems;
+  const setItems = feedContext.setFeedItems;
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(syncLoadPref('wasla_viewMode', 'grid'));
   const [continueWatching, setContinueWatching] = useState<WatchHistoryEntry[]>([]);
