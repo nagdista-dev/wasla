@@ -6,7 +6,7 @@ import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
 import EditChannelModal from '../components/EditChannelModal';
-import { encodeSharePayload } from '../utils/shareUtils';
+import { createShareLink } from '../utils/shareUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { saveScrollPosition, getScrollPosition, clearScrollPosition, getRouteScrollKey, wasNavigatedFromVideo, clearNavigatedFromVideo } from '../utils/scrollRestoration';
@@ -102,27 +102,26 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
     }
   }, [decoded]);
 
-  const handleShareCategory = useCallback(() => {
-    if (channels.filter((ch) => ch.categories.includes(decoded)).length === 0) return;
-    
-    const payload = {
-      c: decoded,
-      ch: channels.filter((ch) => ch.categories.includes(decoded)).map(ch => ({ id: ch.id, name: ch.name, handle: ch.handle }))
-    };
-    
-    const base64Data = encodeSharePayload(payload);
-    const shareUrl = `${window.location.origin}/import/category?data=${base64Data}`;
-    
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    });
-  }, [decoded, channels]);
-
   const categoryChannels = useMemo(
     () => channels.filter((ch) => ch.categories.includes(decoded)),
     [channels, decoded],
   );
+
+  const handleShareCategory = useCallback(async () => {
+    if (categoryChannels.length === 0) return;
+    
+    try {
+      const chs = categoryChannels.map(ch => ({ id: ch.id, name: ch.name, handle: ch.handle }));
+      const shareId = await createShareLink(decoded, chs);
+      const shareUrl = `${window.location.origin}/s/${shareId}`;
+      
+      await navigator.clipboard.writeText(shareUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to create share link:', err);
+    }
+  }, [decoded, categoryChannels]);
 
   useMeta(decoded ? {
     title: decoded,
@@ -394,34 +393,6 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
           </div>
         ) : (
           <>
-            {/* CHANNELS SECTION */}
-            <div className="mb-10">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
-                {t('category.channelsTitle')}
-              </h2>
-              
-              <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                {categoryChannels.map(ch => (
-                  <div key={ch.id} onClick={() => navigate(`/channel/${encodeURIComponent(ch.id)}`)} className="group cursor-pointer relative flex items-center gap-3 rounded-2xl border border-gray-200/80 bg-white p-3 pr-8 shadow-sm transition-all hover:shadow-md hover:border-gray-300 dark:border-gray-700/50 dark:bg-dark-navy dark:hover:border-gray-600 sm:pr-3 min-w-[220px] max-w-[280px] sm:max-w-none">
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-coral to-brand-orange flex items-center justify-center text-white font-bold text-lg shadow-inner">
-                      {ch.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-gray-900 dark:text-white group-hover:text-brand-coral transition-colors">{ch.name}</p>
-                      <p className="truncate text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">{ch.handle || 'YouTube'}</p>
-                    </div>
-                    
-                    {/* Hover Action Desktop Only */}
-                    <div className="absolute right-2 opacity-0 transition-all duration-200 group-hover:opacity-100 focus-within:opacity-100 group-focus:opacity-100 hidden md:flex">
-                      <button onClick={(e) => { e.stopPropagation(); setEditingChannel(ch); }} className="rounded-full bg-gray-50 p-2 text-gray-500 hover:text-brand-coral hover:bg-brand-coral/10 focus:opacity-100 focus:bg-brand-coral/10 focus:text-brand-coral active:bg-brand-coral/20 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-brand-coral transition-colors" aria-label="Edit">
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* VIDEOS FEED SECTION */}
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

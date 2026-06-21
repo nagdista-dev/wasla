@@ -112,6 +112,7 @@ const PostDetailPage = lazy(() => import("./pages/PostDetailPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const AnalyticsDashboardPage = lazy(() => import("./pages/AnalyticsDashboardPage"));
 const ImportCategoryPage = lazy(() => import("./pages/ImportCategoryPage"));
+const SharedCategoryPage = lazy(() => import("./pages/SharedCategoryPage"));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -696,6 +697,14 @@ function App() {  const { isRTL } = useLanguage();
               <Route
                 path="/import/category"
                 element={<ImportCategoryPage onImport={handleImportSharedCategory} />}
+              />
+              <Route
+                path="/s/:shareId"
+                element={<SharedCategoryPage />}
+              />
+              <Route
+                path="/shared/:shareId"
+                element={<SharedCategoryPage />}
               />
               <Route
                 path="/channels"

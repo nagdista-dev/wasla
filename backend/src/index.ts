@@ -1,9 +1,14 @@
 import express from "express";
 import compression from "compression";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import channelRoutes from "./routes/channel.js";
 import analyticsRoutes from "./routes/analytics.js";
+import shareRoutes from "./routes/share.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
@@ -50,6 +55,9 @@ const cacheMiddleware = (duration: number) => (req: express.Request, res: expres
 app.use(cors(corsOptions));
 app.use(express.json());
 
+const publicPath = path.resolve(__dirname, '../public');
+app.use(express.static(publicPath, { maxAge: '1d' }));
+
 app.get("/", cacheMiddleware(300), (req, res) => {
   res.json({ message: "Hello from backend!" });
 });
@@ -60,5 +68,6 @@ app.get("/api/health", cacheMiddleware(60), (req, res) => {
 
 app.use("/api", cacheMiddleware(300), channelRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/", shareRoutes);
 
 export default app;

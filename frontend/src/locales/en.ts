@@ -670,6 +670,19 @@ const en = {
   'shareModal.playlistTitleLabel': 'Playlist Title',
   'shareModal.savePlaylistButton': 'Save Playlist',
   'shareModal.savedPlaylist': '✓ Playlist saved successfully',
+
+  // Shared Category Page
+  'shared.importButton': 'Import Category',
+  'shared.openInApp': 'Open in Wasla App',
+  'shared.loading': 'Loading shared category...',
+  'shared.notFound': 'Share Not Found',
+  'shared.goHome': 'Go Home',
+  'shared.moreChannels': '+{count} more channels',
+  'shared.justNow': 'just now',
+  'shared.minutesAgo': '{count}m ago',
+  'shared.hoursAgo': '{count}h ago',
+  'shared.daysAgo': '{count}d ago',
+  'shared.monthsAgo': '{count}mo ago',
 };
 
 export type TranslationKeys = keyof typeof en;
