@@ -720,6 +720,7 @@ function App() {
                     onDelete={handleDeleteChannel}
                     onUpdate={handleUpdateChannel}
                     onToggleFavorite={handleToggleFavorite}
+                    onAdd={handleAddChannel}
                   />
                 }
               />
@@ -738,6 +739,7 @@ function App() {
                     playlists={playlists}
                     onDelete={handleDeletePlaylist}
                     onUpdate={handleUpdatePlaylist}
+                    onAdd={handleAddPlaylist}
                   />
                 }
               />
