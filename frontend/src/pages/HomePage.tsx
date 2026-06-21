@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, SlidersHorizontal, Upload, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, SlidersHorizontal, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditChannelModal from '../components/EditChannelModal';
 import VideoCard from '../components/VideoCard';
@@ -36,7 +36,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
   const { t } = useLanguage();
   usePlayer();
   const { showToast } = useToast();
-  const { filters, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories, setShowFilterModal, activeFilterCount } = useFilters();
+  const { filters, setShowFilterModal, activeFilterCount } = useFilters();
   const { selectedCategory, timeRange, sortBy, hiddenCategories } = filters;
   const { feedItems: items, setFeedItems: setItems } = useFeed();
   useMeta({ title: t('home.title'), description: t('home.channelsInFeed', { count: channels.length }) });
