@@ -7,6 +7,7 @@ export type CustomVideoPlayerProps = {
   onPlayStateChange?: (isPlaying: boolean) => void;
   onSpeedChange?: (speed: number) => void;
   onSeek?: (seconds: number) => void;
+  onTimeUpdate?: (seconds: number) => void;
 };
 
 const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
@@ -14,6 +15,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   startTime = 0,
   onPlayStateChange,
   onSeek,
+  onTimeUpdate,
 }) => {
   const { registerSeekHandler, unregisterSeekHandler } = usePlayer();
   const [, setIsPlaying] = useState(false);
@@ -26,6 +28,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   onSeekRef.current = onSeek;
   const onPlayStateChangeRef = useRef(onPlayStateChange);
   onPlayStateChangeRef.current = onPlayStateChange;
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+  onTimeUpdateRef.current = onTimeUpdate;
 
   const handleMouseMove = useCallback(() => {
     document.body.classList.remove('youtube-hover');
@@ -44,6 +48,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   const handleSeek = useCallback((seconds: number) => {
     sendMessage('seekTo', [seconds, true]);
     onSeekRef.current?.(seconds);
+    onTimeUpdateRef.current?.(seconds);
   }, [sendMessage]);
 
   const handleOverlayClick = useCallback((e: React.MouseEvent) => {
@@ -66,10 +71,16 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       if (event.origin !== 'https://www.youtube.com') return;
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (data.info === 1) {
+        const currentTime = data.info?.currentTime;
+        if (typeof currentTime === 'number') {
+          onTimeUpdateRef.current?.(currentTime);
+        }
+
+        const playerState = typeof data.info?.playerState === 'number' ? data.info.playerState : data.info;
+        if (playerState === 1) {
           setIsPlaying(true);
           onPlayStateChangeRef.current?.(true);
-        } else if (data.info === 2) {
+        } else if (playerState === 2 || playerState === 0) {
           setIsPlaying(false);
           onPlayStateChangeRef.current?.(false);
         }
@@ -81,6 +92,16 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      sendMessage('getCurrentTime');
+    }, 500);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [sendMessage]);
 
   useEffect(() => {
     registerSeekHandler(handleSeek);

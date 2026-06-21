@@ -1,5 +1,5 @@
 {
-  "totalVisits": 415,
+  "totalVisits": 442,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -8,7 +8,7 @@
     "c3e436d4-d188-4604-ab20-b5453ee19fd9"
   ],
   "pageViews": {
-    "/": 108,
+    "/": 111,
     "/analytics": 3,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
@@ -52,7 +52,7 @@
     "/video": 1,
     "/video/yAhp3tUevZw": 5,
     "/watch-later": 2,
-    "/channels": 9,
+    "/channels": 14,
     "/playlists": 3,
     "/courses": 1,
     "/contact": 2,
@@ -60,7 +60,7 @@
     "/settings": 1,
     "/posts": 3,
     "/video/dQw4w9WgXcQ": 2,
-    "/category/English": 22,
+    "/category/English": 24,
     "/import/category": 7,
     "/channel/UCKgpamMlm872zkGDcBJHYDg": 2,
     "/video/sbAns1wSxkk": 3,
@@ -92,11 +92,15 @@
     "/audio/UWj1gJRDbs8": 2,
     "/video/jFBlYPMH5V0": 2,
     "/audio/jFBlYPMH5V0": 2,
-    "/video/KZsXQ3S1hqo": 1,
+    "/video/KZsXQ3S1hqo": 2,
     "/audio/KZsXQ3S1hqo": 1,
     "/audio/SuyhkPRTtBA": 1,
     "/video/S_64K9zX004": 1,
-    "/audio/S_64K9zX004": 1
+    "/audio/S_64K9zX004": 1,
+    "/channel/UCytc7eyONLBx598G3RBXtJg": 3,
+    "/c/@ahmed_el-bannacs": 1,
+    "/video/x29iVrCSzR8": 6,
+    "/video/M_HGq2smydM": 3
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -137,11 +141,13 @@
     "iX09x5CDld4": 1,
     "UWj1gJRDbs8": 2,
     "jFBlYPMH5V0": 2,
-    "KZsXQ3S1hqo": 1,
-    "S_64K9zX004": 2
+    "KZsXQ3S1hqo": 2,
+    "S_64K9zX004": 2,
+    "x29iVrCSzR8": 1,
+    "M_HGq2smydM": 1
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 218
+    "2026-06-21": 245
   }
 }

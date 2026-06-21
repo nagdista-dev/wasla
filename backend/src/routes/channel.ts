@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists, fetchCommunityPostsXml, fetchVideoDataById } from '../services/rssService.js';
+import { fetchVideoLearningData } from '../services/videoLearningService.js';
 import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse, ChannelPlaylistsResponse, PlaylistSummary, VideoResponse } from '../types/index.js';
 
 const router = Router();
@@ -224,6 +225,31 @@ router.get('/video/:id', async (req: Request, res: Response) => {
       error: error instanceof Error ? error.message : 'Failed to fetch video data',
     };
     res.status(500).json(response);
+  }
+});
+
+router.get('/video/:id/learning', async (req: Request, res: Response) => {
+  const videoId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  try {
+    if (!videoId) {
+      return res.status(400).json({ success: false, error: 'Video ID is required' });
+    }
+
+    const data = await fetchVideoLearningData(videoId);
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        error: 'No subtitles available',
+      });
+    }
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error(`Error fetching learning data for video ${videoId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch learning data',
+    });
   }
 });
 
