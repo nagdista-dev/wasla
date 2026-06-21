@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Copy, Check, ExternalLink, Link as LinkIcon, Globe } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const SHORTENER_SUGGESTIONS = [
   { name: 'TinyURL', url: 'https://tinyurl.com' },
@@ -15,6 +16,7 @@ interface ShareCategoryDialogProps {
 }
 
 export default function ShareCategoryDialog({ channelCount, shareUrl, onClose }: ShareCategoryDialogProps) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -42,7 +44,7 @@ export default function ShareCategoryDialog({ channelCount, shareUrl, onClose }:
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            Share Category
+            {t('shareDialog.title')}
           </h2>
           <button
             onClick={onClose}
@@ -55,16 +57,14 @@ export default function ShareCategoryDialog({ channelCount, shareUrl, onClose }:
         {channelCount > 10 && (
           <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              This category contains {channelCount} channels, which may produce
-              a long share link. For easier sharing, you can optionally shorten
-              the link using a URL shortening service.
+              {t('shareDialog.longUrlWarning', { count: channelCount })}
             </p>
           </div>
         )}
 
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Share Link
+            {t('shareDialog.shareLink')}
           </label>
           <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
             <LinkIcon className="h-4 w-4 text-gray-400 shrink-0" />
@@ -80,27 +80,27 @@ export default function ShareCategoryDialog({ channelCount, shareUrl, onClose }:
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-coral px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-coral/90 transition-all active:scale-95"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? 'Copied!' : 'Copy Original Link'}
+            {copied ? t('shareDialog.copied') : t('shareDialog.copyOriginalLink')}
           </button>
           <button
             onClick={onClose}
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 ring-1 ring-inset ring-gray-200 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all active:scale-95"
           >
             <Globe className="h-4 w-4" />
-            Continue Sharing
+            {t('shareDialog.continueSharing')}
           </button>
           <button
             onClick={handleOpenShortener}
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 ring-1 ring-inset ring-gray-200 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all active:scale-95"
           >
             <ExternalLink className="h-4 w-4" />
-            Open URL Shortener
+            {t('shareDialog.openUrlShortener')}
           </button>
         </div>
 
         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-            Suggested URL Shorteners
+            {t('shareDialog.suggestedShorteners')}
           </p>
           <div className="flex flex-wrap gap-2">
             {SHORTENER_SUGGESTIONS.map(s => (

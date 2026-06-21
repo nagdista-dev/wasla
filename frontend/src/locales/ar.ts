@@ -669,6 +669,16 @@ const ar: Record<string, string> = {
   'shareModal.playlistTitleLabel': 'عنوان قائمة التشغيل',
   'shareModal.savePlaylistButton': 'حفظ قائمة التشغيل',
   'shareModal.savedPlaylist': '✓ تم حفظ قائمة التشغيل بنجاح',
+
+  // Share Dialog
+  'shareDialog.title': 'مشاركة الفئة',
+  'shareDialog.longUrlWarning': 'تحتوي هذه الفئة على {count} قناة، مما قد ينتج عنه رابط مشاركة طويل. للمشاركة بشكل أسهل، يمكنك تقصير الرابط باستخدام خدمة تقصير الروابط.',
+  'shareDialog.shareLink': 'رابط المشاركة',
+  'shareDialog.copyOriginalLink': 'نسخ الرابط الأصلي',
+  'shareDialog.copied': 'تم النسخ!',
+  'shareDialog.continueSharing': 'متابعة المشاركة',
+  'shareDialog.openUrlShortener': 'فتح أداة تقصير الروابط',
+  'shareDialog.suggestedShorteners': 'خدمات تقصير الروابط المقترحة',
 };
 
 export default ar;

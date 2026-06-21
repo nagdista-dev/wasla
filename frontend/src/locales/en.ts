@@ -671,18 +671,15 @@ const en = {
   'shareModal.savePlaylistButton': 'Save Playlist',
   'shareModal.savedPlaylist': '✓ Playlist saved successfully',
 
-  // Shared Category Page
-  'shared.importButton': 'Import Category',
-  'shared.openInApp': 'Open in Wasla App',
-  'shared.loading': 'Loading shared category...',
-  'shared.notFound': 'Share Not Found',
-  'shared.goHome': 'Go Home',
-  'shared.moreChannels': '+{count} more channels',
-  'shared.justNow': 'just now',
-  'shared.minutesAgo': '{count}m ago',
-  'shared.hoursAgo': '{count}h ago',
-  'shared.daysAgo': '{count}d ago',
-  'shared.monthsAgo': '{count}mo ago',
+  // Share Dialog
+  'shareDialog.title': 'Share Category',
+  'shareDialog.longUrlWarning': 'This category contains {count} channels, which may produce a long share link. For easier sharing, you can optionally shorten the link using a URL shortening service.',
+  'shareDialog.shareLink': 'Share Link',
+  'shareDialog.copyOriginalLink': 'Copy Original Link',
+  'shareDialog.copied': 'Copied!',
+  'shareDialog.continueSharing': 'Continue Sharing',
+  'shareDialog.openUrlShortener': 'Open URL Shortener',
+  'shareDialog.suggestedShorteners': 'Suggested URL Shorteners',
 };
 
 export type TranslationKeys = keyof typeof en;
