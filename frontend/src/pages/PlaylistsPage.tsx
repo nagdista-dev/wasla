@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Heart, Search, X } from 'lucide-react';
+import { Heart, Search, X, Plus } from 'lucide-react';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import PlaylistCard from '../components/PlaylistCard';
 import EditPlaylistModal from '../components/EditPlaylistModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import AddPlaylistModal from '../components/AddPlaylistModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
@@ -14,6 +15,7 @@ interface PlaylistsPageProps {
   playlists: Playlist[];
   onDelete: (id: string) => void;
   onUpdate: (id: string, name: string, description: string | undefined, categories: string[]) => void;
+  onAdd: (playlist: Playlist) => void;
 }
 
 function syncLoadPref<T>(key: string, fallback: T): T {
@@ -33,6 +35,7 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
   const [selectedCategory, setSelectedCategory] = useState<string>(syncLoadPref<string>('wasla_playlists_category', ''));
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Playlist | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadSetting<string>('wasla_playlists_search').then((v) => { if (v) setSearchText(v); });
@@ -67,7 +70,7 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
           </p>
         </div>
 
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-6 flex items-center justify-between gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -83,18 +86,28 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
               </button>
             )}
           </div>
-          {allCategories.length > 0 && (
-            <CustomFilterDropdown
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-              options={[
-                { value: '', label: t('playlists.allCategories') },
-                ...allCategories.map((cat) => ({ value: cat, label: cat })),
-              ]}
-              className="min-w-[160px]"
-              placeholder={t('playlists.category')}
-            />
-          )}
+          <div className="flex items-center gap-3">
+            {allCategories.length > 0 && (
+              <CustomFilterDropdown
+                value={selectedCategory}
+                onChange={setSelectedCategory}
+                options={[
+                  { value: '', label: t('playlists.allCategories') },
+                  ...allCategories.map((cat) => ({ value: cat, label: cat })),
+                ]}
+                className="min-w-[160px]"
+                placeholder={t('playlists.category')}
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-pink transition-colors shadow-sm"
+            >
+              <Plus className="h-4 w-4" />
+              <span>{t('playlists.add')}</span>
+            </button>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
@@ -142,6 +155,16 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
           }}
           title={t('playlists.deleteTitle')}
           description={t('playlists.deleteDescription', { name: deleteTarget.name })}
+        />
+      )}
+      {showAddModal && (
+        <AddPlaylistModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={(newPlaylist) => {
+            onAdd(newPlaylist);
+            setShowAddModal(false);
+          }}
+          existingCategories={allCategories}
         />
       )}
     </div>

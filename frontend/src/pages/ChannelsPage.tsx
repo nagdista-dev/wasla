@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Heart, Edit3, Trash2, X, ExternalLink, Tag } from 'lucide-react';
+import { Search, Heart, Edit3, Trash2, X, ExternalLink, Tag, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import EditChannelModal from '../components/EditChannelModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import AddChannelModal from '../components/AddChannelModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { useDebounce } from '../hooks/useDebounce';
@@ -15,6 +16,7 @@ interface ChannelsPageProps {
   onDelete: (id: string) => void;
   onUpdate: (id: string, name: string, categories: string[]) => void;
   onToggleFavorite: (id: string) => void;
+  onAdd: (channel: Channel) => void;
 }
 
 function getLetter(name: string): string {
@@ -45,6 +47,7 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
     channelId: null,
     channelName: '',
   });
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadSetting<string>('wasla_channels_category').then((v) => { if (v) setSelectedCategory(v); });
@@ -135,19 +138,31 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
     <div className="min-h-screen dark:bg-dark-navy">
       <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
 
-        {/* ── Header ── */}
-        <div className="mb-5 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-            {t('channels.title')}
-          </h1>
-          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            {t('channels.count', { count: filtered.length, total: channels.length })}
-            {(searchText || selectedCategory) && ` ${t('channels.filtered')}`}
-          </p>
+        {/* ── Header + Search + Filter bar ── */}
+        <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              {t('channels.title')}
+            </h1>
+            <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              {t('channels.count', { count: filtered.length, total: channels.length })}
+              {(searchText || selectedCategory) && ` ${t('channels.filtered')}`}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-pink transition-colors shadow-sm"
+            >
+              <Plus className="h-4 w-4" />
+              <span>{t('channels.add')}</span>
+            </button>
+          </div>
         </div>
 
         {/* ── Search + Filter bar ── */}
-        <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           {/* Search input */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -340,6 +355,16 @@ export default function ChannelsPage({ channels, onDelete, onUpdate, onToggleFav
           onConfirm={handleConfirmDelete}
           title={t('channels.deleteTitle')}
           description={t('channels.deleteDescription', { name: deleteConfirmModal.channelName })}
+        />
+      )}
+      {showAddModal && (
+        <AddChannelModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={(newChannel) => {
+            onAdd(newChannel);
+            setShowAddModal(false);
+          }}
+          existingCategories={allCategories}
         />
       )}
     </div>
