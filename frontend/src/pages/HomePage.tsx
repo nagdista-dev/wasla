@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Clock, Eye, History, LayoutGrid, List, Play, RefreshCw, SlidersHorizontal, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditChannelModal from '../components/EditChannelModal';
@@ -18,7 +18,7 @@ import { getAllFromIndex } from '../services/indexedDbService';
 import { loadHomeFeedFromCache, refreshHomeFeed } from '../services/homeFeedRepository';
 import { useFeed } from '../context/FeedContext';
 import { extractVideoId } from '../utils/videoUtils';
-import type { Channel, ChannelLatestVideo } from '../types';
+import { Channel, ChannelLatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
 import { saveHomeScroll, getHomeScroll, setNavigatedFromVideo, setSkipHomeFetch, shouldSkipHomeFetch, clearSkipHomeFetch } from '../utils/scrollRestoration';
 
