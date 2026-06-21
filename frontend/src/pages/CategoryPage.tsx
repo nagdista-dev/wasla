@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, Play, RefreshCw, Share2, Check, X, Info, Edit2, MoreVertical } from 'lucide-react';
+import { AlertCircle, Play, RefreshCw, Share2, X, Info, Edit2, MoreVertical } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
 import VideoCardSkeleton from '../components/VideoCardSkeleton';
 import EditChannelModal from '../components/EditChannelModal';
-import { createShareLink } from '../utils/shareUtils';
+import ShareCategoryDialog from '../components/ShareCategoryDialog';
+import { createShareUrl } from '../utils/shareUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
 import { saveScrollPosition, getScrollPosition, clearScrollPosition, getRouteScrollKey, wasNavigatedFromVideo, clearNavigatedFromVideo } from '../utils/scrollRestoration';
@@ -55,10 +56,11 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'most_viewed' | 'least_viewed'>('newest');
   const [timeRange, setTimeRange] = useState<'all' | 'hour' | 'today' | 'week' | 'month' | 'year'>('all');
-  const [isCopied, setIsCopied] = useState(false);
   const [showSharedBanner, setShowSharedBanner] = useState(true);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
 
   const scrollRestoredRef = useRef(false);
   const dataLoadedRef = useRef(false);
@@ -107,20 +109,12 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
     [channels, decoded],
   );
 
-  const handleShareCategory = useCallback(async () => {
+  const handleShareCategory = useCallback(() => {
     if (categoryChannels.length === 0) return;
-    
-    try {
-      const chs = categoryChannels.map(ch => ({ id: ch.id, name: ch.name, handle: ch.handle }));
-      const shareId = await createShareLink(decoded, chs);
-      const shareUrl = `${window.location.origin}/s/${shareId}`;
-      
-      await navigator.clipboard.writeText(shareUrl);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to create share link:', err);
-    }
+    const chs = categoryChannels.map(ch => ({ id: ch.id, name: ch.name, handle: ch.handle }));
+    const url = createShareUrl(decoded, chs);
+    setShareUrl(url);
+    setShowShareDialog(true);
   }, [decoded, categoryChannels]);
 
   useMeta(decoded ? {
@@ -317,8 +311,8 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
               disabled={categoryChannels.length === 0}
               className="flex items-center gap-2 rounded-xl bg-brand-coral px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-coral/90 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
-              {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
-              <span>{isCopied ? t('category.copied') : t('category.share')}</span>
+              <Share2 className="h-4 w-4" />
+              <span>{t('category.share')}</span>
             </button>
             <button
               onClick={() => navigate('/channels')}
@@ -342,8 +336,8 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
               disabled={categoryChannels.length === 0}
               className="flex-1 flex justify-center items-center gap-2 rounded-xl bg-brand-coral px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-coral/90 transition-all active:scale-95 disabled:opacity-50"
             >
-              {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
-              <span>{isCopied ? t('category.copied') : t('category.share')}</span>
+              <Share2 className="h-4 w-4" />
+              <span>{t('category.share')}</span>
             </button>
             <button
               onClick={() => setShowMobileActions(!showMobileActions)}
@@ -483,6 +477,13 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
             setEditingChannel(null);
           }}
           existingCategories={allCategories}
+        />
+      )}
+      {showShareDialog && (
+        <ShareCategoryDialog
+          channelCount={categoryChannels.length}
+          shareUrl={shareUrl}
+          onClose={() => setShowShareDialog(false)}
         />
       )}
     </div>
