@@ -89,12 +89,12 @@ function formatLanguageName(code: string): string {
   return languageNames[code] || code.toUpperCase();
 }
 
-export function useYouTubeSubtitles(videoId: string): YouTubeSubtitlesHook {
+export function useYouTubeSubtitles(videoId?: string): YouTubeSubtitlesHook {
   const [learningData, setLearningData] = useState<VideoLearningData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const extractionAttemptedRef = useRef(false);
-  const previousVideoIdRef = useRef<string | null>(null);
+  const previousVideoIdRef = useRef<string | undefined>(undefined);
 
   const extractSubtitlesFromPlayer = useCallback(async () => {
     if (!videoId) return;
@@ -127,7 +127,7 @@ export function useYouTubeSubtitles(videoId: string): YouTubeSubtitlesHook {
     LAST_REQUEST_TIME.set(videoId, now);
 
     try {
-      const listUrl = `https://video.google.com/timedtext?type=list&v=${videoId}`;
+      const listUrl = `https://video.google.com/timedtext?type=list&v=${videoId}&asrs=1`;
       const listResponse = await fetch(listUrl, { signal: controller.signal });
 
       if (!listResponse.ok) {

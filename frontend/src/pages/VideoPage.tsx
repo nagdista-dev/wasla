@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 import { Clock, Eye, ExternalLink, Heart, BookmarkCheck, BookmarkPlus, Share2, ChevronDown, ChevronUp, Headphones } from 'lucide-react';
+import { api } from '../api';
 import { classifyYouTubeUrl } from '../utils/linkUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -215,7 +217,7 @@ function VideoPage() {
 
   const {
     learningData: youtubeLearningData,
-    isLoading: youtubeLoading,
+    isLoading: _youtubeLoading,
     error: youtubeError,
     extractSubtitlesFromPlayer,
     reset: resetSubtitles,
@@ -294,7 +296,7 @@ function VideoPage() {
           const res = await api.get<{ success: boolean; data?: LatestVideo }>(`/video/${videoId}`, { signal });
           if (!signal.aborted && res.data?.success && res.data?.data) {
             found = res.data.data;
-            console.log('[VideoPage] Found video from API:', found.title);
+            console.log('[VideoPage] Found video from API:', found?.title);
           }
         } catch (err) {
           if (axios.isCancel(err)) return;
