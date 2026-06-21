@@ -1,5 +1,5 @@
 {
-  "totalVisits": 442,
+  "totalVisits": 513,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -8,7 +8,7 @@
     "c3e436d4-d188-4604-ab20-b5453ee19fd9"
   ],
   "pageViews": {
-    "/": 111,
+    "/": 127,
     "/analytics": 3,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
@@ -56,14 +56,14 @@
     "/playlists": 3,
     "/courses": 1,
     "/contact": 2,
-    "/favorites": 3,
+    "/favorites": 4,
     "/settings": 1,
     "/posts": 3,
     "/video/dQw4w9WgXcQ": 2,
-    "/category/English": 24,
+    "/category/English": 36,
     "/import/category": 7,
     "/channel/UCKgpamMlm872zkGDcBJHYDg": 2,
-    "/video/sbAns1wSxkk": 3,
+    "/video/sbAns1wSxkk": 5,
     "/audio/sbAns1wSxkk": 4,
     "/audio/yAhp3tUevZw": 2,
     "/channel/UCHaHD477h-FeBbVh9Sh7syA": 3,
@@ -92,15 +92,20 @@
     "/audio/UWj1gJRDbs8": 2,
     "/video/jFBlYPMH5V0": 2,
     "/audio/jFBlYPMH5V0": 2,
-    "/video/KZsXQ3S1hqo": 2,
+    "/video/KZsXQ3S1hqo": 3,
     "/audio/KZsXQ3S1hqo": 1,
     "/audio/SuyhkPRTtBA": 1,
     "/video/S_64K9zX004": 1,
     "/audio/S_64K9zX004": 1,
     "/channel/UCytc7eyONLBx598G3RBXtJg": 3,
     "/c/@ahmed_el-bannacs": 1,
-    "/video/x29iVrCSzR8": 6,
-    "/video/M_HGq2smydM": 3
+    "/video/x29iVrCSzR8": 7,
+    "/video/M_HGq2smydM": 7,
+    "/video/0wQSYyFbQzA": 3,
+    "/video/aiEzc429TcA": 12,
+    "/video/_G7jlK5COJ8": 3,
+    "/category/Wordpress": 1,
+    "/video/ULMQHsLPaZI": 1
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -123,7 +128,7 @@
     "nTt5OKkm920": 1,
     "63GLSPpwhuc": 2,
     "yAhp3tUevZw": 4,
-    "sbAns1wSxkk": 2,
+    "sbAns1wSxkk": 3,
     "mtC-sumiOPE": 1,
     "WBT-z_-OPhw": 1,
     "UxPLEAJbv6E": 1,
@@ -141,13 +146,17 @@
     "iX09x5CDld4": 1,
     "UWj1gJRDbs8": 2,
     "jFBlYPMH5V0": 2,
-    "KZsXQ3S1hqo": 2,
+    "KZsXQ3S1hqo": 3,
     "S_64K9zX004": 2,
-    "x29iVrCSzR8": 1,
-    "M_HGq2smydM": 1
+    "x29iVrCSzR8": 2,
+    "M_HGq2smydM": 2,
+    "0wQSYyFbQzA": 1,
+    "aiEzc429TcA": 5,
+    "_G7jlK5COJ8": 3,
+    "ULMQHsLPaZI": 1
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 245
+    "2026-06-21": 316
   }
 }
