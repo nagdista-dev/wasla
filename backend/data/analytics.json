@@ -1,5 +1,5 @@
 {
-  "totalVisits": 370,
+  "totalVisits": 372,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -61,7 +61,7 @@
     "/posts": 3,
     "/video/dQw4w9WgXcQ": 2,
     "/category/English": 22,
-    "/import/category": 5,
+    "/import/category": 6,
     "/channel/UCKgpamMlm872zkGDcBJHYDg": 2,
     "/video/sbAns1wSxkk": 3,
     "/audio/sbAns1wSxkk": 4,
@@ -84,7 +84,7 @@
     "/video/_WGu-p1Eu70": 1,
     "/channel/UChc0Yw9NkSb8Thy53MsM3gw": 1,
     "/video/4z0AcDFbTaI": 1,
-    "/category/Programming": 7,
+    "/category/Programming": 8,
     "/channel/UCbRP3c757lWg9M-U7TyEkXA": 1,
     "/video/iX09x5CDld4": 1,
     "/audio/iX09x5CDld4": 1
@@ -129,6 +129,6 @@
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 173
+    "2026-06-21": 175
   }
 }
