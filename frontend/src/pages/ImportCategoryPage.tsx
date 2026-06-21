@@ -7,10 +7,6 @@ import { decodeSharePayload } from '../utils/shareUtils';
 
 // The new payload shape: { c: string, ch: string[] }
 // ch contains channel HANDLES only (not IDs, not full objects)
-interface ImportedChannelHandle {
-  handle: string;
-  // name is unknown at import time — the importer must look up or set a placeholder
-}
 
 export default function ImportCategoryPage({
   onImport,

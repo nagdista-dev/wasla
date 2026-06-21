@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, Play, RefreshCw, Share2, X, Edit2, MoreVertical } from 'lucide-react';
+import { AlertCircle, Play, RefreshCw, Share2, Edit2, MoreVertical } from 'lucide-react';
 import { api } from '../api';
 import CustomFilterDropdown from '../components/CustomFilterDropdown';
 import VideoCard from '../components/VideoCard';
