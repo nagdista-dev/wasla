@@ -1,59 +1,104 @@
 # Wasla
 
-A video platform that turns YouTube playlists into structured learning courses. Aggregate channels, track progress, and build your personal video curriculum.
+**واصـلة** — Your curated collection of YouTube channels, playlists, and video courses.
 
-> **واصـلة** — Your curated collection of YouTube channels, playlists, and video courses.
+A video platform that transforms YouTube playlists into structured learning courses. Aggregate channels, track progress, and build your personal video curriculum.
 
-## Features
+## Overview
 
-- **Channels system** — Add YouTube channels by ID (`UC...`), handle (`@channelname`), or full URL. Organize them with custom categories.
-- **Playlists as courses** — Save YouTube playlists and treat them as learning courses with structured content.
-- **Video player system** — Built-in mini player overlay + internal playback with course-style progression.
-- **Progress tracking** — Resume videos where you left off, mark content as watched.
-- **Search and filters** — Filter by category, time range, sort by newest/views/channel/category. Full-text search across titles and channel names.
-- **Multilingual support** — Arabic (default) with full RTL layout and English. One-click language switching.
-- **Responsive grid/list views** — Toggle between compact grid and detailed list layout.
-- **PWA ready** — Installable as a standalone app on mobile and desktop.
+Wasla is a comprehensive video learning platform that enables users to:
+- Import and organize YouTube channels by ID, handle, or URL
+- Transform YouTube playlists into structured learning courses
+- Track video progress and resume playback
+- Filter and search content by category, time range, and sorting options
+- Experience a fully bilingual interface with Arabic (default) and English support
+- Enjoy a responsive, progressive web app experience
 
-## Tech Stack
+## Key Features
+
+### Channel Management
+- Import YouTube channels via ID (`UC...`), handle (`@channelname`), or full URL
+- Organize channels with custom categories
+- View channel details and video lists
+
+### Course System
+- Save YouTube playlists and treat them as learning courses
+- Structure content with categories and descriptions
+- Track video progress and completion
+
+### Video Playback
+- Built-in mini player overlay with course-style progression
+- Resume videos from where you left off
+- Seamless navigation between videos
+
+### Search & Filters
+- Filter by category, publication time range (last hour, today, week, month, year)
+- Sort by newest, most viewed, channel name, or category
+- Full-text search across video titles and channel names
+
+### Multilingual Support
+- Arabic (default) with full RTL layout support
+- English interface available
+- One-click language switching
+
+### User Experience
+- Responsive grid and list views
+- Progressive Web App (PWA) ready for mobile and desktop
+- Dark theme by default with light mode option
+- Local storage persistence (no external database)
+
+## Technology Stack
 
 ### Frontend
 
-| Layer | Technology |
-|---|---|
-| Framework | React 19 + TypeScript 6 |
-| Build tool | Vite 8 |
+| Component | Technology |
+|-----------|------------|
+| Framework | React 19 with TypeScript 6 |
+| Build Tool | Vite 8 |
 | Styling | Tailwind CSS v4 |
 | Routing | React Router v7 |
 | Icons | Lucide React |
-| HTTP | Axios |
+| HTTP Client | Axios |
 
-### State & Persistence
+### State Management
 
-- **React Context** for global state: language (Arabic/English), theme (dark/light), and video player.
-- **localStorage** (`wasla_*` prefix) for channels, playlists, view preferences, and progress tracking.
-- No external database — all user data lives in the browser.
+- **React Context** for global state management
+  - Language (Arabic/English with RTL/LTR support)
+  - Theme (dark/light mode)
+  - Video player controls
+
+### Data Storage
+
+- **localStorage** with `wasla_*` prefix for persistence
+  - Channels and playlists
+  - View preferences and settings
+  - Video progress tracking
+- No external database required
 
 ### Backend
 
-- Express 5 + TypeScript
-- YouTube RSS feed parsing via `xml2js`
-- In-memory caching with request deduplication (12-minute TTL)
-- Channel handle/URL resolution
+- **Express 5** with TypeScript
+- **YouTube RSS parsing** via `xml2js`
+- **In-memory caching** with 12-minute TTL
+- **Channel resolution** for handles and URLs
 
-## Key Concepts
+## Architecture
 
-### Playlist → Course system
-Playlists are treated as mini-courses. Each playlist can have categories, a description, and tracked video progress — turning a simple YouTube playlist into a structured learning path.
+### Playlist → Course System
+Playlists are transformed into mini-courses with structured learning paths. Each playlist can have:
+- Custom categories
+- Descriptions
+- Video progress tracking
+- Course-style navigation
 
-### Video tracking
-The mini player remembers your session. When you re-open a video, playback resumes from where you left off. Combined with playlist-based organization, this enables course-style consumption.
+### Video Tracking
+The mini player maintains session state, allowing users to resume videos from where they left off. Combined with playlist organization, this creates a course-like learning experience.
 
-### RTL/LTR layout
-Arabic is the default language. The entire UI flips seamlessly between RTL and LTR based on the selected language, including navigation, text alignment, and spacing.
+### RTL/LTR Layout
+Arabic is the default language with full right-to-left layout support. The interface seamlessly switches between RTL and LTR modes based on the selected language.
 
-### Theme system
-Dark mode is the default theme. Light mode is available via the settings panel. Theme preference is persisted across sessions.
+### Theme System
+Dark mode is the default theme. Users can switch to light mode in settings, with preferences persisted across sessions.
 
 ## Project Structure
 
@@ -63,13 +108,13 @@ wasla/
 │   ├── public/
 │   │   ├── favicon.png
 │   │   ├── logo.png
-│   │   └── manifest.json          # PWA manifest
+│   │   └── manifest.json          # PWA configuration
 │   └── src/
 │       ├── components/            # Reusable UI components
-│       │   ├── VideoCard.tsx      # Video thumbnail, metadata, channel badge
-│       │   ├── PlaylistCard.tsx   # Playlist/course card
-│       │   ├── Sidebar.tsx        # Navigation sidebar
-│       │   ├── MiniPlayerModal.tsx # Floating video overlay
+│       │   ├── VideoCard.tsx      # Video display with metadata
+│       │   ├── PlaylistCard.tsx   # Course/playlist cards
+│       │   ├── Sidebar.tsx        # Navigation
+│       │   ├── MiniPlayerModal.tsx # Floating video player
 │       │   ├── AddChannelModal.tsx
 │       │   ├── EditChannelModal.tsx
 │       │   ├── AddPlaylistModal.tsx
@@ -82,36 +127,36 @@ wasla/
 │       │   ├── FeatureCard.tsx
 │       │   ├── MobileAppBanner.tsx
 │       │   └── Toast.tsx
-│       ├── pages/                 # Route-level page components
+│       ├── pages/                 # Application routes
 │       │   ├── HomePage.tsx       # Latest videos feed
 │       │   ├── ChannelsPage.tsx   # Channel management
-│       │   ├── ChannelPage.tsx    # Single channel detail
-│       │   ├── PlaylistsPage.tsx  # Playlist/course management
-│       │   ├── PlaylistCoursePage.tsx # Course view with progress
-│       │   ├── CategoryPage.tsx   # Filter by category
-│       │   ├── SettingsPage.tsx   # Theme, language, data management
-│       │   └── HowToUsePage.tsx   # Usage guide
-│       ├── context/               # React context providers
-│       │   ├── LanguageContext.tsx # i18n + RTL/LTR switching
+│       │   ├── ChannelPage.tsx    # Channel details
+│       │   ├── PlaylistsPage.tsx  # Playlist management
+│       │   ├── PlaylistCoursePage.tsx # Course view
+│       │   ├── CategoryPage.tsx   # Category filtering
+│       │   ├── SettingsPage.tsx   # User preferences
+│       │   └── HowToUsePage.tsx   # Usage documentation
+│       ├── context/               # Global state providers
+│       │   ├── LanguageContext.tsx # i18n and RTL/LTR
 │       │   ├── ThemeContext.tsx    # Dark/light theme
 │       │   └── PlayerContext.tsx   # Video player state
 │       ├── hooks/
-│       │   └── useMeta.ts         # Document meta tags
-│       ├── locales/               # Translation dictionaries
-│       │   ├── ar.ts              # Arabic (default)
-│       │   └── en.ts              # English
+│       │   └── useMeta.ts         # Document metadata
+│       ├── locales/               # Translation files
+│       │   ├── ar.ts              # Arabic translations
+│       │   └── en.ts              # English translations
 │       ├── utils/
 │       │   ├── formatRelativeTime.ts
 │       │   └── storageMigration.ts
-│       ├── api.ts                 # Axios client
-│       ├── storage.ts             # localStorage load/save (wasla_* keys)
-│       ├── types.ts               # Shared TypeScript types
-│       ├── index.css              # Tailwind v4 config + global styles
-│       ├── App.tsx                # Router + layout
-│       └── main.tsx               # Entry point
+│       ├── api.ts                 # HTTP client configuration
+│       ├── storage.ts             # Local storage utilities
+│       ├── types.ts               # TypeScript definitions
+│       ├── index.css              # Tailwind CSS configuration
+│       ├── App.tsx                # Application router and layout
+│       └── main.tsx               # React entry point
 ├── backend/
 │   └── src/
-│       ├── index.ts               # Express server entry
+│       ├── index.ts               # Express server entry point
 │       ├── routes/
 │       │   └── channel.ts         # API endpoints
 │       ├── services/
@@ -119,7 +164,7 @@ wasla/
 │       ├── utils/
 │       │   └── dateUtils.ts
 │       └── types/
-├── package.json                   # Root orchestration scripts
+├── package.json                   # Project configuration and scripts
 └── vercel.json
 ```
 
@@ -127,14 +172,16 @@ wasla/
 
 ### Prerequisites
 
-- Node.js 18+
-- npm
+- Node.js 18 or higher
+- npm (or your preferred package manager)
 
-### Install
+### Installation
 
 ```bash
 npm run install:all
 ```
+
+This command installs all dependencies for both frontend and backend.
 
 ### Development
 
@@ -142,7 +189,9 @@ npm run install:all
 npm run dev
 ```
 
-Frontend runs on `http://localhost:5173`, backend on `http://localhost:3001`.
+The development server will start with:
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
 
 ### Build
 
@@ -150,9 +199,15 @@ Frontend runs on `http://localhost:5173`, backend on `http://localhost:3001`.
 npm run build
 ```
 
+Build the application for production deployment.
+
 ## Important Notes
 
-- **Arabic is the default language** — The UI ships in Arabic out of the box. Switch to English from the navigation bar.
-- **Dark mode is the default theme** — Toggle to light mode in Settings. Preference is saved automatically.
-- **PWA install support** — Supported browsers will prompt install. On mobile, add to home screen for an app-like experience.
-- **No external database** — All data is stored in your browser's localStorage under the `wasla_*` prefix. Clearing browser data will remove your channels and playlists.
+- **Arabic is the default language** — The interface is optimized for Arabic with full RTL support. Switch to English from the navigation bar.
+- **Dark mode is the default theme** — Toggle to light mode in Settings. Your preference is automatically saved.
+- **PWA support** — The app can be installed as a standalone application on mobile and desktop devices.
+- **Local storage only** — All user data is stored in your browser's localStorage under the `wasla_*` prefix. Clearing browser data will remove your channels and playlists.
+
+## License
+
+This project is part of the Wasla initiative to make YouTube content more accessible and structured for learning purposes.
