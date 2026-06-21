@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AlertCircle, Play, RefreshCw, Share2, Check, X, Info, Edit2, MoreVertical } from 'lucide-react';
 import { api } from '../api';
@@ -9,6 +9,8 @@ import EditChannelModal from '../components/EditChannelModal';
 import { encodeSharePayload } from '../utils/shareUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useMeta } from '../hooks/useMeta';
+import { saveScrollPosition, getScrollPosition, clearScrollPosition, getRouteScrollKey, wasNavigatedFromVideo, clearNavigatedFromVideo } from '../utils/scrollRestoration';
+import { loadCachedHomeVideos, saveHomeVideos } from '../services/videoCacheService';
 import type { Channel, ChannelLatestVideo, LatestVideo } from '../types';
 
 type ChannelApiResponse = {
@@ -57,6 +59,32 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
   const [showSharedBanner, setShowSharedBanner] = useState(true);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+
+  const scrollRestoredRef = useRef(false);
+  const dataLoadedRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      const key = getRouteScrollKey(window.location.pathname + window.location.search);
+      saveScrollPosition(key);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (scrollRestoredRef.current) return;
+    const allLoaded = items.length > 0 && !items.some(i => i.loading);
+    if (allLoaded) {
+      const key = getRouteScrollKey(window.location.pathname + window.location.search);
+      const saved = getScrollPosition(key);
+      if (saved > 0) {
+        requestAnimationFrame(() => {
+          window.scrollTo(0, saved);
+          clearScrollPosition(key);
+        });
+      }
+      scrollRestoredRef.current = true;
+    }
+  }, [items]);
 
   const allCategories = useMemo(
     () => Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b)),
@@ -134,14 +162,99 @@ export default function CategoryPage({ channels, onUpdate }: { channels: Channel
     });
 
     setItems(newItems);
+    saveHomeVideos(newItems).catch(() => {});
     if (force) setIsRefreshing(false);
   }, [categoryChannels, t]);
 
   useEffect(() => {
-    if (categoryChannels.length > 0) {
-      void fetchVideos();
+    if (categoryChannels.length === 0) {
+      setItems([]);
+      return;
     }
-  }, [categoryChannels, fetchVideos]);
+
+    let cancelled = false;
+
+    const initData = async () => {
+      const cameFromVideo = wasNavigatedFromVideo();
+      if (cameFromVideo) {
+        clearNavigatedFromVideo();
+      }
+
+      const cachedItems = await loadCachedHomeVideos(categoryChannels);
+      if (cancelled) return;
+
+      if (cachedItems.length === categoryChannels.length && cachedItems.length > 0) {
+        scrollRestoredRef.current = false;
+        dataLoadedRef.current = true;
+        setItems(cachedItems);
+        return;
+      }
+
+      const cachedByChannelId = new Map(cachedItems.map((item) => [item.channel.id, item]));
+      const initialItems = categoryChannels.map((channel) =>
+        cachedByChannelId.get(channel.id) || { channel, loading: true },
+      );
+      scrollRestoredRef.current = false;
+      dataLoadedRef.current = false;
+      setItems(initialItems);
+
+      const missing = categoryChannels.filter((ch) => !cachedByChannelId.has(ch.id));
+      if (missing.length > 0) {
+        const results = await Promise.allSettled(
+          missing.map((channel) =>
+            api.get<ChannelApiResponse>(`/channel/${encodeURIComponent(channel.id)}`).then((response) => ({
+              channel,
+              response,
+            })),
+          ),
+        );
+
+        if (cancelled) return;
+
+        const fetchedMap = new Map<string, ChannelLatestVideo>();
+        for (const result of results) {
+          if (result.status === 'rejected') {
+            fetchedMap.set(result.reason.channel.id, {
+              channel: result.reason.channel,
+              loading: false,
+              error: t('category.couldNotFetch'),
+            });
+          } else {
+            const data = result.value.response.data.data;
+            if (!result.value.response.data.success || !data) {
+              fetchedMap.set(result.value.channel.id, {
+                channel: result.value.channel,
+                loading: false,
+                error: result.value.response.data.error || t('category.couldNotFetch'),
+              });
+            } else {
+              fetchedMap.set(result.value.channel.id, {
+                channel: result.value.channel,
+                video: getLatestVideo(result.value.channel, data),
+                loading: false,
+                error: data.latestVideo || data.videos?.[0] || data.title ? undefined : t('category.noVideoFound'),
+              });
+            }
+          }
+        }
+
+        const merged: ChannelLatestVideo[] = categoryChannels.map((ch) =>
+          fetchedMap.get(ch.id) || cachedByChannelId.get(ch.id) || { channel: ch, loading: false, error: t('category.couldNotFetch') },
+        );
+
+        setItems(merged);
+        saveHomeVideos(merged).catch(() => {});
+      }
+
+      dataLoadedRef.current = true;
+    };
+
+    initData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryChannels, t]);
 
   const displayItems = useMemo(() => items
     .filter((item) => !item.loading && item.video)

@@ -6,6 +6,7 @@ import { useMeta } from '../hooks/useMeta';
 import { getAllHistory, removeEntry, clearAllHistory, searchHistory, type WatchHistoryEntry } from '../services/watchHistoryService';
 import { removeProgress } from '../services/playbackProgressService';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
+import { setNavigatedFromVideo } from '../utils/scrollRestoration';
 import { useToast } from '../components/Toast';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 
@@ -63,6 +64,7 @@ export default function WatchHistoryPage() {
   const handlePlay = (entry: WatchHistoryEntry) => {
     const vidId = entry.videoId;
     if (vidId) {
+      setNavigatedFromVideo();
       navigate(`/video/${vidId}`);
     }
   };

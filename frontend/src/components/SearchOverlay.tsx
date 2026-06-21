@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useFeed } from '../context/FeedContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { extractVideoId } from '../utils/videoUtils';
+import { setNavigatedFromVideo, setSkipHomeFetch } from '../utils/scrollRestoration';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
 import type { Channel, LatestVideo } from '../types';
@@ -120,7 +121,11 @@ export default function SearchOverlay({ isOpen, onClose, channels }: SearchOverl
                         key={`video-${channel.id}-${idx}`}
                         onClick={() => {
                           const vidId = extractVideoId(video.link);
-                          if (vidId) navigate(`/video/${vidId}`, { state: { video, channelId: channel.id } });
+                          if (vidId) {
+                            setNavigatedFromVideo();
+                            setSkipHomeFetch();
+                            navigate(`/video/${vidId}`, { state: { video, channelId: channel.id } });
+                          }
                           handleClose();
                         }}
                         className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-dark-navy border border-gray-200 dark:border-gray-700 hover:border-brand-coral/30 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer animate-fadein"

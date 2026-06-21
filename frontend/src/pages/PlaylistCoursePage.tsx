@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 import { useMeta } from '../hooks/useMeta';
 import { extractVideoId } from '../utils/videoUtils';
+import { setNavigatedFromVideo } from '../utils/scrollRestoration';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import { putItem } from '../services/indexedDbService';
 import type { LatestVideo, Playlist, CourseProgress } from '../types';
@@ -185,6 +186,7 @@ export default function PlaylistCoursePage() {
     play(video);
     const vidId = extractVideoId(video.link);
     if (vidId) {
+      setNavigatedFromVideo();
       navigate(`/video/${vidId}`, { state: { video } });
     }
   };

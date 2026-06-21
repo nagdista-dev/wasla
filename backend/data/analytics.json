@@ -1,13 +1,14 @@
 {
-  "totalVisits": 254,
+  "totalVisits": 325,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
-    "9c1ffcc1-6b46-4bd1-9cc4-11a0c279b597"
+    "9c1ffcc1-6b46-4bd1-9cc4-11a0c279b597",
+    "aaf13938-8a00-400c-b213-5c08a98f5d7f"
   ],
   "pageViews": {
-    "/": 56,
-    "/analytics": 1,
+    "/": 82,
+    "/analytics": 3,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
     "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A": 1,
@@ -45,7 +46,7 @@
     "/channel/UC-XvsQP1a_ZqrcUK_wKpjGg": 1,
     "/video/ZcJCDCnMA64": 1,
     "/video/nTt5OKkm920": 2,
-    "/history": 6,
+    "/history": 7,
     "/video/63GLSPpwhuc": 16,
     "/video": 1,
     "/video/yAhp3tUevZw": 5,
@@ -54,9 +55,9 @@
     "/playlists": 2,
     "/courses": 1,
     "/contact": 2,
-    "/favorites": 2,
+    "/favorites": 3,
     "/settings": 1,
-    "/posts": 1,
+    "/posts": 3,
     "/video/dQw4w9WgXcQ": 2,
     "/category/English": 21,
     "/import/category": 3,
@@ -65,7 +66,23 @@
     "/audio/sbAns1wSxkk": 4,
     "/audio/yAhp3tUevZw": 2,
     "/channel/UCHaHD477h-FeBbVh9Sh7syA": 3,
-    "/how-to-use": 1
+    "/how-to-use": 2,
+    "/video/mtC-sumiOPE": 1,
+    "/video/WBT-z_-OPhw": 1,
+    "/video/UxPLEAJbv6E": 1,
+    "/video/t8VnKYenCxE": 2,
+    "/video/xlALvHjVEt0": 2,
+    "/video/i4k6gwijvTQ": 3,
+    "/video/ba7k7ydWu-A": 1,
+    "/video/SuyhkPRTtBA": 1,
+    "/video/_RC-Lg40Tk8": 2,
+    "/audio/_RC-Lg40Tk8": 1,
+    "/video/c8dF3r7PA9c": 1,
+    "/video/PhqXO4aCWDo": 1,
+    "/video/dJaGNbl-4dU": 1,
+    "/video/_WGu-p1Eu70": 1,
+    "/channel/UChc0Yw9NkSb8Thy53MsM3gw": 1,
+    "/video/4z0AcDFbTaI": 1
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -88,10 +105,24 @@
     "nTt5OKkm920": 1,
     "63GLSPpwhuc": 2,
     "yAhp3tUevZw": 4,
-    "sbAns1wSxkk": 2
+    "sbAns1wSxkk": 2,
+    "mtC-sumiOPE": 1,
+    "WBT-z_-OPhw": 1,
+    "UxPLEAJbv6E": 1,
+    "t8VnKYenCxE": 1,
+    "xlALvHjVEt0": 1,
+    "MJdH8moqzBc": 1,
+    "i4k6gwijvTQ": 4,
+    "ba7k7ydWu-A": 1,
+    "SuyhkPRTtBA": 1,
+    "c8dF3r7PA9c": 1,
+    "PhqXO4aCWDo": 1,
+    "dJaGNbl-4dU": 1,
+    "_WGu-p1Eu70": 1,
+    "4z0AcDFbTaI": 1
   },
   "dailyVisits": {
     "2026-06-20": 197,
-    "2026-06-21": 57
+    "2026-06-21": 128
   }
 }

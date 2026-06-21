@@ -462,43 +462,43 @@ function VideoPage() {
   const player = (
     <div
       ref={playerContainerRef}
-      className="relative aspect-video w-full bg-black overflow-hidden rounded-xl sm:shadow-2xl sm:ring-1 sm:ring-white/5"
+      className="relative w-full bg-black overflow-hidden rounded-xl aspect-video shadow-md sm:shadow-2xl sm:ring-1 sm:ring-white/5 min-h-[200px]"
     >
-      {embedId && progressChecked ? (
-        <CustomVideoPlayer
-          videoId={embedId}
-          startTime={startTime}
-          onPlayStateChange={(isPlaying) => {
-            if (!isPlaying) {
-              saveOnPause();
-            }
-          }}
-          onSpeedChange={(speed) => {
-            console.log('Playback speed changed to:', speed);
-          }}
-          onSeek={(seconds) => {
-            updatePosition(seconds, durationSeconds);
-          }}
-        />
-      ) : embedId ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
-          <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
-          {video?.link && (
-            <button
-              onClick={() => { window.open(video.link, '_blank'); }}
-              className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-            >
-              <ExternalLink className="h-4 w-4" />
-              {t('miniPlayer.openOnYoutube')}
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
-          <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
-        </div>
-      )}
-    </div>
+        {embedId && progressChecked ? (
+          <CustomVideoPlayer
+            videoId={embedId}
+            startTime={startTime}
+            onPlayStateChange={(isPlaying) => {
+              if (!isPlaying) {
+                saveOnPause();
+              }
+            }}
+            onSpeedChange={(speed) => {
+              console.log('Playback speed changed to:', speed);
+            }}
+            onSeek={(seconds) => {
+              updatePosition(seconds, durationSeconds);
+            }}
+          />
+        ) : embedId ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+            <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+            {video?.link && (
+              <button
+                onClick={() => { window.open(video.link, '_blank'); }}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {t('miniPlayer.openOnYoutube')}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+            <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+          </div>
+        )}
+      </div>
   );
 
   if (loading) {

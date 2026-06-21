@@ -7,6 +7,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { useToast } from '../components/Toast';
 import { useMeta } from '../hooks/useMeta';
 import { extractVideoId } from '../utils/videoUtils';
+import { setNavigatedFromVideo } from '../utils/scrollRestoration';
 import EditCourseModal from '../components/EditCourseModal';
 import AddVideoModal from '../components/AddVideoModal';
 import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
@@ -205,6 +206,7 @@ export default function CourseDetailPage() {
       play(video);
       const vidId = extractVideoId(video.link);
       if (vidId) {
+        setNavigatedFromVideo();
         navigate(`/video/${vidId}`, { state: { video } });
       }
     },

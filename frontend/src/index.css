@@ -369,56 +369,46 @@ html {
 
 /* Timestamp highlighting in video descriptions */
 .timestamp-highlight {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.4;
+  background-color: rgba(226, 67, 106, 0.08);
   color: #e2436a;
-  font-weight: 500;
-  padding: 0 2px;
-  border-radius: 2px;
-  transition: all 0.2s ease;
+  border: 1px solid rgba(226, 67, 106, 0.15);
   cursor: pointer;
-  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  -ms-user-select: none;
   pointer-events: auto;
 }
 
 .timestamp-highlight:hover {
-  color: #b51762;
-  background-color: rgba(226, 67, 106, 0.1);
-  text-decoration: underline;
+  background-color: rgba(226, 67, 106, 0.12);
+  border-color: rgba(226, 67, 106, 0.3);
+  box-shadow: 0 2px 8px rgba(226, 67, 106, 0.15);
+  transform: scale(1.05);
 }
 
-.timestamp-highlight::after {
-  content: attr(data-seconds);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-family: monospace;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  white-space: nowrap;
-  z-index: 50;
-}
-
-.timestamp-highlight:hover::after {
-  opacity: 1;
+.timestamp-highlight:active {
+  transform: scale(0.95);
 }
 
 .dark .timestamp-highlight {
+  background-color: rgba(243, 115, 69, 0.1);
   color: #f37345;
+  border-color: rgba(243, 115, 69, 0.2);
 }
 
 .dark .timestamp-highlight:hover {
-  color: #feb144;
-  background-color: rgba(243, 115, 69, 0.2);
+  background-color: rgba(243, 115, 69, 0.18);
+  border-color: rgba(243, 115, 69, 0.35);
+  box-shadow: 0 2px 8px rgba(243, 115, 69, 0.15);
 }
 
 @keyframes eq-bar {

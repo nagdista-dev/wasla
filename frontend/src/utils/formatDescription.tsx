@@ -24,6 +24,13 @@ export function formatDescription(text: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(
+      /\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g,
+      (match) => {
+        const seconds = timestampToSeconds(match);
+        return `<span class="timestamp-highlight" data-seconds="${seconds}">${formatTimestamp(match)}</span>`;
+      }
+    )
+    .replace(
       /(https?:\/\/[^\s<]*[^\s<.,;:!?)\]}>'"`]+)/g,
       '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-brand-coral hover:underline break-all">$1</a>'
     )
@@ -51,14 +58,7 @@ export function formatDescription(text: string): string {
       /(^|\n)(\d+\.\s.+?)(?=\n|$)/g,
       '<li class="flex items-start gap-2 mb-2 text-gray-700 dark:text-gray-300"><span class="font-semibold text-brand-coral">$1</span></li>'
     )
-    .replace(/\n/g, '<br/>')
-    .replace(
-      /\b(\d{1,2}:\d{2}(?::\d{2})?)\b/g,
-      (match) => {
-        const seconds = timestampToSeconds(match);
-        return `<span class="timestamp-highlight cursor-pointer font-mono text-brand-coral hover:text-brand-pink transition-colors" data-seconds="${seconds}">${formatTimestamp(match)}</span>`;
-      }
-    );
+    .replace(/\n/g, '<br/>');
 }
 
 export { timestampToSeconds, formatTimestamp };

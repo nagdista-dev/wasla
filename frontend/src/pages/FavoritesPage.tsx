@@ -10,6 +10,7 @@ import ThumbnailWithPlaceholder from '../components/ThumbnailWithPlaceholder';
 import EditFavoriteModal from '../components/EditFavoriteModal';
 import { useToast } from '../components/Toast';
 import { extractVideoId } from '../utils/videoUtils';
+import { setNavigatedFromVideo } from '../utils/scrollRestoration';
 import type { LatestVideo } from '../types';
 
 export default function FavoritesPage() {
@@ -35,6 +36,7 @@ export default function FavoritesPage() {
     play(video);
     const vidId = extractVideoId(video.link);
     if (vidId) {
+      setNavigatedFromVideo();
       navigate(`/video/${vidId}`, { state: { video } });
     }
   };

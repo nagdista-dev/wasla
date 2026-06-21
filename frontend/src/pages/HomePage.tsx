@@ -20,7 +20,7 @@ import { useFeed } from '../context/FeedContext';
 import { extractVideoId } from '../utils/videoUtils';
 import type { Channel, ChannelLatestVideo } from '../types';
 import type { WatchHistoryEntry } from '../services/watchHistoryService';
-import { saveHomeScroll, getHomeScroll, clearHomeScroll } from '../utils/scrollRestoration';
+import { saveHomeScroll, getHomeScroll, setNavigatedFromVideo, setSkipHomeFetch, shouldSkipHomeFetch, clearSkipHomeFetch } from '../utils/scrollRestoration';
 
 function syncLoadPref<T>(key: string, fallback: T): T {
   try {
@@ -71,7 +71,6 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
     if (saved > 0 && channels.length > 0) {
       requestAnimationFrame(() => {
         window.scrollTo(0, saved);
-        clearHomeScroll();
       });
     }
   }, [hasLoadedCache, channels.length]);
@@ -159,6 +158,9 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
         return;
       }
 
+      const skipFetch = shouldSkipHomeFetch();
+      clearSkipHomeFetch();
+
       setHasLoadedCache(false);
 
       try {
@@ -184,9 +186,18 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
           })));
         }
 
+        if (skipFetch) {
+          setHasLoadedCache(true);
+          return;
+        }
+
         await fetchLatestVideos();
       } catch {
         if (cancelled) return;
+        if (skipFetch) {
+          setHasLoadedCache(true);
+          return;
+        }
         await fetchLatestVideos();
       }
     };
@@ -281,7 +292,7 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
     <div className="min-h-screen dark:bg-dark-navy overflow-visible">
       <div className="sticky top-16 z-20 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 shadow-sm">
         <div className="flex items-center gap-2 px-4 md:px-6 py-3">
-          <button type="button" onClick={() => fetchLatestVideos()} disabled={isRefreshing}
+          <button type="button" onClick={() => { clearSkipHomeFetch(); fetchLatestVideos(); }} disabled={isRefreshing}
             className="rounded-lg bg-white min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 transition dark:bg-dark-navy dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/10 disabled:opacity-50"
             aria-label={t('home.refresh')}>
             <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -355,7 +366,11 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
               {continueWatching.map((entry) => (
                 <div
                   key={entry.videoId}
-                  onClick={() => navigate(`/video/${entry.videoId}`)}
+                  onClick={() => {
+                    setNavigatedFromVideo();
+                    setSkipHomeFetch();
+                    navigate(`/video/${entry.videoId}`);
+                  }}
                   className="group cursor-pointer rounded-xl overflow-hidden bg-white shadow-sm ring-1 ring-gray-200 hover:shadow-md transition dark:bg-dark-navy dark:ring-gray-700"
                 >
                   <div className="relative aspect-video overflow-hidden bg-black">
@@ -464,14 +479,22 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
                         className="group relative rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:shadow-md active:scale-[0.99] dark:bg-dark-navy dark:ring-gray-700 cursor-pointer overflow-hidden"
                         onClick={() => {
                           const vidId = extractVideoId(video.link);
-                          if (vidId) navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
+                          if (vidId) {
+                            setNavigatedFromVideo();
+                            setSkipHomeFetch();
+                            navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
+                          }
                         }}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             const vidId = extractVideoId(video.link);
-                            if (vidId) navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
+                            if (vidId) {
+                              setNavigatedFromVideo();
+                              setSkipHomeFetch();
+                              navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
+                            }
                           }
                         }}
                       >

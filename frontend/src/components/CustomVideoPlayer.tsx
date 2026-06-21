@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { usePlayer } from '../context/PlayerContext';
 
 export type CustomVideoPlayerProps = {
   videoId: string;
@@ -14,69 +15,20 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   onPlayStateChange,
   onSeek,
 }) => {
+  const { registerSeekHandler, unregisterSeekHandler } = usePlayer();
   const [, setIsPlaying] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
   const overlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSeekRef = useRef(onSeek);
+  onSeekRef.current = onSeek;
+  const onPlayStateChangeRef = useRef(onPlayStateChange);
+  onPlayStateChangeRef.current = onPlayStateChange;
 
   const handleMouseMove = useCallback(() => {
     document.body.classList.remove('youtube-hover');
-  }, []);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    const style = document.createElement('style');
-    style.textContent = `
-      iframe[src*="youtube.com/embed/"] {
-        pointer-events: auto !important;
-        position: relative !important;
-        z-index: 1 !important;
-      }
-      
-      iframe[src*="youtube.com/embed/"]:hover {
-        pointer-events: auto !important;
-        position: relative !important;
-        z-index: 1 !important;
-      }
-      
-      iframe[src*="youtube.com/embed/"] * {
-        pointer-events: none !important;
-      }
-      
-      iframe[src*="youtube.com/embed/"]:hover * {
-        pointer-events: none !important;
-      }
-      
-      body.youtube-hover iframe[src*="youtube.com/embed/"] {
-        pointer-events: none !important;
-      }
-      
-      body.youtube-hover iframe[src*="youtube.com/embed/"] * {
-        pointer-events: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    const handleMouseEnter = () => {
-      document.body.classList.remove('youtube-hover');
-    };
-
-    const handleMouseMoveInner = () => {
-      document.body.classList.remove('youtube-hover');
-    };
-
-    iframe.addEventListener('mouseenter', handleMouseEnter);
-    iframe.addEventListener('mousemove', handleMouseMoveInner);
-
-    return () => {
-      document.head.removeChild(style);
-      iframe.removeEventListener('mouseenter', handleMouseEnter);
-      iframe.removeEventListener('mousemove', handleMouseMoveInner);
-    };
   }, []);
 
   const sendMessage = useCallback((command: string, args: any[] = []) => {
@@ -91,8 +43,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
   const handleSeek = useCallback((seconds: number) => {
     sendMessage('seekTo', [seconds, true]);
-    onSeek?.(seconds);
-  }, [onSeek, sendMessage]);
+    onSeekRef.current?.(seconds);
+  }, [sendMessage]);
 
   const handleOverlayClick = useCallback((e: React.MouseEvent) => {
     const now = Date.now();
@@ -110,6 +62,32 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   }, [lastClickTime]);
 
   useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data.info === 1) {
+          setIsPlaying(true);
+          onPlayStateChangeRef.current?.(true);
+        } else if (data.info === 2) {
+          setIsPlaying(false);
+          onPlayStateChangeRef.current?.(false);
+        }
+      } catch (error) {
+        console.error('Error parsing YouTube message:', error);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  useEffect(() => {
+    registerSeekHandler(handleSeek);
+    return () => unregisterSeekHandler();
+  }, [registerSeekHandler, unregisterSeekHandler, handleSeek]);
+
+  useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
@@ -120,33 +98,26 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         position: relative !important;
         z-index: 1 !important;
       }
-      
       iframe[src*="youtube.com/embed/"]:hover {
         pointer-events: auto !important;
         position: relative !important;
         z-index: 1 !important;
       }
-      
       iframe[src*="youtube.com/embed/"] * {
         pointer-events: none !important;
       }
-      
       iframe[src*="youtube.com/embed/"]:hover * {
         pointer-events: none !important;
       }
-      
       body.youtube-hover iframe[src*="youtube.com/embed/"] {
         pointer-events: none !important;
       }
-      
       body.youtube-hover iframe[src*="youtube.com/embed/"] * {
         pointer-events: none !important;
       }
-      
       iframe[src*="youtube.com/embed/"]::-webkit-scrollbar {
         display: none !important;
       }
-      
       iframe[src*="youtube.com/embed/"] {
         -ms-overflow-style: none !important;
         scrollbar-width: none !important;
@@ -154,13 +125,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     `;
     document.head.appendChild(style);
 
-    const handleMouseEnter = () => {
-      document.body.classList.remove('youtube-hover');
-    };
-
-    const handleMouseMoveInner = () => {
-      document.body.classList.remove('youtube-hover');
-    };
+    const handleMouseEnter = () => document.body.classList.remove('youtube-hover');
+    const handleMouseMoveInner = () => document.body.classList.remove('youtube-hover');
 
     iframe.addEventListener('mouseenter', handleMouseEnter);
     iframe.addEventListener('mousemove', handleMouseMoveInner);
@@ -171,27 +137,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       iframe.removeEventListener('mousemove', handleMouseMoveInner);
     };
   }, []);
-
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'https://www.youtube.com') return;
-      try {
-        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (data.info === 1) {
-          setIsPlaying(true);
-          onPlayStateChange?.(true);
-        } else if (data.info === 2) {
-          setIsPlaying(false);
-          onPlayStateChange?.(false);
-        }
-      } catch (error) {
-        console.error('Error parsing YouTube message:', error);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [onPlayStateChange]);
 
   useEffect(() => {
     if (startTime > 0) {

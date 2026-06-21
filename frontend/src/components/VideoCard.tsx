@@ -12,6 +12,7 @@ import { extractVideoId } from '../utils/videoUtils';
 import ThumbnailWithPlaceholder from './ThumbnailWithPlaceholder';
 import { useVideoProgress } from '../hooks/useVideoProgress';
 import { trackVideoClick } from '../services/analyticsService';
+import { setNavigatedFromVideo, setSkipHomeFetch } from '../utils/scrollRestoration';
 
 interface VideoCardProps {
   channel: Channel;
@@ -65,6 +66,8 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
     const vidId = extractVideoId(video.link);
     if (vidId) {
       trackVideoClick(vidId);
+      setNavigatedFromVideo();
+      setSkipHomeFetch();
       navigate(`/video/${vidId}`, { state: { video: { ...video, channelName: video.channelName || channel.name }, channelId: channel.id } });
     }
   };
@@ -120,6 +123,8 @@ const VideoCard = memo(function VideoCard({ channel, video, onEdit }: VideoCardP
           play(video, channel.id);
           const kid = extractVideoId(video.link);
           if (kid) {
+            setNavigatedFromVideo();
+            setSkipHomeFetch();
             navigate(`/video/${kid}`, {
               state: { video: { ...video, channelName }, channelId: channel.id },
             });
