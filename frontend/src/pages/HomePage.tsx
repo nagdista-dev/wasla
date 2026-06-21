@@ -314,25 +314,6 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
             {viewMode === 'grid' ? <List className="h-5 w-5" /> : <LayoutGrid className="h-5 w-5" />}
           </button>
         </div>
-        {activeChips.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 px-4 md:px-6 pb-3">
-            {activeChips.map(chip => (
-              <span
-                key={chip.key}
-                className="inline-flex items-center gap-1 rounded-full bg-brand-coral/10 px-2.5 py-1 text-xs font-medium text-brand-coral dark:bg-brand-coral/20"
-              >
-                {chip.label}
-                <button
-                  onClick={chip.onRemove}
-                  className="inline-flex items-center justify-center rounded-full p-0.5 hover:bg-brand-coral/20 transition"
-                  aria-label={`Remove ${chip.label} filter`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 pt-4">
