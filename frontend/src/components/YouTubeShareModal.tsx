@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { getStablePortalRoot } from '../utils/stablePortal';
 import { useToast } from './Toast';
 import type { SharedYouTubeLink, SharedLinkType } from '../hooks/useShareReceiver';
 
@@ -390,8 +391,7 @@ const YouTubeShareModal = memo(function YouTubeShareModal({
     </div>
   );
 
-  return createPortal(modal, document.body);
+  return createPortal(modal, getStablePortalRoot('yt-share-modal'));
 });
 
 export default YouTubeShareModal;
-
