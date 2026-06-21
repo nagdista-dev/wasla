@@ -269,25 +269,6 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
       });
   }, [items, selectedCategory, timeRange, sortBy, hiddenCategories, channels.length]);
 
-  const activeChips = useMemo(() => {
-    const chips: { key: string; label: string; onRemove: () => void }[] = [];
-    if (selectedCategory) {
-      chips.push({ key: `cat:${selectedCategory}`, label: selectedCategory, onRemove: () => setSelectedCategory('') });
-    }
-    if (timeRange !== 'all') {
-      const timeLabels: Record<string, string> = { hour: t('home.lastHour'), today: t('home.today'), week: t('home.thisWeek'), month: t('home.thisMonth'), '3months': t('filterModal.last3Months'), year: t('home.thisYear') };
-      chips.push({ key: `time:${timeRange}`, label: timeLabels[timeRange] || timeRange, onRemove: () => setTimeRange('all') });
-    }
-    if (sortBy !== 'newest') {
-      const sortLabels: Record<string, string> = { views: t('home.mostViewed'), channel: t('home.channelAZ'), category: t('home.category') };
-      chips.push({ key: `sort:${sortBy}`, label: sortLabels[sortBy] || sortBy, onRemove: () => setSortBy('newest') });
-    }
-    hiddenCategories.forEach(cat => {
-      chips.push({ key: `hidden:${cat}`, label: `${t('filterModal.hiddenCategories')}: ${cat}`, onRemove: () => setHiddenCategories(hiddenCategories.filter(c => c !== cat)) });
-    });
-    return chips;
-  }, [selectedCategory, timeRange, sortBy, hiddenCategories, t, setSelectedCategory, setTimeRange, setSortBy, setHiddenCategories]);
-
   return (
     <div className="min-h-screen dark:bg-dark-navy overflow-visible">
       <div className="sticky top-16 z-20 border-b border-gray-200 bg-gray-50/95 dark:border-gray-700 dark:bg-dark-navy/95 shadow-sm">
