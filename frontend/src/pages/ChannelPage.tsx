@@ -654,7 +654,7 @@ export default function ChannelPage({
 
       {showShareDialog && currentChannel && (
         <ShareChannelDialog
-          shareUrl={getChannelShareUrl(channelUsername)}
+          shareUrl={channelUsername ? getChannelShareUrl(channelUsername) : window.location.href}
           channelName={data?.channelName ? (data.channelName as string) : currentChannel.name}
           onClose={() => setShowShareDialog(false)}
         />
