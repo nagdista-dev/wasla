@@ -102,7 +102,7 @@ export default function PlaylistsPage({ playlists, onDelete, onUpdate }: Playlis
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-pink transition-colors shadow-sm"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-pink transition-colors shadow-sm sticky top-0 z-10"
             >
               <Plus className="h-4 w-4" />
               <span>{t('playlists.add')}</span>
