@@ -1,26 +1,63 @@
+import LZString from 'lz-string';
 import type { Channel } from '../types';
 
-export function encodeSharePayload(payload: any): string {
+// ─── Payload shape ────────────────────────────────────────────────────────────
+// { c: "CategoryName", ch: ["handle1", "handle2", ...] }
+// Keys are kept minimal intentionally per task requirements.
+
+interface SharePayload {
+  c: string;
+  ch: string[];
+}
+
+// ─── Encode ───────────────────────────────────────────────────────────────────
+export function encodeSharePayload(payload: SharePayload): string {
   const json = JSON.stringify(payload);
-  const encoded = encodeURIComponent(json);
-  return btoa(encoded);
+  // compressToEncodedURIComponent produces a URL-safe, LZ-compressed string
+  return LZString.compressToEncodedURIComponent(json);
 }
 
-export function decodeSharePayload(base64: string): any {
-  const decoded = atob(base64);
-  const json = decodeURIComponent(decoded);
-  return JSON.parse(json);
+// ─── Decode ───────────────────────────────────────────────────────────────────
+export function decodeSharePayload(encoded: string): SharePayload {
+  // Try LZ-string first (new format)
+  const lzResult = LZString.decompressFromEncodedURIComponent(encoded);
+  if (lzResult) {
+    return JSON.parse(lzResult) as SharePayload;
+  }
+  // Fallback: old base64 format (keeps backward-compat with existing links)
+  try {
+    const decoded = atob(encoded);
+    const json = decodeURIComponent(decoded);
+    return JSON.parse(json) as SharePayload;
+  } catch {
+    throw new Error('Invalid or corrupted share link');
+  }
 }
 
+// ─── Create URL ───────────────────────────────────────────────────────────────
+// Builds the shortest possible share link using ONLY:
+//   - category name  (c)
+//   - channel handles (ch)  — NOT IDs, NOT full objects
 export function createShareUrl(
   categoryName: string,
-  channels: { id: string; name: string; handle?: string }[]
+  channels: { handle?: string; name?: string }[]
 ): string {
-  const payload = { c: categoryName, ch: channels };
+  // Collect handles; fall back to name-derived slug if handle missing
+  const handles = channels
+    .map((ch) => {
+      if (ch.handle) {
+        return ch.handle.startsWith('@') ? ch.handle.slice(1) : ch.handle;
+      }
+      return null;
+    })
+    .filter((h): h is string => !!h && h.length > 0);
+
+  const payload: SharePayload = { c: categoryName, ch: handles };
   const encoded = encodeSharePayload(payload);
   return `${window.location.origin}/import/category?data=${encoded}`;
 }
 
+// ─── Username helpers (unchanged) ─────────────────────────────────────────────
 export function generateUsername(
   name: string,
   existingUsernames: Set<string>,
@@ -43,7 +80,7 @@ export function generateUsername(
       .trim()
       .replace(/\s+/g, '.')
       .replace(/\.+/g, '.')
-      .replace(/^[.\s]+|[.\s]+$/g, '')
+      .replace(/^[\.\s]+|[\.\s]+$/g, '')
       .slice(0, 30);
   }
 

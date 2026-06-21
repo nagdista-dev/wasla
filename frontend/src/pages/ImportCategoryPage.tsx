@@ -5,10 +5,17 @@ import { useLanguage } from '../context/LanguageContext';
 import type { Channel } from '../types';
 import { decodeSharePayload } from '../utils/shareUtils';
 
-export default function ImportCategoryPage({ 
-  onImport 
-}: { 
-  onImport: (categoryName: string, channels: Partial<Channel>[]) => void 
+// The new payload shape: { c: string, ch: string[] }
+// ch contains channel HANDLES only (not IDs, not full objects)
+interface ImportedChannelHandle {
+  handle: string;
+  // name is unknown at import time — the importer must look up or set a placeholder
+}
+
+export default function ImportCategoryPage({
+  onImport,
+}: {
+  onImport: (categoryName: string, channels: Partial<Channel>[]) => void;
 }) {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
@@ -27,17 +34,29 @@ export default function ImportCategoryPage({
         throw new Error('Invalid payload format');
       }
 
-      const categoryName = payload.c;
-      const channels = payload.ch;
+      const categoryName: string = payload.c;
+      const rawHandles: string[] = payload.ch;
 
-      // Import the category and its channels
+      // Build minimal Channel objects from handles only.
+      // The handle IS the unique identifier for YouTube channels.
+      // The App-level handler will merge these with existing channels or add new stubs.
+      const channels: Partial<Channel>[] = rawHandles
+        .filter((h) => typeof h === 'string' && h.length > 0)
+        .map((handle) => ({
+          // Use "@handle" as the id so it can be looked up on YouTube
+          id: handle.startsWith('@') ? handle : `@${handle}`,
+          handle: handle.startsWith('@') ? handle.slice(1) : handle,
+          // Temporary display name — can be updated after channel fetch
+          name: handle.startsWith('@') ? handle : `@${handle}`,
+          categories: [categoryName],
+        }));
+
       onImport(categoryName, channels);
-      
+
       setStatus('success');
       setTimeout(() => {
         navigate(`/category/${encodeURIComponent(categoryName)}`, { replace: true });
       }, 1500);
-
     } catch (err) {
       console.error(err);
       setStatus('error');
@@ -66,7 +85,7 @@ export default function ImportCategoryPage({
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold dark:text-white mb-2">{t('import.error')}</h2>
             <p className="text-red-400 text-sm mb-6">{errorMsg}</p>
-            <button 
+            <button
               onClick={() => navigate('/', { replace: true })}
               className="px-6 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white rounded-lg transition"
             >
