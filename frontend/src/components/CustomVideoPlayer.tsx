@@ -78,33 +78,25 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log('[CustomVideoPlayer] Message from origin:', event.origin, 'data:', typeof event.data === 'string' ? event.data.substring(0, 200) : 'object');
-
       if (!YT_ORIGINS.includes(event.origin)) return;
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-        console.log('[CustomVideoPlayer] Parsed event:', data.event, 'info:', JSON.stringify(data.info).substring(0, 200));
-
         if (data.event === 'onReady') {
-          console.log('[CustomVideoPlayer] YouTube player ready');
         }
 
         if (data.event === 'onStateChange') {
-          console.log('[CustomVideoPlayer] State change:', data.info);
         }
 
         if (data.event === 'onTimeUpdate') {
           const t = extractTime(data);
           if (t != null) {
-            console.log('[CustomVideoPlayer] Time update:', t.toFixed(2));
             onTimeUpdateRef.current?.(t);
           }
         }
 
         const t = extractTime(data);
         if (t != null && data.event !== 'onTimeUpdate') {
-          console.log('[CustomVideoPlayer] Time from message:', t.toFixed(2));
           onTimeUpdateRef.current?.(t);
         }
 

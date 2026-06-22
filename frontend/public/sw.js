@@ -6,7 +6,4 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (e) => {
-  // Pass through all requests to network
-  // In a real PWA, you would handle caching here
-});
+// No fetch handler needed - all requests go to network by default
