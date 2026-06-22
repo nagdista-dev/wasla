@@ -10,6 +10,16 @@ export type CustomVideoPlayerProps = {
   onTimeUpdate?: (seconds: number) => void;
 };
 
+const YT_ORIGINS = ['https://www.youtube.com', 'https://www.youtube-nocookie.com'];
+
+function extractTime(data: any): number | undefined {
+  if (data.info?.currentTime != null) return data.info.currentTime;
+  if (data.info?.videoTime != null) return data.info.videoTime;
+  if (data.currentTime != null) return data.currentTime;
+  if (typeof data.info === 'number') return data.info;
+  return undefined;
+}
+
 const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   videoId,
   startTime = 0,
@@ -19,6 +29,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 }) => {
   const { registerSeekHandler, unregisterSeekHandler } = usePlayer();
   const [, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef(false);
   const [lastClickTime, setLastClickTime] = useState(0);
   const overlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -62,25 +73,54 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       clearTimeout(overlayTimeoutRef.current);
     }
     overlayTimeoutRef.current = setTimeout(() => {
-      // Previous state variables removed
     }, 3000);
   }, [lastClickTime]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'https://www.youtube.com') return;
+      console.log('[CustomVideoPlayer] Message from origin:', event.origin, 'data:', typeof event.data === 'string' ? event.data.substring(0, 200) : 'object');
+
+      if (!YT_ORIGINS.includes(event.origin)) return;
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        const currentTime = data.info?.currentTime;
-        if (typeof currentTime === 'number') {
-          onTimeUpdateRef.current?.(currentTime);
+
+        console.log('[CustomVideoPlayer] Parsed event:', data.event, 'info:', JSON.stringify(data.info).substring(0, 200));
+
+        if (data.event === 'onReady') {
+          console.log('[CustomVideoPlayer] YouTube player ready');
         }
 
-        const playerState = typeof data.info?.playerState === 'number' ? data.info.playerState : data.info;
+        if (data.event === 'onStateChange') {
+          console.log('[CustomVideoPlayer] State change:', data.info);
+        }
+
+        if (data.event === 'onTimeUpdate') {
+          const t = extractTime(data);
+          if (t != null) {
+            console.log('[CustomVideoPlayer] Time update:', t.toFixed(2));
+            onTimeUpdateRef.current?.(t);
+          }
+        }
+
+        const t = extractTime(data);
+        if (t != null && data.event !== 'onTimeUpdate') {
+          console.log('[CustomVideoPlayer] Time from message:', t.toFixed(2));
+          onTimeUpdateRef.current?.(t);
+        }
+
+        let playerState: number | undefined;
+        if (typeof data.info?.playerState === 'number') {
+          playerState = data.info.playerState;
+        } else if (typeof data.info === 'number') {
+          playerState = data.info;
+        }
+
         if (playerState === 1) {
+          isPlayingRef.current = true;
           setIsPlaying(true);
           onPlayStateChangeRef.current?.(true);
         } else if (playerState === 2 || playerState === 0) {
+          isPlayingRef.current = false;
           setIsPlaying(false);
           onPlayStateChangeRef.current?.(false);
         }

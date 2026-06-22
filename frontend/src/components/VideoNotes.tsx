@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Plus, Trash2, Play } from 'lucide-react';
+import { Plus, Trash2, Download } from 'lucide-react';
 import type { VideoNote } from '../types';
-import { loadSetting, saveSetting } from '../storage';
-import { useLanguage } from '../context/LanguageContext';
+import { getItem, putItem } from '../services/indexedDbService';
 
 type VideoNotesProps = {
   videoId: string;
@@ -12,24 +11,25 @@ type VideoNotesProps = {
   showToast: (message: string, type: 'success' | 'info' | 'error') => void;
 };
 
-// Helper to format timestamp since it's used in VideoPage.tsx
-function formatTime(seconds: number): string {
-  const total = Math.max(0, Math.floor(seconds));
-  const hrs = Math.floor(total / 3600);
-  const mins = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+const SETTINGS_STORE = 'appSettings';
+
+async function loadNotes<T>(key: string): Promise<T | undefined> {
+  try {
+    const entry = await getItem<{ key: string; value: T }>(SETTINGS_STORE, key);
+    if (entry) return entry.value;
+  } catch {}
+  return undefined;
+}
+
+async function saveNotesToIDB<T>(key: string, value: T): Promise<void> {
+  await putItem(SETTINGS_STORE, { key, value });
 }
 
 const VideoNotes: React.FC<VideoNotesProps> = ({
   videoId,
-  currentTime,
-  onSeek,
   t,
   showToast,
 }) => {
-  const { language } = useLanguage();
   const [notes, setNotes] = useState<VideoNote[]>([]);
   const [newNote, setNewNote] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -37,10 +37,10 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
   const STORAGE_KEY = `wasla_video_notes_${videoId}`;
 
   useEffect(() => {
-    const loadNotes = async () => {
+    const loadNotesData = async () => {
       setIsLoading(true);
       try {
-        const storedNotes = await loadSetting<VideoNote[]>(STORAGE_KEY);
+        const storedNotes = await loadNotes<VideoNote[]>(STORAGE_KEY);
         if (storedNotes) {
           setNotes(storedNotes);
         }
@@ -51,12 +51,12 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
         setIsLoading(false);
       }
     };
-    loadNotes();
+    loadNotesData();
   }, [videoId, STORAGE_KEY, showToast]);
 
   const saveNotes = async (updatedNotes: VideoNote[]) => {
     try {
-      await saveSetting(STORAGE_KEY, updatedNotes);
+      await saveNotesToIDB(STORAGE_KEY, updatedNotes);
       setNotes(updatedNotes);
     } catch (error) {
       console.error('Failed to save notes:', error);
@@ -69,7 +69,7 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
 
     const note: VideoNote = {
       id: `note_${Date.now()}`,
-      timestamp: currentTime,
+      timestamp: 0,
       content: newNote.trim(),
       createdAt: Date.now(),
     };
@@ -86,6 +86,35 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
     showToast('Note deleted', 'info');
   };
 
+  const handleDeleteAll = async () => {
+    if (!window.confirm('Delete all notes?')) return;
+    await saveNotes([]);
+    showToast('All notes deleted', 'info');
+  };
+
+  const handleDownloadMD = () => {
+    const mdContent = notes
+      .slice()
+      .reverse()
+      .map((note) => `- ${note.content}`)
+      .join('\n');
+
+    if (!mdContent) {
+      showToast('No notes to download', 'info');
+      return;
+    }
+
+    const blob = new Blob([mdContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `notes-${videoId}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return (
       <div className="rounded-xl border border-gray-200/60 bg-gray-50/80 p-5 text-center dark:border-white/10 dark:bg-white/[0.04]">
@@ -97,46 +126,45 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
   return (
     <div className="space-y-6 px-4 sm:px-0">
       <section className="rounded-xl border border-gray-200/60 bg-gray-50/80 p-4 sm:p-5 dark:border-white/10 dark:bg-white/[0.04]">
-        <h2 className="mb-4 text-base font-bold text-gray-900 dark:text-white">{t('videoPage.notes')}</h2>
-        
-        <div className="flex flex-col gap-3">
-          <div className="relative flex items-end gap-2">
-            <div className="flex-1">
-              <textarea
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder={t('videoPage.addNotePlaceholder')}
-                className="w-full min-h-[80px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-coral focus:ring-1 focus:ring-brand-coral dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-brand-coral dark:focus:ring-brand-coral outline-none resize-none"
-              />
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white">{t('videoPage.notes')}</h2>
+          {notes.length > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDownloadMD}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-300 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/15 transition-colors"
+              >
+                <Download className="h-3.5 w-3.5" />
+                .md
+              </button>
+              <button
+                onClick={handleDeleteAll}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('videoPage.deleteAll')}
+              </button>
             </div>
-            <div className="flex flex-col gap-2">
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col w-full rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden focus-within:ring-1 focus-within:ring-brand-coral">
+            <textarea
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              placeholder={t('videoPage.addNotePlaceholder')}
+              className="w-full min-h-[80px] bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white outline-none resize-none"
+            />
+            <div className="flex items-center justify-end gap-2 px-2 pb-2">
               <button
                 onClick={handleAddNote}
                 disabled={!newNote.trim()}
-                className="inline-flex items-center justify-center rounded-lg bg-brand-coral px-4 py-2 text-sm font-semibold text-white hover:bg-brand-pink disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[40px]"
+                className="inline-flex items-center justify-center rounded-lg bg-brand-coral px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-pink disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Plus className="mr-1 h-4 w-4" />
                 {t('videoPage.addNote')}
               </button>
-              {language !== 'ar' && (
-                <button
-                  onClick={() => {
-                    // Add note with current time
-                    const note: VideoNote = {
-                      id: `note_${Date.now()}`,
-                      timestamp: currentTime,
-                      content: t('videoPage.timestampNote'),
-                      createdAt: Date.now(),
-                    };
-                    const updatedNotes = [...notes, note].sort((a, b) => b.createdAt - a.createdAt);
-                    saveNotes(updatedNotes);
-                  }}
-                  className="inline-flex items-center justify-center rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/15 transition-colors min-h-[40px]"
-                >
-                  <Clock className="mr-1 h-4 w-4" />
-                  {t('videoPage.addTimestamp')}
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -152,23 +180,9 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
                 key={note.id}
                 className="group flex items-start justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:border-brand-coral/30 dark:border-white/10 dark:bg-white/5"
               >
-                <div className="flex min-w-0 gap-3">
-                  <button
-                    onClick={() => onSeek(note.timestamp)}
-                    className="mt-0.5 shrink-0 flex items-center gap-1 rounded-md bg-brand-coral/10 px-1.5 py-0.5 text-xs font-semibold text-brand-coral transition-colors hover:bg-brand-coral/20"
-                  >
-                    <Play className="h-3 w-3" />
-                    {formatTime(note.timestamp)}
-                  </button>
-                  <div className="flex flex-col min-w-0">
-                    <p className="text-sm text-gray-700 dark:text-gray-200 break-words">
-                      {note.content}
-                    </p>
-                    <span className="mt-1 text-[10px] text-gray-400">
-                      {new Date(note.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-200 break-words min-w-0">
+                  {note.content}
+                </p>
                 <button
                   onClick={() => handleDeleteNote(note.id)}
                   className="shrink-0 rounded-md p-1 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 group-hover:opacity-100"

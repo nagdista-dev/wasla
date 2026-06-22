@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists, fetchCommunityPostsXml, fetchVideoDataById } from '../services/rssService.js';
+import { fetchChannelData, fetchChannelDetails, clearAllCaches, getCacheStats, resolveChannelId, fetchPlaylistData, getChannelPlaylists, fetchCommunityPostsXml, fetchVideoDataById, fetchSubtitles } from '../services/rssService.js';
 import { ChannelResponse, ChannelFeedData, CacheEntry, ChannelDetailsResponse, PlaylistResponse, ChannelPlaylistsResponse, PlaylistSummary, VideoResponse } from '../types/index.js';
 
 const router = Router();
@@ -202,36 +202,59 @@ router.delete('/cache', (_req: Request, res: Response) => {
 });
 
 router.get('/video/:id', async (req: Request, res: Response) => {
-  const videoId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  try {
+    const videoId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    try {
+      if (!videoId) {
+        const response: VideoResponse = { success: false, error: 'Video ID is required' };
+        return res.status(400).json(response);
+      }
+
+      const data = await fetchVideoDataById(videoId);
+      if (!data) {
+        const response: VideoResponse = { success: false, error: 'Could not fetch video data' };
+        return res.status(404).json(response);
+      }
+
+      const response: VideoResponse = { success: true, data };
+      res.json(response);
+    } catch (error) {
+      console.error(`Error fetching video ${videoId}:`, error);
+      const response: VideoResponse = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch video data',
+      };
+      res.status(500).json(response);
+    }
+});
+
+  router.get('/subtitles/:videoId', async (req: Request, res: Response) => {
+    const videoId = Array.isArray(req.params.videoId) ? req.params.videoId[0] : req.params.videoId;
+    const lang = req.query.lang as string | undefined;
+
     if (!videoId) {
-      const response: VideoResponse = { success: false, error: 'Video ID is required' };
-      return res.status(400).json(response);
+      return res.status(400).json({ success: false, error: 'Video ID is required' });
     }
 
-    const data = await fetchVideoDataById(videoId);
-    if (!data) {
-      const response: VideoResponse = { success: false, error: 'Could not fetch video data' };
-      return res.status(404).json(response);
+    try {
+      const data = await fetchSubtitles(videoId, lang);
+      if (!data) {
+        return res.status(404).json({ success: false, error: 'Could not fetch subtitles' });
+      }
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error(`Error fetching subtitles for ${videoId}:`, error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch subtitles',
+      });
     }
+  });
 
-    const response: VideoResponse = { success: true, data };
-    res.json(response);
-  } catch (error) {
-    console.error(`Error fetching video ${videoId}:`, error);
-    const response: VideoResponse = {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch video data',
-    };
-    res.status(500).json(response);
-  }
-});
+  router.get('/cache/stats', (_req: Request, res: Response) => {
+    res.json(getCacheStats());
+  });
 
-router.get('/cache/stats', (_req: Request, res: Response) => {
-  res.json(getCacheStats());
-});
-
-router.patch('/channel/:id', async (req: Request, res: Response) => {
+  router.patch('/channel/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, categories } = req.body;

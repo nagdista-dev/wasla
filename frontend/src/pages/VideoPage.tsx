@@ -21,11 +21,11 @@ import { recordWatch } from '../services/watchHistoryService';
 import { findCachedHomeVideoById } from '../services/videoCacheService';
 
 import CustomVideoPlayer from '../components/CustomVideoPlayer';
-import { useYouTubeSubtitles } from '../hooks/useYouTubeSubtitles';
+import CaptionsPanel from '../components/CaptionsPanel';
+import VideoNotes from '../components/VideoNotes';
 import type { LatestVideo } from '../types';
 
-type VideoPageTab = 'info' | 'learning';
-
+type VideoPageTab = 'info' | 'subtitles' | 'notes';
 
 
 function formatViews(views?: number | string): string | undefined {
@@ -48,14 +48,6 @@ function formatDuration(duration?: string): string | undefined {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function formatTimestamp(seconds: number): string {
-  const total = Math.max(0, Math.floor(seconds));
-  const hrs = Math.floor(total / 3600);
-  const mins = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
 
 const DESCRIPTION_COLLAPSED_LINES = 3;
 
@@ -214,14 +206,7 @@ function VideoPage() {
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
 
   const embedId = video ? (extractVideoId(video.link) || videoId) : videoId;
-
-  const {
-    learningData: youtubeLearningData,
-    isLoading: _youtubeLoading,
-    error: youtubeError,
-    extractSubtitlesFromPlayer,
-    reset: resetSubtitles,
-  } = useYouTubeSubtitles(embedId);
+  const safeEmbedId = embedId || '';
 
 
 
@@ -250,10 +235,9 @@ function VideoPage() {
     setResumeVideoId(null);
     setProgressCheckedVideoId(null);
     setActiveTab('info');
-    resetSubtitles();
     setCurrentPlaybackTime(0);
     historyRecordedRef.current = false;
-  }, [videoId, resetSubtitles]);
+  }, [videoId]);
 
   useEffect(() => {
     if (abortRef.current) {
@@ -378,34 +362,31 @@ function VideoPage() {
   }, [video, videoId, loadProgress]);
 
   const durationSeconds = video ? (parseInt(video.duration || '0', 10) || 0) : 0;
-  const progressChecked = progressCheckedVideoId === embedId;
-  const startTime = resumeTime && resumeVideoId === embedId ? resumeTime : 0;
-  const activeSubtitleIndex = youtubeLearningData?.subtitles.findIndex((cue, index, subtitles) => {
-    const nextCueStart = subtitles[index + 1]?.start;
-    const cueEnd = cue.duration > 0 ? cue.start + cue.duration : nextCueStart ?? cue.start + 4;
-    return currentPlaybackTime >= cue.start && currentPlaybackTime < cueEnd;
-  }) ?? -1;
-  const activeSubtitle = activeSubtitleIndex >= 0 ? youtubeLearningData?.subtitles[activeSubtitleIndex] : undefined;
+  const progressChecked = progressCheckedVideoId === safeEmbedId;
+  const startTime = resumeTime && resumeVideoId === safeEmbedId ? resumeTime : 0;
 
   useEffect(() => {
-    if (!video || !progressChecked || durationSeconds <= 0) return;
+    if (!video || !safeEmbedId) return;
 
     trackingStartRef.current = Date.now();
-    initialOffsetRef.current = resumeTime ?? 0;
+    initialOffsetRef.current = currentTimeRef.current;
 
     const tick = () => {
       const elapsed = (Date.now() - trackingStartRef.current) / 1000;
-      const currentTime = initialOffsetRef.current + elapsed;
+      const currentTime = Math.max(0, initialOffsetRef.current + elapsed);
       currentTimeRef.current = currentTime;
-      const pct = (currentTime / durationSeconds) * 100;
+      setCurrentPlaybackTime(currentTime);
 
-      updatePosition(currentTime, durationSeconds);
-
-      if (progressBarRef.current) {
-        progressBarRef.current.style.width = `${Math.min(pct, 100)}%`;
-      }
-
-      if (currentTime < durationSeconds) {
+      if (durationSeconds > 0) {
+        const pct = (currentTime / durationSeconds) * 100;
+        updatePosition(currentTime, durationSeconds);
+        if (progressBarRef.current) {
+          progressBarRef.current.style.width = `${Math.min(pct, 100)}%`;
+        }
+        if (currentTime < durationSeconds) {
+          animFrameRef.current = requestAnimationFrame(tick);
+        }
+      } else {
         animFrameRef.current = requestAnimationFrame(tick);
       }
     };
@@ -418,7 +399,7 @@ function VideoPage() {
         animFrameRef.current = 0;
       }
     };
-  }, [video, progressChecked, resumeTime, updatePosition, durationSeconds]);
+  }, [video, safeEmbedId, updatePosition, durationSeconds]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -432,14 +413,6 @@ function VideoPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [saveOnPause]);
-
-  useEffect(() => {
-    if (activeTab === 'learning' && embedId && !youtubeLearningData && !youtubeError) {
-      extractSubtitlesFromPlayer();
-    }
-  }, [activeTab, embedId, youtubeLearningData, youtubeError, extractSubtitlesFromPlayer]);
-
-
 
   const handleOpenOnYoutube = useCallback(() => {
     if (!video) return;
@@ -520,9 +493,10 @@ function VideoPage() {
       ref={playerContainerRef}
       className="relative w-full bg-black overflow-hidden rounded-xl aspect-video shadow-md sm:shadow-2xl sm:ring-1 sm:ring-white/5 min-h-[200px]"
     >
-        {embedId && progressChecked ? (
+      {safeEmbedId && progressChecked ? (
+        <>
           <CustomVideoPlayer
-            videoId={embedId}
+            videoId={safeEmbedId}
             startTime={startTime}
             onPlayStateChange={(isPlaying) => {
               if (!isPlaying) {
@@ -536,32 +510,37 @@ function VideoPage() {
               currentTimeRef.current = seconds;
               setCurrentPlaybackTime(seconds);
               updatePosition(seconds, durationSeconds);
+              trackingStartRef.current = Date.now();
+              initialOffsetRef.current = seconds;
             }}
             onTimeUpdate={(seconds) => {
               currentTimeRef.current = seconds;
               setCurrentPlaybackTime(seconds);
               updatePosition(seconds, durationSeconds);
+              trackingStartRef.current = Date.now();
+              initialOffsetRef.current = seconds;
             }}
           />
-        ) : embedId ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
-            <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
-            {video?.link && (
-              <button
-                onClick={() => { window.open(video.link, '_blank'); }}
-                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                {t('miniPlayer.openOnYoutube')}
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
-            <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
-          </div>
-        )}
-      </div>
+        </>
+      ) : safeEmbedId ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+          <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+          {video?.link && (
+            <button
+              onClick={() => { window.open(video.link, '_blank'); }}
+              className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {t('miniPlayer.openOnYoutube')}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white bg-gray-900">
+          <p className="text-sm">{t('miniPlayer.couldNotLoad')}</p>
+        </div>
+      )}
+    </div>
   );
 
   const tabButtonClass = (tab: VideoPageTab) => (
@@ -712,66 +691,6 @@ function VideoPage() {
     </div>
   ) : null;
 
-  const learningPanel = (
-    <div className="px-4 sm:px-0">
-      {youtubeError ? (
-        <div className="rounded-xl border border-gray-200/60 bg-gray-50/80 p-5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-300">
-          {youtubeError}
-        </div>
-      ) : youtubeLearningData ? (
-        <section className="rounded-xl border border-gray-200/60 bg-gray-50/80 p-4 sm:p-5 dark:border-white/10 dark:bg-white/[0.04]">
-          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-            <h2 className="text-base font-bold text-gray-900 dark:text-white">{t('videoPage.subtitles')}</h2>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {youtubeLearningData.languageName}{youtubeLearningData.isAutoGenerated ? ` · ${t('videoPage.autoGenerated')}` : ''}
-            </span>
-          </div>
-          {youtubeLearningData.subtitles.length > 0 ? (
-            <>
-              <div className="mb-5 rounded-lg border border-brand-coral/30 bg-white p-4 shadow-sm dark:border-brand-coral/40 dark:bg-dark-navy/60">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-brand-coral">
-                    {t('videoPage.currentSubtitle')}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-xs font-semibold text-gray-500 dark:text-gray-400">
-                    {formatTimestamp(currentPlaybackTime)}
-                  </span>
-                </div>
-                <p className="min-h-[1.75rem] text-base leading-7 text-gray-900 dark:text-white">
-                  {activeSubtitle?.text || ''}
-                </p>
-              </div>
-
-              <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
-                {youtubeLearningData.subtitles.map((cue, index) => (
-                  <div
-                    key={`${cue.start}-${index}`}
-                    className={`flex gap-3 rounded-lg px-2 py-1.5 text-sm leading-relaxed transition-colors ${
-                      index === activeSubtitleIndex
-                        ? 'bg-brand-coral/10 text-gray-900 dark:bg-brand-coral/20 dark:text-white'
-                        : ''
-                    }`}
-                  >
-                    <span className="shrink-0 tabular-nums text-xs font-semibold text-brand-coral">
-                      {formatTimestamp(cue.start)}
-                    </span>
-                    <p className="text-gray-700 dark:text-gray-200">{cue.text}</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-gray-600 dark:text-gray-300">{t('videoPage.learningUnavailable')}</p>
-          )}
-        </section>
-      ) : (
-        <div className="rounded-xl border border-gray-200/60 bg-gray-50/80 p-5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-300">
-          {t('videoPage.learningPrompt')}
-        </div>
-      )}
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-dark-navy pb-safe">
@@ -830,18 +749,37 @@ function VideoPage() {
                   >
                     {t('videoPage.videoInformation')}
                   </button>
+
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={activeTab === 'learning'}
-                    className={tabButtonClass('learning')}
-                    onClick={() => setActiveTab('learning')}
+                    aria-selected={activeTab === 'subtitles'}
+                    className={tabButtonClass('subtitles')}
+                    onClick={() => setActiveTab('subtitles')}
                   >
-                    {t('videoPage.learning')}
+                    {t('videoPage.subtitles')}
+                  </button>
+
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === 'notes'}
+                    className={tabButtonClass('notes')}
+                    onClick={() => setActiveTab('notes')}
+                  >
+                    {t('videoPage.notes')}
                   </button>
                 </div>
               </div>
-              {activeTab === 'info' ? videoInformationPanel : learningPanel}
+                {activeTab === 'info' ? videoInformationPanel : activeTab === 'subtitles' ? (
+                  <div className="px-4 sm:px-0">
+                    <CaptionsPanel
+                      videoId={safeEmbedId}
+                      currentPlaybackTime={currentPlaybackTime}
+                    />
+                  </div>
+                ) : <VideoNotes videoId={safeEmbedId} currentTime={currentPlaybackTime} onSeek={(s) => { currentTimeRef.current = s; setCurrentPlaybackTime(s); updatePosition(s, durationSeconds); }} t={t} showToast={showToast} />}
+
             </div>
           ) : (
             <div className="px-4 sm:px-0 py-8 text-center">

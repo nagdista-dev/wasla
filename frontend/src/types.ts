@@ -144,3 +144,10 @@ export interface CommunityPost {
   source: 'rsshub' | 'rsshub-fallback';
   fetchedAt: number;
 }
+
+export interface VideoNote {
+  id: string;
+  timestamp: number;
+  content: string;
+  createdAt: number;
+}
