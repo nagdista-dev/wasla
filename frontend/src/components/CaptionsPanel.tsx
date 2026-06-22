@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, memo } from 'react';
-import { ChevronDown, AlertCircle, RefreshCw, Loader2, Languages } from 'lucide-react';
+import { AlertCircle, RefreshCw, Loader2, Clock } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -18,6 +18,7 @@ type LanguageInfo = {
 type CaptionsPanelProps = {
   videoId: string;
   currentPlaybackTime: number;
+  onSync?: () => void;
 };
 
 const CACHE = new Map<string, { languages: LanguageInfo[]; subtitles: SubtitleCue[] }>();
@@ -31,34 +32,24 @@ function findActiveCue(subtitles: SubtitleCue[], time: number): SubtitleCue | un
   });
 }
 
-function CaptionsPanel({ videoId, currentPlaybackTime }: CaptionsPanelProps) {
+const DEFAULT_LANG = 'en';
+
+function CaptionsPanel({ videoId, currentPlaybackTime, onSync }: CaptionsPanelProps) {
   const { t } = useLanguage();
   const [languages, setLanguages] = useState<LanguageInfo[]>([]);
-  const [primaryLang, setPrimaryLang] = useState<string>('');
-  const [primarySubtitles, setPrimarySubtitles] = useState<SubtitleCue[]>([]);
-  const [primaryLoading, setPrimaryLoading] = useState(true);
-  const [primaryError, setPrimaryError] = useState<string | null>(null);
+  const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
+  const [loadedLang, setLoadedLang] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [dualMode, setDualMode] = useState(false);
-  const [secondaryLang, setSecondaryLang] = useState<string>('');
-  const [secondarySubtitles, setSecondarySubtitles] = useState<SubtitleCue[]>([]);
-  const [secondaryLoading, setSecondaryLoading] = useState(false);
-  const [secondaryError, setSecondaryError] = useState<string | null>(null);
-
-  const primaryCue = findActiveCue(primarySubtitles, currentPlaybackTime);
-  const secondaryCue = findActiveCue(secondarySubtitles, currentPlaybackTime);
+  const activeCue = findActiveCue(subtitles, currentPlaybackTime);
 
   useEffect(() => {
     setLanguages([]);
-    setPrimarySubtitles([]);
-    setSecondarySubtitles([]);
-    setPrimaryLang('');
-    setSecondaryLang('');
-    setDualMode(false);
-    setPrimaryLoading(true);
-    setPrimaryError(null);
-    setSecondaryLoading(false);
-    setSecondaryError(null);
+    setSubtitles([]);
+    setLoadedLang('');
+    setIsLoading(true);
+    setError(null);
 
     CACHE.clear();
     ACTIVE_REQUESTS.forEach(c => c.abort());
@@ -103,234 +94,88 @@ function CaptionsPanel({ videoId, currentPlaybackTime }: CaptionsPanelProps) {
     }
   }, [videoId]);
 
-  const loadPrimary = useCallback(async (langCode: string) => {
-    setPrimaryLoading(true);
-    setPrimaryError(null);
-    setPrimarySubtitles([]);
+  const load = useCallback(async (langCode: string) => {
+    setIsLoading(true);
+    setError(null);
+    setSubtitles([]);
     try {
       const data = await getOrFetch(langCode);
       if (data) {
         setLanguages(data.languages);
-        setPrimarySubtitles(data.subtitles);
-        setPrimaryLang(langCode);
+        setSubtitles(data.subtitles);
+        setLoadedLang(langCode);
       } else {
-        setPrimaryLang(langCode);
+        setLoadedLang(langCode);
       }
     } catch (err: any) {
       const msg = err?.response?.data?.error || err?.message || 'Failed to load captions';
-      setPrimaryError(msg);
+      setError(msg);
     } finally {
-      setPrimaryLoading(false);
-    }
-  }, [getOrFetch]);
-
-  const loadSecondary = useCallback(async (langCode: string) => {
-    setSecondaryLoading(true);
-    setSecondaryError(null);
-    setSecondarySubtitles([]);
-    try {
-      const data = await getOrFetch(langCode);
-      if (data) {
-        setLanguages(data.languages);
-        setSecondarySubtitles(data.subtitles);
-        setSecondaryLang(langCode);
-      } else {
-        setSecondaryLang(langCode);
-      }
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || err?.message || 'Failed to load captions';
-      setSecondaryError(msg);
-    } finally {
-      setSecondaryLoading(false);
+      setIsLoading(false);
     }
   }, [getOrFetch]);
 
   useEffect(() => {
-    loadPrimary('en');
-  }, [loadPrimary]);
+    load(DEFAULT_LANG);
+  }, [load]);
 
-  const handlePrimaryChange = (code: string) => {
-    if (code === primaryLang) return;
-    loadPrimary(code);
+  const handleRetry = () => {
+    CACHE.delete(`${videoId}_${loadedLang || DEFAULT_LANG}`);
+    load(loadedLang || DEFAULT_LANG);
   };
 
-  const handleSecondaryChange = (code: string) => {
-    if (code === secondaryLang) return;
-    loadSecondary(code);
-  };
-
-  const handleRetryPrimary = () => {
-    if (primaryLang) {
-      CACHE.delete(`${videoId}_${primaryLang}`);
-      loadPrimary(primaryLang);
-    } else {
-      CACHE.delete(`${videoId}_en`);
-      loadPrimary('en');
-    }
-  };
-
-  const handleRetrySecondary = () => {
-    if (secondaryLang) {
-      CACHE.delete(`${videoId}_${secondaryLang}`);
-      loadSecondary(secondaryLang);
-    }
-  };
-
-  const toggleDualMode = () => {
-    if (!dualMode) {
-      setDualMode(true);
-      if (!secondaryLang && languages.length > 1) {
-        const second = languages.find(l => l.code !== primaryLang);
-        if (second) loadSecondary(second.code);
-      }
-    } else {
-      setDualMode(false);
-      setSecondarySubtitles([]);
-      setSecondaryError(null);
-      setSecondaryLoading(false);
-    }
-  };
-
-  const selectedPrimaryInfo = languages.find(l => l.code === primaryLang);
-
-  const showDualToggle = languages.length > 1 && !primaryLoading && !primaryError && primarySubtitles.length > 0;
-
-  const secondaryOptions = languages.filter(l => l.code !== primaryLang);
+  const selectedLangInfo = languages.find(l => l.code === loadedLang);
 
   return (
     <div className="rounded-xl border border-gray-200/60 bg-white dark:border-white/10 dark:bg-dark-navy">
       <div className="flex items-center justify-between border-b border-gray-200/60 px-4 py-3 dark:border-white/10">
         <h2 className="text-sm font-bold text-gray-900 dark:text-white">{t('videoPage.subtitles')}</h2>
-        {selectedPrimaryInfo?.isAutoGenerated && (
-          <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-            {t('videoPage.autoGenerated')}
-          </span>
-        )}
-      </div>
-
-      <div className="p-4 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <label className="block text-[11px] font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
-              {dualMode ? t('videoPage.primarySubtitle') : t('videoPage.selectLanguage')}
-            </label>
-            <div className="relative">
-              <select
-                value={primaryLang}
-                onChange={(e) => handlePrimaryChange(e.target.value)}
-                className="appearance-none w-full rounded-lg bg-gray-100 py-2 pl-3 pr-8 text-sm font-medium text-gray-900 outline-none transition-colors hover:bg-gray-200 focus:ring-2 focus:ring-brand-coral/50 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
-              >
-                {languages.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.name}{lang.isAutoGenerated ? ` (${t('videoPage.autoGenerated')})` : ''}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
-            </div>
-          </div>
-
-          {showDualToggle && (
-            <div className="flex items-end pb-1">
-              <button
-                onClick={toggleDualMode}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-                  dualMode
-                    ? 'bg-brand-coral/10 text-brand-coral dark:bg-brand-coral/20'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/15'
-                }`}
-              >
-                <Languages className="h-3.5 w-3.5" />
-                {t('videoPage.dualSubtitles')}
-              </button>
-            </div>
+        <div className="flex items-center gap-2">
+          {onSync && !isLoading && !error && subtitles.length > 0 && (
+            <button
+              onClick={onSync}
+              className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+              title={t('videoPage.syncSubtitle')}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              {t('videoPage.syncSubtitle')}
+            </button>
           )}
-
-          {dualMode && secondaryOptions.length > 0 && (
-            <div className="flex-1">
-              <label className="block text-[11px] font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
-                {t('videoPage.secondarySubtitle')}
-              </label>
-              <div className="relative">
-                <select
-                  value={secondaryLang}
-                  onChange={(e) => handleSecondaryChange(e.target.value)}
-                  className="appearance-none w-full rounded-lg bg-gray-100 py-2 pl-3 pr-8 text-sm font-medium text-gray-900 outline-none transition-colors hover:bg-gray-200 focus:ring-2 focus:ring-brand-coral/50 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
-                >
-                  {secondaryOptions.map((lang) => (
-                    <option key={lang.code} value={lang.code}>
-                      {lang.name}{lang.isAutoGenerated ? ` (${t('videoPage.autoGenerated')})` : ''}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
-              </div>
-            </div>
+          {selectedLangInfo?.isAutoGenerated && (
+            <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              {t('videoPage.autoGenerated')}
+            </span>
           )}
         </div>
+      </div>
 
-        {primaryLoading ? (
+      <div className="p-4">
+        {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-8 text-gray-500 dark:text-gray-400">
             <Loader2 className="h-6 w-6 animate-spin" />
             <p className="text-sm">{t('videoPage.loadingCaptions')}</p>
           </div>
-        ) : primaryError ? (
+        ) : error ? (
           <div className="flex flex-col items-center justify-center gap-3 py-8">
             <AlertCircle className="h-6 w-6 text-red-500" />
-            <p className="text-sm text-gray-600 dark:text-gray-300">{primaryError}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">{error}</p>
             <button
-              onClick={handleRetryPrimary}
+              onClick={handleRetry}
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-pink"
             >
               <RefreshCw className="h-4 w-4" />
               {t('videoPage.tryAgain')}
             </button>
           </div>
-        ) : primarySubtitles.length === 0 ? (
+        ) : subtitles.length === 0 ? (
           <div className="min-h-[3rem]" />
         ) : (
-          <div className="space-y-2">
-            <div className="flex items-center justify-center min-h-[3rem]">
-              {primaryCue ? (
-                <p className="text-center text-lg sm:text-xl font-medium leading-relaxed text-gray-900 dark:text-white">
-                  {primaryCue.text}
-                </p>
-              ) : null}
-            </div>
-
-            {dualMode && (
-              <>
-                {secondaryLoading ? (
-                  <div className="flex items-center justify-center py-4 text-gray-400 dark:text-gray-500">
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-xs">{t('videoPage.loadingCaptions')}</span>
-                  </div>
-                ) : secondaryError ? (
-                  <div className="flex items-center justify-center gap-2 py-4">
-                    <AlertCircle className="h-4 w-4 text-red-400" />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{secondaryError}</p>
-                    <button
-                      onClick={handleRetrySecondary}
-                      className="text-xs text-brand-coral hover:underline"
-                    >
-                      {t('videoPage.tryAgain')}
-                    </button>
-                  </div>
-                ) : secondarySubtitles.length === 0 ? (
-                  <div className="py-3 text-center text-xs text-gray-400 dark:text-gray-500">
-                    {t('videoPage.noSubtitlesForLanguage')}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center min-h-[2rem]">
-                    {secondaryCue ? (
-                      <p className="text-center text-sm sm:text-base font-normal leading-relaxed text-gray-500 dark:text-gray-400">
-                        {secondaryCue.text}
-                      </p>
-                    ) : null}
-                  </div>
-                )}
-              </>
-            )}
+          <div className="flex items-center justify-center min-h-[3rem]">
+            {activeCue ? (
+              <p className="text-center text-lg sm:text-xl font-medium leading-relaxed text-gray-900 dark:text-white">
+                {activeCue.text}
+              </p>
+            ) : null}
           </div>
         )}
       </div>

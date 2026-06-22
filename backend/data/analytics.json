@@ -1,5 +1,5 @@
 {
-  "totalVisits": 780,
+  "totalVisits": 789,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -8,8 +8,8 @@
     "c3e436d4-d188-4604-ab20-b5453ee19fd9"
   ],
   "pageViews": {
-    "/": 177,
-    "/analytics": 3,
+    "/": 181,
+    "/analytics": 4,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
     "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A": 2,
@@ -117,7 +117,7 @@
     "/video/hnhkGaQvBTg": 7,
     "/video/5hdIdVBwC0Y": 6,
     "/video/FMO1lGmxEvc": 1,
-    "/video/UIUH3_W0WLg": 15,
+    "/video/UIUH3_W0WLg": 16,
     "/video/4CSh41BQAnY": 2,
     "/video/7oGPbi5Hcvc": 11,
     "/video/zoHj43dI5Fo": 11,
@@ -181,7 +181,7 @@
     "hnhkGaQvBTg": 1,
     "5hdIdVBwC0Y": 1,
     "FMO1lGmxEvc": 1,
-    "UIUH3_W0WLg": 3,
+    "UIUH3_W0WLg": 6,
     "4CSh41BQAnY": 2,
     "7oGPbi5Hcvc": 2,
     "zoHj43dI5Fo": 5,
@@ -190,6 +190,6 @@
   "dailyVisits": {
     "2026-06-20": 197,
     "2026-06-21": 503,
-    "2026-06-22": 80
+    "2026-06-22": 89
   }
 }

@@ -776,6 +776,13 @@ function VideoPage() {
                     <CaptionsPanel
                       videoId={safeEmbedId}
                       currentPlaybackTime={currentPlaybackTime}
+                      onSync={() => {
+                        const t = currentTimeRef.current;
+                        trackingStartRef.current = Date.now();
+                        initialOffsetRef.current = t;
+                        setCurrentPlaybackTime(t);
+                        updatePosition(t, durationSeconds);
+                      }}
                     />
                   </div>
                 ) : <VideoNotes videoId={safeEmbedId} currentTime={currentPlaybackTime} onSeek={(s) => { currentTimeRef.current = s; setCurrentPlaybackTime(s); updatePosition(s, durationSeconds); }} t={t} showToast={showToast} />}

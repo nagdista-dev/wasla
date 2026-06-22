@@ -671,6 +671,7 @@ const en = {
    'videoPage.primarySubtitle': 'Primary',
    'videoPage.secondarySubtitle': 'Secondary',
    'videoPage.noSubtitlesForLanguage': 'No subtitles available for this language',
+   'videoPage.syncSubtitle': 'Sync',
    'videoPage.notes': 'Notes',
    'videoPage.addNote': 'Add Note',
    'videoPage.addNotePlaceholder': 'Write a note here...',

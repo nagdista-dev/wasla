@@ -670,6 +670,7 @@ const ar: Record<string, string> = {
    'videoPage.primarySubtitle': 'الأساسية',
    'videoPage.secondarySubtitle': 'الثانوية',
    'videoPage.noSubtitlesForLanguage': 'لا توجد ترجمة متاحة لهذه اللغة',
+   'videoPage.syncSubtitle': 'مزامنة',
    'videoPage.notes': 'ملاحظات',
   'videoPage.addNote': 'إضافة ملاحظة',
   'videoPage.addNotePlaceholder': 'اكتب ملاحظة هنا...',
