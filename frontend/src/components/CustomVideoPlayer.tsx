@@ -134,16 +134,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   }, []);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      sendMessage('getCurrentTime');
-    }, 500);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [sendMessage]);
-
-  useEffect(() => {
     registerSeekHandler(handleSeek);
     return () => unregisterSeekHandler();
   }, [registerSeekHandler, unregisterSeekHandler, handleSeek]);
