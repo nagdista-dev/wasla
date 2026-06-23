@@ -258,37 +258,27 @@ function VideoPage() {
     let found: (LatestVideo & { channelId?: string }) | null = null;
 
     const resolveVideo = async () => {
-      console.log('[VideoPage] Resolving video for videoId:', videoId);
       const stateData = location.state as { video?: LatestVideo; channelId?: string } | undefined;
       if (stateData?.video && !signal.aborted) {
         const extractedId = extractVideoId(stateData.video.link);
-        console.log('[VideoPage] Extracted videoId from state:', extractedId);
         if (extractedId === videoId) {
           found = { ...stateData.video, channelId: stateData.channelId };
-          console.log('[VideoPage] Found video from state:', found.title);
         }
       }
 
       if (!found && currentVideo && currentVideo._videoId === videoId && !signal.aborted) {
         found = { ...currentVideo };
-        console.log('[VideoPage] Found video from currentVideo:', found.title);
       }
 
       if (!found && videoId && !signal.aborted) {
-        console.log('[VideoPage] Trying to find cached video for videoId:', videoId);
         found = await findCachedHomeVideoById(videoId);
-        if (found) {
-          console.log('[VideoPage] Found cached video:', found.title);
-        }
       }
 
       if (!found && videoId && !signal.aborted) {
-        console.log('[VideoPage] Fetching video data from API for videoId:', videoId);
         try {
           const res = await api.get<{ success: boolean; data?: LatestVideo }>(`/video/${videoId}`, { signal });
           if (!signal.aborted && res.data?.success && res.data?.data) {
             found = res.data.data;
-            console.log('[VideoPage] Found video from API:', found?.title);
           }
         } catch (err) {
           if (axios.isCancel(err)) return;
