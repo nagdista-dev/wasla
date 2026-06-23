@@ -479,19 +479,15 @@ interface TrackInfo {
 }
 
 const INNERTUBE_API_KEY = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
-const INNERTUBE_API_URL = `https://www.youtube.com/youtubei/v1/player?key=${INNERTUBE_API_KEY}`;
+const INNERTUBE_API_URL = `https://www.youtube.com/youtubei/v1/player?key=${INNERTUBE_API_KEY}&hl=en&gl=US`;
 
 const INNERTUBE_CLIENT_CONTEXTS = [
   {
-    client: { clientName: 'ANDROID', clientVersion: '20.10.38', androidSdkVersion: 34, osVersion: '14', platform: 'MOBILE', deviceModel: 'Pixel 7' },
+    client: { clientName: 'ANDROID', clientVersion: '20.10.38', hl: 'en', gl: 'US' },
     userAgent: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14)',
   },
   {
-    client: { clientName: 'ANDROID', clientVersion: '19.09.37', androidSdkVersion: 33, osVersion: '13', platform: 'MOBILE', deviceModel: 'SM-S908B' },
-    userAgent: 'com.google.android.youtube/19.09.37 (Linux; U; Android 13)',
-  },
-  {
-    client: { clientName: 'WEB', clientVersion: '2.20250101.00.00' },
+    client: { clientName: 'WEB', clientVersion: '2.20250101.00.00', hl: 'en', gl: 'US' },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   },
 ];
@@ -509,17 +505,16 @@ async function fetchCaptionTracks(videoId: string): Promise<{
         headers: {
           'Content-Type': 'application/json',
           'User-Agent': ctx.userAgent,
-          'Accept': '*/*',
           'Accept-Language': 'en-US,en;q=0.9',
-          'Origin': 'https://www.youtube.com',
-          'Referer': `https://www.youtube.com/watch?v=${videoId}`,
-          'X-YouTube-Client-Name': ctx.client.clientName === 'ANDROID' ? '2' : '1',
-          'X-YouTube-Client-Version': ctx.client.clientVersion,
+          'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+; SOCS=CAISHAgCEhJnd3NfMjAyMjA2MTUtMF9SQzIaAmVuIAEaBgiA_LqoBg',
         },
         body: JSON.stringify({
-          context: { client: ctx.client },
+          context: {
+            client: ctx.client,
+            user: { lockedSafetyMode: false },
+            thirdParty: { embedUrl: 'https://www.youtube.com' },
+          },
           videoId,
-          params: '8AEB',
         }),
       });
       if (!resp.ok) {
@@ -551,6 +546,7 @@ async function fetchCaptionTracks(videoId: string): Promise<{
         'User-Agent': desktopUA,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
+        'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+; SOCS=CAISHAgCEhJnd3NfMjAyMjA2MTUtMF9SQzIaAmVuIAEaBgiA_LqoBg',
       },
       redirect: 'follow',
     });
