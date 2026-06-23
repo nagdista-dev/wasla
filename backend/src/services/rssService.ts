@@ -496,6 +496,8 @@ async function fetchCaptionTracks(videoId: string): Promise<{
   captionTracks: any[];
   playerResponse: any;
 } | null> {
+  const desktopUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
   for (const ctx of INNERTUBE_CLIENT_CONTEXTS) {
     try {
       const resp = await fetch(INNERTUBE_API_URL, {
@@ -503,22 +505,66 @@ async function fetchCaptionTracks(videoId: string): Promise<{
         headers: {
           'Content-Type': 'application/json',
           'User-Agent': ctx.userAgent,
+          'Accept': '*/*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Origin': 'https://www.youtube.com',
+          'Referer': `https://www.youtube.com/watch?v=${videoId}`,
         },
         body: JSON.stringify({
           context: { client: ctx.client },
           videoId,
         }),
       });
-      if (!resp.ok) continue;
+      if (!resp.ok) {
+        console.warn(`[fetchCaptionTracks] InnerTube ${ctx.client.clientName} returned ${resp.status}`);
+        continue;
+      }
       const data = await resp.json();
       const captionTracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
       if (Array.isArray(captionTracks) && captionTracks.length > 0) {
         return { captionTracks, playerResponse: data };
       }
-    } catch {
-      continue;
+      console.warn(`[fetchCaptionTracks] InnerTube ${ctx.client.clientName} returned no caption tracks`);
+    } catch (err) {
+      console.warn(`[fetchCaptionTracks] InnerTube ${ctx.client.clientName} error:`, err instanceof Error ? err.message : err);
     }
   }
+
+  try {
+    console.warn(`[fetchCaptionTracks] Trying HTML scrape for ${videoId}`);
+    const watchResp = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: {
+        'User-Agent': desktopUA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      redirect: 'follow',
+    });
+    if (!watchResp.ok) {
+      console.warn(`[fetchCaptionTracks] Watch page returned ${watchResp.status}`);
+      return null;
+    }
+    const html = await watchResp.text();
+    if (html.includes('class="g-recaptcha"')) {
+      console.warn(`[fetchCaptionTracks] Watch page shows captcha`);
+      return null;
+    }
+    const match = html.match(/ytInitialPlayerResponse\s*=\s*({.*?});/s);
+    if (!match) {
+      console.warn(`[fetchCaptionTracks] Could not find ytInitialPlayerResponse in HTML`);
+      return null;
+    }
+    const data = JSON.parse(match[1]);
+    const captionTracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+    if (Array.isArray(captionTracks) && captionTracks.length > 0) {
+      console.warn(`[fetchCaptionTracks] HTML scrape found ${captionTracks.length} tracks`);
+      return { captionTracks, playerResponse: data };
+    }
+    console.warn(`[fetchCaptionTracks] HTML scrape found no caption tracks`);
+  } catch (err) {
+    console.warn(`[fetchCaptionTracks] HTML scrape error:`, err instanceof Error ? err.message : err);
+  }
+
   return null;
 }
 
