@@ -191,7 +191,7 @@ function VideoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { currentVideo } = usePlayer();
+  const { currentVideo, registerFullscreenContainer, unregisterFullscreenContainer } = usePlayer();
   const mediaManager = useMediaManager();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -217,6 +217,7 @@ function VideoPage() {
   const initialOffsetRef = useRef(0);
   const animFrameRef = useRef<number>(0);
   const currentTimeRef = useRef(0);
+  const isPlayingRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const {
@@ -238,6 +239,13 @@ function VideoPage() {
     setCurrentPlaybackTime(0);
     historyRecordedRef.current = false;
   }, [videoId]);
+
+  useEffect(() => {
+    if (playerContainerRef.current) {
+      registerFullscreenContainer(playerContainerRef.current);
+    }
+    return () => unregisterFullscreenContainer();
+  }, [registerFullscreenContainer, unregisterFullscreenContainer]);
 
   useEffect(() => {
     if (abortRef.current) {
@@ -372,23 +380,24 @@ function VideoPage() {
     initialOffsetRef.current = currentTimeRef.current;
 
     const tick = () => {
-      const elapsed = (Date.now() - trackingStartRef.current) / 1000;
-      const currentTime = Math.max(0, initialOffsetRef.current + elapsed);
-      currentTimeRef.current = currentTime;
-      setCurrentPlaybackTime(currentTime);
+      if (isPlayingRef.current) {
+        const elapsed = (Date.now() - trackingStartRef.current) / 1000;
+        const currentTime = Math.max(0, initialOffsetRef.current + elapsed);
+        currentTimeRef.current = currentTime;
+        setCurrentPlaybackTime(currentTime);
 
-      if (durationSeconds > 0) {
-        const pct = (currentTime / durationSeconds) * 100;
-        updatePosition(currentTime, durationSeconds);
-        if (progressBarRef.current) {
-          progressBarRef.current.style.width = `${Math.min(pct, 100)}%`;
+        if (durationSeconds > 0) {
+          const pct = (currentTime / durationSeconds) * 100;
+          updatePosition(currentTime, durationSeconds);
+          if (progressBarRef.current) {
+            progressBarRef.current.style.width = `${Math.min(pct, 100)}%`;
+          }
+          if (currentTime >= durationSeconds) {
+            return;
+          }
         }
-        if (currentTime < durationSeconds) {
-          animFrameRef.current = requestAnimationFrame(tick);
-        }
-      } else {
-        animFrameRef.current = requestAnimationFrame(tick);
       }
+      animFrameRef.current = requestAnimationFrame(tick);
     };
 
     animFrameRef.current = requestAnimationFrame(tick);
@@ -491,7 +500,7 @@ function VideoPage() {
   const player = (
     <div
       ref={playerContainerRef}
-      className="relative w-full bg-black overflow-hidden rounded-xl aspect-video shadow-md sm:shadow-2xl sm:ring-1 sm:ring-white/5 min-h-[200px]"
+      className="relative w-full bg-black overflow-hidden rounded-xl aspect-video shadow-md sm:shadow-2xl sm:ring-1 sm:ring-white/5 min-h-[200px] xl:max-h-[65vh]"
     >
       {safeEmbedId && progressChecked ? (
         <>
@@ -499,7 +508,11 @@ function VideoPage() {
             videoId={safeEmbedId}
             startTime={startTime}
             onPlayStateChange={(isPlaying) => {
-              if (!isPlaying) {
+              isPlayingRef.current = isPlaying;
+              if (isPlaying) {
+                trackingStartRef.current = Date.now();
+                initialOffsetRef.current = currentTimeRef.current;
+              } else {
                 saveOnPause();
               }
             }}
@@ -732,7 +745,7 @@ function VideoPage() {
       <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 pt-4 lg:py-6">
         <div className="flex flex-col gap-6 sm:gap-8">
 
-          <div className="w-full">
+          <div className="w-full max-sm:sticky max-sm:top-16 max-sm:z-10">
             {player}
           </div>
 

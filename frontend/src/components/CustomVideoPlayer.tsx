@@ -197,7 +197,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-video bg-black overflow-hidden rounded-xl"
+      className="relative w-full h-full bg-black overflow-hidden rounded-xl"
       onClick={handleOverlayClick}
       onMouseMove={handleMouseMove}
     >

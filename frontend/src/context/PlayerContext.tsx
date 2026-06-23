@@ -10,6 +10,11 @@ interface PlayerContextType {
   seekTo: (seconds: number) => void;
   registerSeekHandler: (handler: (seconds: number) => void) => void;
   unregisterSeekHandler: () => void;
+  registerFullscreenContainer: (el: HTMLElement) => void;
+  unregisterFullscreenContainer: () => void;
+  toggleFullscreen: () => void;
+  hasFullscreenContainer: boolean;
+  isFullscreen: boolean;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -52,8 +57,48 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     seekHandlerRef.current = null;
   }, []);
 
+  const fullscreenContainerRef = useRef<HTMLElement | null>(null);
+  const [hasFullscreenContainer, setHasFullscreenContainer] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const registerFullscreenContainer = useCallback((el: HTMLElement) => {
+    fullscreenContainerRef.current = el;
+    setHasFullscreenContainer(true);
+  }, []);
+
+  const unregisterFullscreenContainer = useCallback(() => {
+    fullscreenContainerRef.current = null;
+    setHasFullscreenContainer(false);
+    setIsFullscreen(false);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    const el = fullscreenContainerRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      el.style.borderRadius = '0';
+      el.requestFullscreen().catch(() => {
+        el.style.borderRadius = '';
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      const isFS = document.fullscreenElement === fullscreenContainerRef.current;
+      setIsFullscreen(isFS);
+      if (!document.fullscreenElement && fullscreenContainerRef.current) {
+        fullscreenContainerRef.current.style.borderRadius = '';
+      }
+    };
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
   return (
-    <PlayerContext.Provider value={{ currentVideo, play, close, seekTo, registerSeekHandler, unregisterSeekHandler }}>
+    <PlayerContext.Provider value={{ currentVideo, play, close, seekTo, registerSeekHandler, unregisterSeekHandler, registerFullscreenContainer, unregisterFullscreenContainer, toggleFullscreen, hasFullscreenContainer, isFullscreen }}>
       {children}
     </PlayerContext.Provider>
   );

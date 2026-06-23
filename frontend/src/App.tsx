@@ -29,6 +29,8 @@ import {
   History,
   Newspaper,
   BarChart3,
+  Maximize,
+  Minimize,
 } from "lucide-react";
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -41,6 +43,7 @@ import MobileAppBanner from "./components/MobileAppBanner";
 import type { Channel, FavoriteVideo, Playlist, PlaylistEntry } from "./types";
 import { loadChannels, saveChannels, loadPlaylists, savePlaylists, readStoredValue, loadSetting } from "./storage";
 import { useLanguage } from "./context/LanguageContext";
+import { usePlayer } from "./context/PlayerContext";
 import { useFavorites } from "./context/FavoritesContext";
 import { useTheme } from "./context/ThemeContext";
 import { useAudio } from "./context/AudioContext";
@@ -164,6 +167,7 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { currentVideo: audioVideo, isPlaying: isAudioPlaying } = useAudio();
+  const { hasFullscreenContainer, isFullscreen, toggleFullscreen } = usePlayer();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -239,6 +243,16 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
           <Languages className="h-5 w-5" />
         </button>
 
+        {hasFullscreenContainer && (
+          <button
+            onClick={toggleFullscreen}
+            className="rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/10 transition-all active:scale-90"
+            aria-label={t('miniPlayer.fullscreen')}
+          >
+            {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+          </button>
+        )}
+
         {isAudioPlaying && audioVideo && (
           <>
             <div className="mx-2 h-6 w-px bg-gray-200/70 dark:bg-gray-700/50" />
@@ -278,12 +292,12 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
       <div
         className={`fixed top-0 ${
           isRTL ? "right-0" : "left-0"
-        } h-dvh w-64 bg-white shadow-2xl dark:bg-dark-navy flex flex-col will-change-transform ${
+        } h-dvh w-64 bg-white shadow-2xl dark:bg-dark-navy overflow-y-auto will-change-transform ${
           isRTL ? "animate-slide-in" : "animate-slide-in-rtl"
         }`}
       >
         {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-100 px-4 dark:border-gray-700/50 flex-shrink-0">
+        <div className="flex h-16 items-center justify-between border-b border-gray-100 px-4 dark:border-gray-700/50">
           <Link to="/" onClick={() => setSkipHomeFetch()} className="flex items-center">
             <img src={logo} alt={t('app.name')} className="h-11 w-11 object-contain" />
           </Link>
@@ -298,7 +312,7 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
         </div>
 
         {/* Navigation */}
-        <nav className="flex flex-col px-3 py-2 space-y-0.5 flex-shrink-0">
+        <nav className="flex flex-col px-3 py-2 space-y-0.5">
           {navItems.map((item) => {
             const isActive = pathname === item.path || (item.path === '/posts' && (pathname.startsWith('/posts/') || pathname.startsWith('/post/')));
 
@@ -326,15 +340,15 @@ const Navigation = memo(function Navigation({ channels, onOpenSearch }: { channe
           })}
         </nav>
 
-        {/* Categories (scroll area) */}
-        <div className="flex flex-col flex-1 min-h-0 border-t border-gray-100 dark:border-gray-700/50">
-          <div className="px-4 pt-3 pb-1 flex-0">
+        {/* Categories */}
+        <div className="border-t border-gray-100 dark:border-gray-700/50">
+          <div className="px-4 pt-3 pb-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 dark:text-gray-500">
               {t('nav.categories')}
             </p>
           </div>
 
-          <div className="flex-1 min-h-0 modal-scroll px-3 pb-4 space-y-0.5">
+          <div className="px-3 pb-4 space-y-0.5">
             <Link
               to="/"
               onClick={closeMenu}

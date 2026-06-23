@@ -1,5 +1,5 @@
 {
-  "totalVisits": 791,
+  "totalVisits": 857,
   "uniqueVisitors": [
     "fd1a9956-974c-4a00-a00c-c5a3b62bf20a",
     "df116cf8-f550-4bf7-b399-08b81e105525",
@@ -8,8 +8,8 @@
     "c3e436d4-d188-4604-ab20-b5453ee19fd9"
   ],
   "pageViews": {
-    "/": 183,
-    "/analytics": 4,
+    "/": 195,
+    "/analytics": 5,
     "/video/sahl43TkY5Y": 6,
     "/video/CJy6ltUkxUo": 1,
     "/category/%D8%A3%D9%84%D9%85%D8%A7%D9%86%D9%8A": 2,
@@ -54,13 +54,13 @@
     "/watch-later": 2,
     "/channels": 14,
     "/playlists": 3,
-    "/courses": 1,
+    "/courses": 2,
     "/contact": 2,
-    "/favorites": 4,
+    "/favorites": 6,
     "/settings": 1,
     "/posts": 3,
     "/video/dQw4w9WgXcQ": 2,
-    "/category/English": 38,
+    "/category/English": 40,
     "/import/category": 7,
     "/channel/UCKgpamMlm872zkGDcBJHYDg": 2,
     "/video/sbAns1wSxkk": 5,
@@ -120,8 +120,14 @@
     "/video/UIUH3_W0WLg": 16,
     "/video/4CSh41BQAnY": 2,
     "/video/7oGPbi5Hcvc": 11,
-    "/video/zoHj43dI5Fo": 11,
-    "/video/bqbr3a0qYZg": 3
+    "/video/zoHj43dI5Fo": 18,
+    "/video/bqbr3a0qYZg": 3,
+    "/video/WMGP17ArXB4": 5,
+    "/video/uXZeWP-SKUA": 16,
+    "/video/Yz7fCWKsoLc": 6,
+    "/video/X2TQi2KHZa8": 1,
+    "/video/esBWiammvYY": 1,
+    "/channel/UChao0Pl0YbT55-oTD1mDyYA": 1
   },
   "videoClicks": {
     "CJy6ltUkxUo": 1,
@@ -184,12 +190,18 @@
     "UIUH3_W0WLg": 6,
     "4CSh41BQAnY": 2,
     "7oGPbi5Hcvc": 2,
-    "zoHj43dI5Fo": 5,
-    "bqbr3a0qYZg": 1
+    "zoHj43dI5Fo": 6,
+    "bqbr3a0qYZg": 1,
+    "WMGP17ArXB4": 1,
+    "uXZeWP-SKUA": 3,
+    "Yz7fCWKsoLc": 4,
+    "X2TQi2KHZa8": 1,
+    "esBWiammvYY": 1
   },
   "dailyVisits": {
     "2026-06-20": 197,
     "2026-06-21": 503,
-    "2026-06-22": 91
+    "2026-06-22": 91,
+    "2026-06-23": 66
   }
 }
