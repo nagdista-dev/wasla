@@ -483,8 +483,12 @@ const INNERTUBE_API_URL = `https://www.youtube.com/youtubei/v1/player?key=${INNE
 
 const INNERTUBE_CLIENT_CONTEXTS = [
   {
-    client: { clientName: 'ANDROID', clientVersion: '20.10.38' },
+    client: { clientName: 'ANDROID', clientVersion: '20.10.38', androidSdkVersion: 34, osVersion: '14', platform: 'MOBILE', deviceModel: 'Pixel 7' },
     userAgent: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14)',
+  },
+  {
+    client: { clientName: 'ANDROID', clientVersion: '19.09.37', androidSdkVersion: 33, osVersion: '13', platform: 'MOBILE', deviceModel: 'SM-S908B' },
+    userAgent: 'com.google.android.youtube/19.09.37 (Linux; U; Android 13)',
   },
   {
     client: { clientName: 'WEB', clientVersion: '2.20250101.00.00' },
@@ -509,10 +513,13 @@ async function fetchCaptionTracks(videoId: string): Promise<{
           'Accept-Language': 'en-US,en;q=0.9',
           'Origin': 'https://www.youtube.com',
           'Referer': `https://www.youtube.com/watch?v=${videoId}`,
+          'X-YouTube-Client-Name': ctx.client.clientName === 'ANDROID' ? '2' : '1',
+          'X-YouTube-Client-Version': ctx.client.clientVersion,
         },
         body: JSON.stringify({
           context: { client: ctx.client },
           videoId,
+          params: '8AEB',
         }),
       });
       if (!resp.ok) {
@@ -520,7 +527,14 @@ async function fetchCaptionTracks(videoId: string): Promise<{
         continue;
       }
       const data = await resp.json();
+      const hasCaptions = data?.captions != null;
+      const hasRenderer = data?.captions?.playerCaptionsTracklistRenderer != null;
       const captionTracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+      if (!hasCaptions) {
+        console.warn(`[fetchCaptionTracks] InnerTube ${ctx.client.clientName}: no captions object in response`);
+      } else if (!hasRenderer) {
+        console.warn(`[fetchCaptionTracks] InnerTube ${ctx.client.clientName}: no playerCaptionsTracklistRenderer`);
+      }
       if (Array.isArray(captionTracks) && captionTracks.length > 0) {
         return { captionTracks, playerResponse: data };
       }
