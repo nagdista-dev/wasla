@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { AlertCircle, RefreshCw, Loader2, Clock, Copy, Check } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
@@ -19,7 +19,14 @@ type CaptionsPanelProps = {
   videoId: string;
   currentPlaybackTime: number;
   onSync?: () => void;
+  onSeek?: (seconds: number) => void;
 };
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 const CACHE = new Map<string, { languages: LanguageInfo[]; subtitles: SubtitleCue[] }>();
 const ACTIVE_REQUESTS = new Map<string, AbortController>();
@@ -34,7 +41,7 @@ function findActiveCue(subtitles: SubtitleCue[], time: number): SubtitleCue | un
 
 const DEFAULT_LANG = 'en';
 
-function CaptionsPanel({ videoId, currentPlaybackTime, onSync }: CaptionsPanelProps) {
+function CaptionsPanel({ videoId, currentPlaybackTime, onSync, onSeek }: CaptionsPanelProps) {
   const { t } = useLanguage();
   const [languages, setLanguages] = useState<LanguageInfo[]>([]);
   const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
@@ -42,8 +49,23 @@ function CaptionsPanel({ videoId, currentPlaybackTime, onSync }: CaptionsPanelPr
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
 
   const activeCue = findActiveCue(subtitles, currentPlaybackTime);
+  const activeIndex = activeCue ? subtitles.indexOf(activeCue) : -1;
+
+  useEffect(() => {
+    if (activeRef.current && listRef.current) {
+      const container = listRef.current;
+      const el = activeRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      if (elRect.top < containerRect.top || elRect.bottom > containerRect.bottom) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [activeIndex]);
 
   useEffect(() => {
     setLanguages([]);
@@ -191,12 +213,33 @@ function CaptionsPanel({ videoId, currentPlaybackTime, onSync }: CaptionsPanelPr
         ) : subtitles.length === 0 ? (
           <div className="min-h-[3rem]" />
         ) : (
-          <div className="flex items-center justify-center min-h-[3rem]">
-            {activeCue ? (
-              <p className="text-center text-lg sm:text-xl font-medium leading-relaxed text-gray-900 dark:text-white">
-                {activeCue.text}
-              </p>
-            ) : null}
+          <div ref={listRef} className="max-h-[400px] overflow-y-auto space-y-1">
+            {subtitles.map((cue, i) => {
+              const isActive = i === activeIndex;
+              return (
+                <button
+                  key={i}
+                  ref={isActive ? activeRef : undefined}
+                  onClick={() => onSeek?.(cue.start)}
+                  className={`w-full text-left flex items-start gap-3 rounded-lg p-3 transition-colors ${
+                    isActive
+                      ? 'bg-brand-coral/10 dark:bg-brand-coral/20 border border-brand-coral/30'
+                      : 'hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  <span className="shrink-0 mt-0.5 min-w-[4rem] text-xs font-mono text-gray-400 dark:text-gray-500">
+                    {formatTime(cue.start)}
+                  </span>
+                  <span className={`text-sm leading-relaxed ${
+                    isActive
+                      ? 'font-medium text-gray-900 dark:text-white'
+                      : 'text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {cue.text}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

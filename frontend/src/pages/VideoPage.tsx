@@ -191,7 +191,7 @@ function VideoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { currentVideo, registerFullscreenContainer, unregisterFullscreenContainer } = usePlayer();
+  const { currentVideo, registerFullscreenContainer, unregisterFullscreenContainer, seekTo } = usePlayer();
   const mediaManager = useMediaManager();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -238,6 +238,7 @@ function VideoPage() {
     setActiveTab('info');
     setCurrentPlaybackTime(0);
     historyRecordedRef.current = false;
+    requestAnimationFrame(() => window.scrollTo(0, 0));
   }, [videoId]);
 
   useEffect(() => {
@@ -785,6 +786,14 @@ function VideoPage() {
                         initialOffsetRef.current = t;
                         setCurrentPlaybackTime(t);
                         updatePosition(t, durationSeconds);
+                      }}
+                      onSeek={(seconds) => {
+                        currentTimeRef.current = seconds;
+                        setCurrentPlaybackTime(seconds);
+                        updatePosition(seconds, durationSeconds);
+                        trackingStartRef.current = Date.now();
+                        initialOffsetRef.current = seconds;
+                        seekTo(seconds);
                       }}
                     />
                   </div>
