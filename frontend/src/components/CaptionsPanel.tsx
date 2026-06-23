@@ -210,9 +210,19 @@ function CaptionsPanel({ videoId, currentPlaybackTime, onSync, onSeek }: Caption
               {t('videoPage.tryAgain')}
             </button>
           </div>
-        ) : subtitles.length === 0 ? (
-          <div className="min-h-[3rem]" />
-        ) : (
+        ) : subtitles.length === 0 && !isLoading ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-gray-500 dark:text-gray-400">
+            <AlertCircle className="h-6 w-6" />
+            <p className="text-sm">{t('videoPage.noSubtitlesForLanguage')}</p>
+            <button
+              onClick={handleRetry}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-coral px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-pink"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t('videoPage.tryAgain')}
+            </button>
+          </div>
+        ) : subtitles.length > 0 ? (
           <div ref={listRef} className="max-h-[400px] overflow-y-auto space-y-1">
             {subtitles.map((cue, i) => {
               const isActive = i === activeIndex;
@@ -241,7 +251,7 @@ function CaptionsPanel({ videoId, currentPlaybackTime, onSync, onSeek }: Caption
               );
             })}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
