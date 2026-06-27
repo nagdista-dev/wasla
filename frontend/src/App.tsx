@@ -6,7 +6,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { getScrollPosition, getRouteScrollKey, setSkipHomeFetch } from './utils/scrollRestoration';
+import { getScrollPosition, saveScrollPosition, getRouteScrollKey, setSkipHomeFetch } from './utils/scrollRestoration';
 import { trackPageView } from './services/analyticsService';
 import {
   Home,
@@ -125,11 +125,17 @@ function ScrollToTop() {
 
   useEffect(() => {
     if (prevPathname.current === pathname) return;
+    const leaving = prevPathname.current;
     prevPathname.current = pathname;
 
-    const routeKey = getRouteScrollKey(pathname);
-    const saved = getScrollPosition(routeKey);
+    // ── Save scroll position of the page we're LEAVING before we scroll anywhere ──
+    // This must happen BEFORE window.scrollTo(0,0) so we capture the real position.
+    saveScrollPosition(getRouteScrollKey(leaving));
+
+    // ── For the page we're arriving at, restore if saved, else go to top ──
+    const saved = getScrollPosition(getRouteScrollKey(pathname));
     if (saved > 0) {
+      // Page component (e.g. HomePage) will handle the actual scrollTo restoration.
       return;
     }
     window.scrollTo(0, 0);

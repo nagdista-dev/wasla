@@ -80,9 +80,12 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
     };
   }, []);
 
-  // Save scroll on unmount
+  // Save scroll on unmount – only if we're still scrolled down (avoid saving 0
+  // after ScrollToTop has already scrolled to 0 for the new route).
   useEffect(() => {
-    return () => saveHomeScroll();
+    return () => {
+      if (window.scrollY > 0) saveHomeScroll();
+    };
   }, []);
 
   // Restore scroll once: after items are painted AND continueWatching is resolved.

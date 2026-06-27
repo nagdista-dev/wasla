@@ -51,9 +51,21 @@ function CaptionsPanel({ videoId, currentPlaybackTime, onSync, onSeek }: Caption
   const [copied, setCopied] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
+  // When the user clicks a cue we "pin" that cue index until playback naturally
+  // reaches the next cue, avoiding a flicker where the highlight jumps to the
+  // wrong cue while the YouTube iframe is still seeking.
+  const [pinnedIndex, setPinnedIndex] = useState<number>(-1);
 
-  const activeCue = findActiveCue(subtitles, currentPlaybackTime);
-  const activeIndex = activeCue ? subtitles.indexOf(activeCue) : -1;
+  const naturalCue = findActiveCue(subtitles, currentPlaybackTime);
+  const naturalIndex = naturalCue ? subtitles.indexOf(naturalCue) : -1;
+
+  // Keep the pinned cue until the player actually reaches or passes it
+  const activePinExpired =
+    pinnedIndex < 0 ||
+    naturalIndex < 0 ||
+    naturalIndex >= pinnedIndex;
+  const activeIndex = activePinExpired ? naturalIndex : pinnedIndex;
+  const activeCue = activeIndex >= 0 ? subtitles[activeIndex] : undefined;
 
   useEffect(() => {
     if (activeRef.current && listRef.current) {
@@ -73,6 +85,7 @@ function CaptionsPanel({ videoId, currentPlaybackTime, onSync, onSeek }: Caption
     setLoadedLang('');
     setIsLoading(true);
     setError(null);
+    setPinnedIndex(-1);
 
     CACHE.clear();
     ACTIVE_REQUESTS.forEach(c => c.abort());
@@ -230,7 +243,7 @@ function CaptionsPanel({ videoId, currentPlaybackTime, onSync, onSeek }: Caption
                 <button
                   key={i}
                   ref={isActive ? activeRef : undefined}
-                  onClick={() => onSeek?.(cue.start)}
+                  onClick={() => { setPinnedIndex(i); onSeek?.(cue.start); }}
                   className={`w-full text-left flex items-start gap-3 rounded-lg p-3 transition-colors ${
                     isActive
                       ? 'bg-brand-coral/10 dark:bg-brand-coral/20 border border-brand-coral/30'
