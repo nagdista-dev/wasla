@@ -68,14 +68,20 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
 
   useEffect(() => { saveSetting('wasla_viewMode', viewMode); }, [viewMode]);
 
+  // Restore scroll position only once after data is ready
+  const scrollRestoredRef = useRef<boolean>(false);
   useEffect(() => {
+    if (!hasLoadedCache) return;
+    if (scrollRestoredRef.current) return;
+    scrollRestoredRef.current = true;
     const saved = getHomeScroll();
-    if (saved > 0 && channels.length > 0) {
-      requestAnimationFrame(() => {
-        window.scrollTo(0, saved);
-      });
+    if (saved > 0) {
+      const id = setTimeout(() => {
+        window.scrollTo({ top: saved, behavior: 'instant' });
+      }, 80);
+      return () => clearTimeout(id);
     }
-  }, [hasLoadedCache, channels.length]);
+  }, [hasLoadedCache]);
 
   useEffect(() => {
     return () => saveHomeScroll();
