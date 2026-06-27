@@ -80,44 +80,60 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
     };
   }, []);
 
-  // Save scroll on unmount – only if we're still scrolled down (avoid saving 0
-  // after ScrollToTop has already scrolled to 0 for the new route).
+  // Save scroll on unmount – only if still scrolled down (avoid overwriting
+  // the correct value with 0 after ScrollToTop scrolled to top for the new route).
   useEffect(() => {
     return () => {
       if (window.scrollY > 0) saveHomeScroll();
     };
   }, []);
 
-  // Restore scroll once: after items are painted AND continueWatching is resolved.
-  // We watch `items` and `continueWatching` together so we scroll after the full
-  // layout (including the "Continue Watching" row) is stable.
-  const scrollRestoredRef = useRef<boolean>(false);
+  // ── Robust scroll restoration ───────────────────────────────────────────────
+  // Read the target ONCE on mount so it can't be lost by re-renders.
+  // Only gate on `hasLoadedCache`; do NOT put `items` / `continueWatching` in
+  // deps — those changes would cancel the rAFs before they fired.
+  // On mobile the page grows progressively, so we keep retrying until we reach
+  // the saved position or give up after ~3 seconds.
+  const scrollDoneRef = useRef<boolean>(false);
+  const savedScrollTarget = useRef<number>(getHomeScroll());
   useEffect(() => {
     if (!hasLoadedCache) return;
-    if (scrollRestoredRef.current) return;
-    const saved = getHomeScroll();
-    if (saved <= 0) {
-      scrollRestoredRef.current = true;
+    if (scrollDoneRef.current) return;
+    const target = savedScrollTarget.current;
+    if (target <= 0) {
+      scrollDoneRef.current = true;
       return;
     }
-    // Use two rAFs: first one lets React commit the paint,
-    // second one fires after the browser has actually rendered.
-    let rafId1: number;
-    let rafId2: number;
-    rafId1 = requestAnimationFrame(() => {
-      rafId2 = requestAnimationFrame(() => {
-        if (!scrollRestoredRef.current) {
-          scrollRestoredRef.current = true;
-          window.scrollTo({ top: saved, behavior: 'instant' });
-        }
-      });
+
+    let attempts = 0;
+    const MAX_ATTEMPTS = 20;
+    let timerId: ReturnType<typeof setTimeout>;
+
+    const tryScroll = () => {
+      if (scrollDoneRef.current) return;
+      const maxTop = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo({ top: Math.min(target, Math.max(maxTop, 0)), behavior: 'instant' });
+
+      // Accept within 30 px tolerance (mobile rounding)
+      if (Math.abs(window.scrollY - target) < 30 || attempts >= MAX_ATTEMPTS) {
+        scrollDoneRef.current = true;
+        return;
+      }
+      attempts++;
+      timerId = setTimeout(tryScroll, 150);
+    };
+
+    // Two rAFs so React commits the first paint before we attempt scroll
+    let raf1 = requestAnimationFrame(() => {
+      requestAnimationFrame(tryScroll);
     });
+
     return () => {
-      cancelAnimationFrame(rafId1);
-      cancelAnimationFrame(rafId2);
+      cancelAnimationFrame(raf1);
+      clearTimeout(timerId);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasLoadedCache, items, continueWatching]);
+  }, [hasLoadedCache]);
 
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 

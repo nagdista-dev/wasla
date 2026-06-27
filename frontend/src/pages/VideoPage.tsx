@@ -491,7 +491,7 @@ function VideoPage() {
   const player = (
     <div
       ref={playerContainerRef}
-      className="relative w-full bg-black overflow-hidden rounded-xl aspect-video shadow-md sm:shadow-2xl sm:ring-1 sm:ring-white/5 min-h-[200px] xl:max-h-[65vh]"
+      className="relative w-full bg-black overflow-hidden rounded-xl aspect-video shadow-md sm:shadow-2xl sm:ring-1 sm:ring-white/5 min-h-[200px] lg:max-h-[55vh] xl:max-h-[52vh]"
     >
       {safeEmbedId && progressChecked ? (
         <>
