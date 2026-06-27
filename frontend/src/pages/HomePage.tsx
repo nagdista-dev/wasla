@@ -68,24 +68,53 @@ export default function HomePage({ channels, onUpdate, onImportChannelsJson }: {
 
   useEffect(() => { saveSetting('wasla_viewMode', viewMode); }, [viewMode]);
 
-  // Restore scroll position only once after data is ready
+  // Disable browser's native scroll restoration so it doesn't fight with ours
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    return () => {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto';
+      }
+    };
+  }, []);
+
+  // Save scroll on unmount
+  useEffect(() => {
+    return () => saveHomeScroll();
+  }, []);
+
+  // Restore scroll once: after items are painted AND continueWatching is resolved.
+  // We watch `items` and `continueWatching` together so we scroll after the full
+  // layout (including the "Continue Watching" row) is stable.
   const scrollRestoredRef = useRef<boolean>(false);
   useEffect(() => {
     if (!hasLoadedCache) return;
     if (scrollRestoredRef.current) return;
-    scrollRestoredRef.current = true;
     const saved = getHomeScroll();
-    if (saved > 0) {
-      const id = setTimeout(() => {
-        window.scrollTo({ top: saved, behavior: 'instant' });
-      }, 80);
-      return () => clearTimeout(id);
+    if (saved <= 0) {
+      scrollRestoredRef.current = true;
+      return;
     }
-  }, [hasLoadedCache]);
-
-  useEffect(() => {
-    return () => saveHomeScroll();
-  }, []);
+    // Use two rAFs: first one lets React commit the paint,
+    // second one fires after the browser has actually rendered.
+    let rafId1: number;
+    let rafId2: number;
+    rafId1 = requestAnimationFrame(() => {
+      rafId2 = requestAnimationFrame(() => {
+        if (!scrollRestoredRef.current) {
+          scrollRestoredRef.current = true;
+          window.scrollTo({ top: saved, behavior: 'instant' });
+        }
+      });
+    });
+    return () => {
+      cancelAnimationFrame(rafId1);
+      cancelAnimationFrame(rafId2);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasLoadedCache, items, continueWatching]);
 
   const allCategories = Array.from(new Set(channels.flatMap((c) => c.categories))).sort((a, b) => a.localeCompare(b));
 
