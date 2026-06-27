@@ -479,128 +479,176 @@ interface TrackInfo {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Subtitle / Caption fetching
-// Serverless-friendly: no youtubei.js, no browser environment needed.
-// Strategy: InnerTube API (TV → Android → iOS) → HTML scrape → empty result
+// Serverless-safe: uses embed-page scraping as primary strategy (no API key,
+// works from any IP including Vercel). Falls back to InnerTube API calls.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SUBTITLE_CLIENTS = [
-  // TV Embedded — least restricted, captions always included
-  {
-    key: 'AIzaSyDCU8hByM-4DrUqRex-AjkryPEBM7YAFM',
-    clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
-    clientVersion: '2.0',
-    userAgent: 'Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/538.1 (KHTML, like Gecko) Version/6.0 TV Safari/538.1',
-    thirdParty: { embedUrl: 'https://www.youtube.com/' },
-    sdkVersion: null as number | null,
-  },
-  // Android — no browser, no bot-detection
-  {
-    key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-    clientName: 'ANDROID',
-    clientVersion: '19.29.37',
-    userAgent: 'com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip',
-    thirdParty: null as { embedUrl: string } | null,
-    sdkVersion: 30,
-  },
-  // iOS
-  {
-    key: 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
-    clientName: 'IOS',
-    clientVersion: '19.29.1',
-    userAgent: 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5 like Mac OS X)',
-    thirdParty: null as { embedUrl: string } | null,
-    sdkVersion: null as number | null,
-  },
-];
+const SUBTITLE_TIMEOUT_MS = 9000;
 
-const INNERTUBE_PLAYER_URL = 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false';
-const SUBTITLE_TIMEOUT_MS = 7000;
+// YouTube InnerTube client-name IDs
+const YT_CLIENTS = [
+  // ANDROID — most reliable for caption data
+  {
+    id: 3,
+    name: 'ANDROID',
+    version: '17.31.35',
+    key: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+    ua: 'com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip',
+    extra: { androidSdkVersion: 30, utcOffsetMinutes: 0 },
+  },
+  // TVHTML5_SIMPLY_EMBEDDED_PLAYER — low restriction
+  {
+    id: 85,
+    name: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
+    version: '2.0',
+    key: 'AIzaSyDCU8hByM-4DrUqRex-AjkryPEBM7YAFM',
+    ua: 'Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/538.1 (KHTML, like Gecko) Version/6.0 TV Safari/538.1',
+    extra: {},
+    thirdParty: { embedUrl: 'https://www.youtube.com/' },
+  },
+  // IOS
+  {
+    id: 5,
+    name: 'IOS',
+    version: '17.33.2',
+    key: 'AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc',
+    ua: 'com.google.ios.youtube/17.33.2 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X)',
+    extra: { deviceModel: 'iPhone14,3', utcOffsetMinutes: 0 },
+  },
+] as const;
 
 /**
- * Call InnerTube /player endpoint and extract caption tracks.
- * Returns the raw captionTracks array plus the full player response.
+ * Strategy 1: scrape the YouTube EMBED page.
+ * The embed endpoint is designed for cross-origin use and is far less
+ * aggressively bot-filtered than the main watch page.
+ * Works reliably from Vercel / AWS / etc.
  */
-async function innerTubePlayer(videoId: string, clientIdx: number): Promise<{
+async function fetchFromEmbedPage(videoId: string): Promise<{
   captionTracks: any[];
   playerResponse: any;
 } | null> {
-  const ctx = SUBTITLE_CLIENTS[clientIdx];
-  if (!ctx) return null;
-
-  const clientObj: Record<string, any> = {
-    clientName: ctx.clientName,
-    clientVersion: ctx.clientVersion,
-    hl: 'en',
-    gl: 'US',
-  };
-  if (ctx.sdkVersion) clientObj.androidSdkVersion = ctx.sdkVersion;
-
-  const body: Record<string, any> = {
-    context: { client: clientObj },
-    videoId,
-    contentCheckOk: true,
-    racyCheckOk: true,
-  };
-  if (ctx.thirdParty) body.context.thirdParty = ctx.thirdParty;
-
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), SUBTITLE_TIMEOUT_MS);
-
-    const resp = await fetch(`${INNERTUBE_PLAYER_URL}&key=${ctx.key}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'User-Agent': ctx.userAgent,
-        'X-Youtube-Client-Name': '1',
-        'X-Youtube-Client-Version': ctx.clientVersion,
-        'Origin': 'https://www.youtube.com',
-        'Referer': 'https://www.youtube.com/',
-        'Accept-Language': 'en-US,en;q=0.9',
+    const resp = await fetch(
+      `https://www.youtube.com/embed/${videoId}?hl=en&cc_load_policy=1`,
+      {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+        redirect: 'follow',
+        signal: controller.signal,
       },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
+    );
     clearTimeout(timer);
+    if (!resp.ok) return null;
 
-    if (!resp.ok) {
-      console.warn(`[innerTubePlayer] ${ctx.clientName} HTTP ${resp.status}`);
-      return null;
+    const html = await resp.text();
+    // The embed page inlines ytInitialPlayerResponse as a JS variable
+    const patterns = [
+      /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\});\s*(?:var |const |let |<\/script>)/,
+      /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\});\s*\/\//,
+      /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\});/,
+    ];
+    for (const pat of patterns) {
+      const m = html.match(pat);
+      if (!m) continue;
+      try {
+        const data = JSON.parse(m[1]);
+        const captionTracks =
+          data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+        if (Array.isArray(captionTracks) && captionTracks.length > 0) {
+          console.log(`[subtitles] embed page: ${captionTracks.length} tracks`);
+          return { captionTracks, playerResponse: data };
+        }
+      } catch { /* try next pattern */ }
     }
-
-    const data = await resp.json();
-    const captionTracks =
-      data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-
-    if (Array.isArray(captionTracks) && captionTracks.length > 0) {
-      console.log(`[innerTubePlayer] ${ctx.clientName}: ${captionTracks.length} caption tracks`);
-      return { captionTracks, playerResponse: data };
-    }
-
-    // Check if video has subtitles disabled or is unavailable
-    const playabilityStatus = data?.playabilityStatus?.status;
-    if (playabilityStatus && playabilityStatus !== 'OK') {
-      console.warn(`[innerTubePlayer] ${ctx.clientName} playability: ${playabilityStatus}`);
-    }
-
     return null;
   } catch (err) {
-    console.warn(`[innerTubePlayer] ${ctx.clientName} error:`, err instanceof Error ? err.message : String(err));
+    console.warn('[subtitles] embed page failed:', err instanceof Error ? err.message : err);
     return null;
   }
 }
 
 /**
- * Scrape ytInitialPlayerResponse from the YouTube watch page HTML.
+ * Strategy 2: InnerTube /player API with correct client-name IDs.
  */
-async function scrapePlayerResponse(videoId: string): Promise<{
+async function fetchFromInnerTube(videoId: string): Promise<{
+  captionTracks: any[];
+  playerResponse: any;
+} | null> {
+  for (const ctx of YT_CLIENTS) {
+    try {
+      const clientObj: Record<string, any> = {
+        clientName: ctx.name,
+        clientVersion: ctx.version,
+        hl: 'en',
+        gl: 'US',
+        ...ctx.extra,
+      };
+      const body: Record<string, any> = {
+        context: { client: clientObj },
+        videoId,
+        contentCheckOk: true,
+        racyCheckOk: true,
+      };
+      if ('thirdParty' in ctx && ctx.thirdParty) {
+        body.context.thirdParty = ctx.thirdParty;
+      }
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), SUBTITLE_TIMEOUT_MS);
+      const resp = await fetch(
+        `https://www.youtube.com/youtubei/v1/player?key=${ctx.key}&prettyPrint=false`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'User-Agent': ctx.ua,
+            'X-Youtube-Client-Name': String(ctx.id),
+            'X-Youtube-Client-Version': ctx.version,
+            'Origin': 'https://www.youtube.com',
+            'Referer': 'https://www.youtube.com/',
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        },
+      );
+      clearTimeout(timer);
+
+      if (!resp.ok) {
+        console.warn(`[subtitles] InnerTube ${ctx.name} HTTP ${resp.status}`);
+        continue;
+      }
+      const data = await resp.json();
+      const captionTracks =
+        data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+      if (Array.isArray(captionTracks) && captionTracks.length > 0) {
+        console.log(`[subtitles] InnerTube ${ctx.name}: ${captionTracks.length} tracks`);
+        return { captionTracks, playerResponse: data };
+      }
+    } catch (err) {
+      console.warn(`[subtitles] InnerTube ${ctx.name} error:`, err instanceof Error ? err.message : err);
+    }
+  }
+  return null;
+}
+
+/**
+ * Strategy 3: scrape the main watch page (may be blocked by CAPTCHA on Vercel).
+ */
+async function fetchFromWatchPage(videoId: string): Promise<{
   captionTracks: any[];
   playerResponse: any;
 } | null> {
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), SUBTITLE_TIMEOUT_MS + 3000);
-
+    const timer = setTimeout(() => controller.abort(), SUBTITLE_TIMEOUT_MS);
     const resp = await fetch(
       `https://www.youtube.com/watch?v=${videoId}&bpctr=9999999999&has_verified=1&hl=en`,
       {
@@ -611,138 +659,112 @@ async function scrapePlayerResponse(videoId: string): Promise<{
             'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.9',
           'Cache-Control': 'no-cache',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'none',
         },
         redirect: 'follow',
         signal: controller.signal,
       },
     );
     clearTimeout(timer);
-
     if (!resp.ok) return null;
     const html = await resp.text();
-    if (html.includes('class="g-recaptcha"')) {
-      console.warn('[scrapePlayerResponse] Got CAPTCHA page');
-      return null;
-    }
+    if (html.includes('class="g-recaptcha"')) return null;
 
-    // Extract ytInitialPlayerResponse JSON from page
     const patterns = [
       /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\});\s*(?:var |const |let |<\/script>)/,
       /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\});\s*\/\//,
       /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\});/,
     ];
-
     for (const pat of patterns) {
       const m = html.match(pat);
-      if (m) {
-        try {
-          const data = JSON.parse(m[1]);
-          const captionTracks =
-            data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-          if (Array.isArray(captionTracks) && captionTracks.length > 0) {
-            console.log(`[scrapePlayerResponse] HTML scrape: ${captionTracks.length} tracks`);
-            return { captionTracks, playerResponse: data };
-          }
-        } catch { /* continue to next pattern */ }
-      }
+      if (!m) continue;
+      try {
+        const data = JSON.parse(m[1]);
+        const captionTracks =
+          data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+        if (Array.isArray(captionTracks) && captionTracks.length > 0) {
+          console.log(`[subtitles] watch page: ${captionTracks.length} tracks`);
+          return { captionTracks, playerResponse: data };
+        }
+      } catch { /* try next */ }
     }
     return null;
   } catch (err) {
-    console.warn('[scrapePlayerResponse] Error:', err instanceof Error ? err.message : String(err));
+    console.warn('[subtitles] watch page failed:', err instanceof Error ? err.message : err);
     return null;
   }
 }
 
 /**
- * Download and parse a YouTube timed-text XML from a baseUrl.
+ * Download and parse a YouTube timed-text XML from a caption baseUrl.
  */
-async function fetchTranscriptFromBaseUrl(
+async function fetchTranscriptXml(
   baseUrl: string,
 ): Promise<{ offset: number; duration: number; text: string }[]> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), SUBTITLE_TIMEOUT_MS);
-
   const resp = await fetch(baseUrl, {
     headers: {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-      'Accept': 'text/xml, application/xml, */*',
+      Accept: 'text/xml, application/xml, */*',
     },
     signal: controller.signal,
   });
   clearTimeout(timer);
-  if (!resp.ok) throw new Error(`baseUrl fetch failed: ${resp.status}`);
+  if (!resp.ok) throw new Error(`Transcript fetch ${resp.status}`);
 
   const xml = await resp.text();
   const results: { offset: number; duration: number; text: string }[] = [];
 
-  // Format A: <p t="..." d="..."><s>word</s></p>
-  const pRegex = /<p\s+t="(\d+)"\s+d="(\d+)"[^>]*>([\s\S]*?)<\/p>/g;
+  // Format A: <p t="ms" d="ms"><s>word</s></p>
+  const pRx = /<p\s+t="(\d+)"\s+d="(\d+)"[^>]*>([\s\S]*?)<\/p>/g;
   let m: RegExpExecArray | null;
-  while ((m = pRegex.exec(xml)) !== null) {
-    const startMs = parseInt(m[1], 10);
-    const durMs = parseInt(m[2], 10);
+  while ((m = pRx.exec(xml)) !== null) {
     const inner = m[3];
     let text = '';
-    const sRegex = /<s[^>]*>([^<]*)<\/s>/g;
+    const sRx = /<s[^>]*>([^<]*)<\/s>/g;
     let sm: RegExpExecArray | null;
-    while ((sm = sRegex.exec(inner)) !== null) text += sm[1];
+    while ((sm = sRx.exec(inner)) !== null) text += sm[1];
     if (!text) text = inner.replace(/<[^>]+>/g, '');
-    text = decodeEntities(text).trim();
-    if (text) results.push({ offset: startMs, duration: durMs, text });
+    text = xtdecode(text).trim();
+    if (text) results.push({ offset: parseInt(m[1], 10), duration: parseInt(m[2], 10), text });
   }
   if (results.length > 0) return results;
 
-  // Format B: <text start="..." dur="...">...</text>
-  const textRegex = /<text start="([^"]*)" dur="([^"]*)"[^>]*>([^<]*)<\/text>/g;
-  while ((m = textRegex.exec(xml)) !== null) {
-    const text = decodeEntities(m[3]).trim();
-    if (text)
-      results.push({
-        offset: parseFloat(m[1]),
-        duration: parseFloat(m[2]),
-        text,
-      });
+  // Format B: <text start="s" dur="s">...</text>
+  const tRx = /<text start="([^"]*)" dur="([^"]*)"[^>]*>([^<]*)<\/text>/g;
+  while ((m = tRx.exec(xml)) !== null) {
+    const text = xtdecode(m[3]).trim();
+    if (text) results.push({ offset: parseFloat(m[1]), duration: parseFloat(m[2]), text });
   }
   return results;
 }
 
-function decodeEntities(text: string): string {
-  return text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
-      String.fromCodePoint(parseInt(hex, 16)),
-    )
-    .replace(/&#(\d+);/g, (_, dec) =>
-      String.fromCodePoint(parseInt(dec, 10)),
-    );
+function xtdecode(s: string): string {
+  return s
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'")
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)));
 }
 
 function getLanguageName(code: string): string {
-  const names: Record<string, string> = {
-    en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
-    pt: 'Portuguese', ru: 'Russian', ja: 'Japanese', ko: 'Korean', zh: 'Chinese',
-    hi: 'Hindi', ar: 'Arabic', th: 'Thai', vi: 'Vietnamese', tr: 'Turkish',
-    pl: 'Polish', nl: 'Dutch', sv: 'Swedish', da: 'Danish', no: 'Norwegian',
-    fi: 'Finnish', cs: 'Czech', hu: 'Hungarian', ro: 'Romanian', bg: 'Bulgarian',
-    hr: 'Croatian', sk: 'Slovak', sl: 'Slovenian', et: 'Estonian', lv: 'Latvian',
-    lt: 'Lithuanian', uk: 'Ukrainian', he: 'Hebrew', el: 'Greek', id: 'Indonesian',
-    ms: 'Malay', tl: 'Filipino',
+  const map: Record<string, string> = {
+    en:'English',es:'Spanish',fr:'French',de:'German',it:'Italian',
+    pt:'Portuguese',ru:'Russian',ja:'Japanese',ko:'Korean',zh:'Chinese',
+    hi:'Hindi',ar:'Arabic',th:'Thai',vi:'Vietnamese',tr:'Turkish',
+    pl:'Polish',nl:'Dutch',sv:'Swedish',da:'Danish',no:'Norwegian',
+    fi:'Finnish',cs:'Czech',hu:'Hungarian',ro:'Romanian',bg:'Bulgarian',
+    hr:'Croatian',sk:'Slovak',sl:'Slovenian',et:'Estonian',lv:'Latvian',
+    lt:'Lithuanian',uk:'Ukrainian',he:'Hebrew',el:'Greek',id:'Indonesian',
+    ms:'Malay',tl:'Filipino',
   };
-  return names[code] || code.toUpperCase();
+  return map[code] || code.toUpperCase();
 }
 
 /**
- * Main subtitle entry-point.
- * Serverless-safe: never uses youtubei.js or youtube-transcript.
+ * Main subtitle entry-point. Serverless-safe.
+ * Order: embed page → InnerTube API → watch page scrape
  */
 export async function fetchSubtitles(
   videoId: string,
@@ -752,40 +774,36 @@ export async function fetchSubtitles(
   subtitles: { start: number; duration: number; text: string }[];
   selectedLanguage: string;
 } | null> {
-  // ── Step 1: Obtain caption tracks from InnerTube API ──────────────────────
-  let tracksResult: { captionTracks: any[]; playerResponse: any } | null = null;
+  // Run embed page (fastest, most reliable on Vercel) in parallel with InnerTube
+  const [embedResult, innerTubeResult] = await Promise.all([
+    fetchFromEmbedPage(videoId),
+    fetchFromInnerTube(videoId),
+  ]);
 
-  for (let i = 0; i < SUBTITLE_CLIENTS.length && !tracksResult; i++) {
-    tracksResult = await innerTubePlayer(videoId, i);
+  let tracksResult = embedResult ?? innerTubeResult;
+
+  if (!tracksResult) {
+    console.warn(`[subtitles] primary strategies failed for ${videoId}, trying watch page`);
+    tracksResult = await fetchFromWatchPage(videoId);
   }
 
-  // ── Step 2: Fallback to HTML scrape ───────────────────────────────────────
   if (!tracksResult) {
-    console.warn(`[fetchSubtitles] InnerTube failed for ${videoId}, trying HTML scrape`);
-    tracksResult = await scrapePlayerResponse(videoId);
-  }
-
-  // ── Step 3: No tracks found ───────────────────────────────────────────────
-  if (!tracksResult) {
-    console.warn(`[fetchSubtitles] No caption tracks found for ${videoId}`);
+    console.warn(`[subtitles] all strategies failed for ${videoId}`);
     return { languages: [], subtitles: [], selectedLanguage: '' };
   }
 
   const { captionTracks } = tracksResult;
 
-  // Build language list
   const languages: TrackInfo[] = captionTracks.map((t: any) => ({
     code: t.languageCode ?? t.language_code ?? '',
     name:
       t.name?.simpleText ||
       t.name?.runs?.[0]?.text ||
       getLanguageName(t.languageCode ?? t.language_code ?? ''),
-    isAutoGenerated: t.kind === 'asr' || t.isAutoGenerated === true,
+    isAutoGenerated: t.kind === 'asr' || !!t.isAutoGenerated,
   }));
 
   const langCodes = languages.map(l => l.code);
-
-  // Pick the best language
   let finalLang: string;
   if (targetLang && langCodes.includes(targetLang)) {
     finalLang = targetLang;
@@ -797,46 +815,32 @@ export async function fetchSubtitles(
     return { languages, subtitles: [], selectedLanguage: '' };
   }
 
-  // Find matching track
-  const track = captionTracks.find(
-    (t: any) => (t.languageCode ?? t.language_code) === finalLang,
-  ) ?? captionTracks[0];
+  const track =
+    captionTracks.find((t: any) => (t.languageCode ?? t.language_code) === finalLang) ??
+    captionTracks[0];
 
-  if (!track?.baseUrl && !track?.base_url) {
-    console.warn(`[fetchSubtitles] No baseUrl for lang ${finalLang}`);
+  const baseUrl: string | undefined = track?.baseUrl ?? track?.base_url;
+  if (!baseUrl) {
+    console.warn(`[subtitles] No baseUrl for ${finalLang} in ${videoId}`);
     return { languages, subtitles: [], selectedLanguage: finalLang };
   }
 
-  // ── Step 4: Download the transcript XML ──────────────────────────────────
   try {
-    const baseUrl = track.baseUrl ?? track.base_url;
-    const raw = await fetchTranscriptFromBaseUrl(baseUrl);
-
+    const raw = await fetchTranscriptXml(baseUrl);
     if (raw.length === 0) {
-      console.warn(`[fetchSubtitles] Empty transcript for ${videoId} (${finalLang})`);
       return { languages, subtitles: [], selectedLanguage: finalLang };
     }
 
-    // Normalise offsets: YouTube sometimes returns milliseconds, sometimes seconds
     const subtitles = raw.map(item => ({
-      start:
-        typeof item.offset === 'number' && item.offset > 1000
-          ? item.offset / 1000
-          : item.offset,
-      duration:
-        typeof item.duration === 'number' && item.duration > 1000
-          ? item.duration / 1000
-          : item.duration,
+      start:  item.offset > 1000 ? item.offset  / 1000 : item.offset,
+      duration: item.duration > 1000 ? item.duration / 1000 : item.duration,
       text: item.text,
     }));
 
-    console.log(`[fetchSubtitles] ✓ ${subtitles.length} cues for ${videoId} (${finalLang})`);
+    console.log(`[subtitles] ✓ ${subtitles.length} cues for ${videoId} (${finalLang})`);
     return { languages, subtitles, selectedLanguage: finalLang };
   } catch (err) {
-    console.error(
-      `[fetchSubtitles] Transcript download error:`,
-      err instanceof Error ? err.message : err,
-    );
+    console.error('[subtitles] XML fetch error:', err instanceof Error ? err.message : err);
     return { languages, subtitles: [], selectedLanguage: finalLang };
   }
 }

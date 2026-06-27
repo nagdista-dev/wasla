@@ -736,7 +736,7 @@ function VideoPage() {
       <div className="mx-auto w-full max-w-[1440px] 2xl:max-w-[1600px] px-4 sm:px-4 lg:px-6 pt-4 lg:py-6">
         <div className="flex flex-col gap-6 sm:gap-8">
 
-          <div className="w-full max-sm:sticky max-sm:top-16 max-sm:z-10">
+          <div className="w-full sticky top-16 z-20">
             {player}
           </div>
 
