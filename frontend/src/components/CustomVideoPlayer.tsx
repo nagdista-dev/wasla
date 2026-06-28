@@ -24,6 +24,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   videoId,
   startTime = 0,
   onPlayStateChange,
+  onSpeedChange,
   onSeek,
   onTimeUpdate,
 }) => {
