@@ -153,6 +153,12 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
             <textarea
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleAddNote();
+                }
+              }}
               placeholder={t('videoPage.addNotePlaceholder')}
               className="w-full min-h-[80px] bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white outline-none resize-none"
             />
