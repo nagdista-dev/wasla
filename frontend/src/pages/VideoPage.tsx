@@ -191,7 +191,7 @@ function VideoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { currentVideo, registerFullscreenContainer, unregisterFullscreenContainer, seekTo } = usePlayer();
+  const { currentVideo, registerFullscreenContainer, unregisterFullscreenContainer, seekTo, togglePlay } = usePlayer();
   const mediaManager = useMediaManager();
   const { showToast } = useToast();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -413,6 +413,22 @@ function VideoPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [saveOnPause]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === ' ' || e.code === 'Space') && !e.altKey && !e.ctrlKey && !e.metaKey) {
+        const tag = (e.target as HTMLElement).tagName;
+        const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable;
+        if (!isInput) {
+          e.preventDefault();
+          togglePlay();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay]);
 
   const handleOpenOnYoutube = useCallback(() => {
     if (!video) return;
@@ -797,7 +813,7 @@ function VideoPage() {
                       }}
                     />
                   </div>
-                ) : <VideoNotes videoId={safeEmbedId} currentTime={currentPlaybackTime} onSeek={(s) => { currentTimeRef.current = s; setCurrentPlaybackTime(s); updatePosition(s, durationSeconds); }} t={t} showToast={showToast} />}
+                ) : <VideoNotes videoId={safeEmbedId} videoTitle={video?.title} videoLink={video?.link} currentTime={currentPlaybackTime} onSeek={(s) => { currentTimeRef.current = s; setCurrentPlaybackTime(s); updatePosition(s, durationSeconds); }} t={t} showToast={showToast} />}
 
             </div>
           ) : (

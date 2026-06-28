@@ -15,6 +15,9 @@ interface PlayerContextType {
   toggleFullscreen: () => void;
   hasFullscreenContainer: boolean;
   isFullscreen: boolean;
+  registerTogglePlayHandler: (handler: () => void) => void;
+  unregisterTogglePlayHandler: () => void;
+  togglePlay: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -55,6 +58,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const unregisterSeekHandler = useCallback(() => {
     seekHandlerRef.current = null;
+  }, []);
+
+  const togglePlayHandlerRef = useRef<(() => void) | null>(null);
+
+  const registerTogglePlayHandler = useCallback((handler: () => void) => {
+    togglePlayHandlerRef.current = handler;
+  }, []);
+
+  const unregisterTogglePlayHandler = useCallback(() => {
+    togglePlayHandlerRef.current = null;
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    togglePlayHandlerRef.current?.();
   }, []);
 
   const fullscreenContainerRef = useRef<HTMLElement | null>(null);
@@ -98,7 +115,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <PlayerContext.Provider value={{ currentVideo, play, close, seekTo, registerSeekHandler, unregisterSeekHandler, registerFullscreenContainer, unregisterFullscreenContainer, toggleFullscreen, hasFullscreenContainer, isFullscreen }}>
+    <PlayerContext.Provider value={{ currentVideo, play, close, seekTo, registerSeekHandler, unregisterSeekHandler, registerFullscreenContainer, unregisterFullscreenContainer, toggleFullscreen, hasFullscreenContainer, isFullscreen, registerTogglePlayHandler, unregisterTogglePlayHandler, togglePlay }}>
       {children}
     </PlayerContext.Provider>
   );

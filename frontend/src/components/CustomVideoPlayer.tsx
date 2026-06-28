@@ -27,7 +27,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   onSeek,
   onTimeUpdate,
 }) => {
-  const { registerSeekHandler, unregisterSeekHandler } = usePlayer();
+  const { registerSeekHandler, unregisterSeekHandler, registerTogglePlayHandler, unregisterTogglePlayHandler } = usePlayer();
   const [, setIsPlaying] = useState(false);
   const isPlayingRef = useRef(false);
   const [lastClickTime, setLastClickTime] = useState(0);
@@ -35,6 +35,12 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLongPressRef = useRef(false);
+  const previousSpeedRef = useRef(1);
+  const currentSpeedRef = useRef(1);
+  const onSpeedChangeRef = useRef(onSpeedChange);
+  onSpeedChangeRef.current = onSpeedChange;
   const onSeekRef = useRef(onSeek);
   onSeekRef.current = onSeek;
   const onPlayStateChangeRef = useRef(onPlayStateChange);
@@ -131,6 +137,58 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   }, [registerSeekHandler, unregisterSeekHandler, handleSeek]);
 
   useEffect(() => {
+    registerTogglePlayHandler(() => {
+      if (isPlayingRef.current) {
+        sendMessage('pauseVideo');
+      } else {
+        sendMessage('playVideo');
+      }
+    });
+    return () => unregisterTogglePlayHandler();
+  }, [registerTogglePlayHandler, unregisterTogglePlayHandler, sendMessage]);
+
+  const LONG_PRESS_DELAY = 500;
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    isLongPressRef.current = false;
+    previousSpeedRef.current = currentSpeedRef.current;
+
+    longPressTimerRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      sendMessage('setPlaybackRate', [2]);
+      onSpeedChangeRef.current?.(2);
+    }, LONG_PRESS_DELAY);
+  }, [sendMessage]);
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (isLongPressRef.current) {
+      const restore = previousSpeedRef.current;
+      sendMessage('setPlaybackRate', [restore]);
+      onSpeedChangeRef.current?.(restore);
+      isLongPressRef.current = false;
+    }
+  }, [sendMessage]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (isLongPressRef.current) {
+      const restore = previousSpeedRef.current;
+      sendMessage('setPlaybackRate', [restore]);
+      onSpeedChangeRef.current?.(restore);
+      isLongPressRef.current = false;
+    }
+  }, [sendMessage]);
+
+  useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
@@ -200,6 +258,9 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       className="relative w-full h-full bg-black overflow-hidden rounded-xl"
       onClick={handleOverlayClick}
       onMouseMove={handleMouseMove}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
     >
       <iframe
         ref={iframeRef}

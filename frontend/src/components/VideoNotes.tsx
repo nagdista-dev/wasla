@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Download } from 'lucide-react';
 import type { VideoNote } from '../types';
 import { getItem, putItem } from '../services/indexedDbService';
 
 type VideoNotesProps = {
   videoId: string;
+  videoTitle?: string;
+  videoLink?: string;
   currentTime: number;
   onSeek: (seconds: number) => void;
   t: (key: string) => string;
@@ -27,12 +29,15 @@ async function saveNotesToIDB<T>(key: string, value: T): Promise<void> {
 
 const VideoNotes: React.FC<VideoNotesProps> = ({
   videoId,
+  videoTitle,
+  videoLink,
   t,
   showToast,
 }) => {
   const [notes, setNotes] = useState<VideoNote[]>([]);
   const [newNote, setNewNote] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const STORAGE_KEY = `wasla_video_notes_${videoId}`;
 
@@ -77,6 +82,7 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
     const updatedNotes = [...notes, note].sort((a, b) => b.createdAt - a.createdAt);
     await saveNotes(updatedNotes);
     setNewNote('');
+    requestAnimationFrame(() => textareaRef.current?.focus());
     showToast('Note added', 'success');
   };
 
@@ -92,23 +98,30 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
     showToast('All notes deleted', 'info');
   };
 
+  const sanitizeFileName = (name: string) => name.replace(/[<>:"/\\|?*]/g, '_').trim() || 'notes';
+
   const handleDownloadMD = () => {
-    const mdContent = notes
+    if (!notes.length) {
+      showToast('No notes to download', 'info');
+      return;
+    }
+
+    const header = videoTitle ? `# ${videoTitle}\n\n` : '';
+    const link = videoLink ? `🔗 ${videoLink}\n\n` : '';
+    const notesContent = notes
       .slice()
       .reverse()
       .map((note) => `- ${note.content}`)
       .join('\n');
 
-    if (!mdContent) {
-      showToast('No notes to download', 'info');
-      return;
-    }
+    const mdContent = `${header}${link}${notesContent}`;
+    const fileName = videoTitle ? `${sanitizeFileName(videoTitle)}.md` : `notes-${videoId}.md`;
 
     const blob = new Blob([mdContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `notes-${videoId}.md`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -151,6 +164,7 @@ const VideoNotes: React.FC<VideoNotesProps> = ({
         <div className="flex flex-col gap-3">
           <div className="flex flex-col w-full rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden focus-within:ring-1 focus-within:ring-brand-coral">
             <textarea
+              ref={textareaRef}
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               onKeyDown={(e) => {
