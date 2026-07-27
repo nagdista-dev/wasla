@@ -1,6 +1,6 @@
 # Wasla
 
-**واصـلة** — Your curated collection of YouTube channels, playlists, and video courses.
+Your curated collection of YouTube channels, playlists, and video courses.
 
 A video platform that transforms YouTube playlists into structured learning courses. Aggregate channels, track progress, and build your personal video curriculum.
 
