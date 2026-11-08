@@ -106,6 +106,14 @@ const Sidebar = memo(function Sidebar({ channels, playlists = [] }: SidebarProps
             })}
           </div>
         </div>
+        <a
+          href="https://nagdista.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-auto block border-t border-gray-100 px-4 py-3 text-[11px] text-gray-400 transition-colors hover:text-brand-coral dark:border-gray-700/50 dark:text-gray-500"
+        >
+          {isRTL ? 'صنع بواسطة محمود النجدي' : 'Built by Mahmoud Elnagdy'}
+        </a>
       </div>
     </aside>
   );
